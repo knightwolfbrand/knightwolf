@@ -1,0 +1,115 @@
+/* ============================
+   SplashScreen.module.css
+   Knight Wolf — Black & White Cinematic Splash
+   ============================ */
+
+/* Overlay — covers entire viewport, sits on top of everything */
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: transparent; /* panels provide the bg */
+}
+
+/* ── Curtain Panels ── */
+.panel {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  background: #0a0a0f;
+  z-index: 1;
+  will-change: transform;
+}
+.panelLeft  { left: 0;   transform-origin: left center; }
+.panelRight { right: 0;  transform-origin: right center; }
+
+/* Subtle grain texture overlay on panels */
+.panel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: 0.06;
+  pointer-events: none;
+}
+
+/* ── Center Content ── */
+.content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  text-align: center;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ── Logo SVG Container ── */
+.logoWrap {
+  margin-bottom: 36px;
+  will-change: filter, transform;
+}
+
+.logoSvg {
+  display: block;
+  width: 140px;
+  height: auto;
+}
+
+/* ── Brand Name ── */
+.brandName {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  font-family: 'Bebas Neue', 'Impact', sans-serif;
+  font-size: clamp(2.6rem, 6vw, 5rem);
+  font-weight: 400;
+  color: #ffffff;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  margin-bottom: 18px;
+  will-change: transform, opacity;
+}
+
+.letter {
+  display: inline-block;
+  opacity: 0; /* GSAP animates this */
+  transform: translateY(30px);
+}
+
+.space {
+  display: inline-block;
+  width: 0.35em;
+  opacity: 0;
+}
+
+/* ── Tagline ── */
+.tagline {
+  font-family: 'Inter', 'Helvetica Neue', sans-serif;
+  font-size: clamp(0.55rem, 1.2vw, 0.72rem);
+  font-weight: 400;
+  color: #ffffff;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  opacity: 0; /* GSAP animates */
+  margin: 0;
+}
+
+/* ── Divider line above tagline ── */
+.content::before {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.25);
+  margin: 0 auto 14px;
+}
