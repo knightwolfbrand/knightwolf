@@ -54,13 +54,13 @@
 
 /* ── Logo SVG Container ── */
 .logoWrap {
-  margin-bottom: 36px;
+  margin-bottom: 0px;
   will-change: filter, transform;
 }
 
 .logoSvg {
   display: block;
-  width: 90px;
+  width: 150px;
   height: auto;
 }
 
@@ -71,12 +71,13 @@
   justify-content: center;
   gap: 0;
   font-family: 'Libre Baskerville', serif;
-  font-size: clamp(1.4rem, 3.2vw, 2.5rem);
+  font-size: clamp(1.2rem, 3.2vw, 2.2rem);
   font-weight: 700;
   color: #ffffff;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.02em;
   line-height: 1;
   margin-bottom: 0;
+  padding-top: 0;
   will-change: transform, opacity;
 }
 
