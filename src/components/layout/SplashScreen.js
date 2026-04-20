@@ -96,8 +96,6 @@ export default function SplashScreen({ onComplete }) {
             {brandLetters.map((letter, i) => (
               <span key={i} className={styles.letter}>{letter}</span>
             ))}
-            {/* The Shine Glint overlay for text */}
-            <div className={styles.textShine} />
           </div>
         </div>
       </div>

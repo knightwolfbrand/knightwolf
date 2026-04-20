@@ -62,32 +62,8 @@ const revealTextMasked = (tl, brandNameRef, duration = 2.0, startAt = "<") => {
   const letters = brandNameRef.querySelectorAll('span')
   tl.fromTo(letters, 
     { opacity: 0, y: 50 },
-    { opacity: 1, y: 0, duration: duration, ease: 'power4.out', stagger: 0.02 },
+    { opacity: 1, y: 0, duration: duration, ease: 'power4.out', stagger: 0 },
     startAt
-  )
-}
-
-/**
- * SHINE SEQUENCE: Sychronized glassy glints across Logo then Text.
- */
-const applyShineSequence = (tl, refs) => {
-  const logoShine = refs.logoSvg.querySelector('[data-part="shine-overlay"]')
-  const shineStops = refs.logoSvg.querySelectorAll('.shine-stop')
-  const textShine = refs.brandName.querySelector(`div:last-child`) // Selects styles.textShine
-
-  // 1. Logo Shine Sweep
-  tl.set(logoShine, { opacity: 1 }, "+=0.2")
-  tl.fromTo(shineStops, 
-    { attr: { offset: "-100%" } },
-    { attr: { offset: "200%" }, duration: 1.2, ease: "power2.inOut" }
-  )
-  tl.set(logoShine, { opacity: 0 })
-
-  // 2. Text Shine Sweep (Overlaps slightly)
-  tl.fromTo(textShine,
-    { left: "-150%" },
-    { left: "150%", duration: 1.0, ease: "power2.inOut" },
-    "-=0.8"
   )
 }
 
@@ -112,10 +88,7 @@ export const transitions = {
     )
     revealTextMasked(tl, refs.brandName, 2.2, "<")
 
-    // 3. Cinematic Polish (Shine Sequence)
-    applyShineSequence(tl, refs)
-
-    // 4. Constant Procedural Motion (Idle State)
+    // 3. Constant Procedural Motion (Idle State)
     applyHyperShake(tl, facePaths)
     applyDuikRig(tailPaths)
 
