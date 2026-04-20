@@ -117,6 +117,22 @@
   transform: translateY(30px);
 }
 
+/* High-gloss text finish */
+:global(.glossy-text) .letter {
+  background: linear-gradient(180deg, #FFFFFF 0%, #D0D0D0 50%, #FFFFFF 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
+}
+
+/* Lens Flare Blend Modes */
+:global([data-part^="flare-"]), :global([data-part="eye-sparkle"]) {
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
 .space {
   display: inline-block;
   width: 0.35em;
