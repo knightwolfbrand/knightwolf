@@ -57,7 +57,6 @@
   margin-bottom: -10px;
   will-change: filter, transform;
   overflow: visible;
-  filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.4));
 }
 
 .logoSvg {
@@ -76,27 +75,12 @@
   font-family: 'Libre Baskerville', serif;
   font-size: clamp(1rem, 2.8vw, 1.8rem);
   font-weight: 700;
+  color: #ffffff;
   letter-spacing: 0.2em;
   line-height: 1;
   margin-bottom: 0;
   padding-top: 0;
   will-change: transform, opacity;
-  
-  /* Glossy Silver Gradient */
-  background: linear-gradient(
-    to bottom,
-    #ffffff 0%,
-    #f8f9fa 45%,
-    #e9ecef 50%,
-    #dee2e6 55%,
-    #ced4da 100%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  
-  /* Subtle light-spill glow */
-  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.15));
 }
 
 /* Container to hide text as it reveals from behind */
