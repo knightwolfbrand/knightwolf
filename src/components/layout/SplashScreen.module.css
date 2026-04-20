@@ -66,8 +66,8 @@
 /* Atmospheric glow that sits behind the wolf mascot */
 .logoGlow {
   position: absolute;
-  width: 280px;
-  height: 280px;
+  width: 220px;
+  height: 220px;
   border-radius: 50%;
   background: radial-gradient(
     circle,
@@ -87,7 +87,7 @@
 
 .logoSvg {
   display: block;
-  width: 150px;
+  width: 120px;
   height: auto;
 }
 
