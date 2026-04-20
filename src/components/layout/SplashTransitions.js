@@ -53,26 +53,26 @@ export const transitions = {
     // 2. ScaleSync Entrance — logo + text simultaneously at t=0
     tl.fromTo(refs.logo,
       { opacity: 0, scale: 1.1 },
-      { opacity: 1, scale: 1, duration: 1.2, ease: 'expo.out' }
+      { opacity: 1, scale: 1, duration: 0.6, ease: 'expo.out' }
     )
-    revealTextMasked(tl, refs.brandName, 1.2, "<")
+    revealTextMasked(tl, refs.brandName, 0.6, "<")
 
     // 3. Atmospheric Glow — fades in as the logo settles
     tl.fromTo(refs.glow,
       { opacity: 0, scale: 0.8 },
-      { opacity: 1, scale: 1, duration: 1.5, ease: 'power2.out' },
-      0.6 // starts t=0.6s
+      { opacity: 1, scale: 1, duration: 0.8, ease: 'power2.out' },
+      0.3 // starts t=0.3s
     )
 
     // 4. Subtle Glow Pulse (idle breathing)
     tl.to(refs.glow, {
       opacity: 0.6,
       scale: 1.08,
-      duration: 1.5,
+      duration: 0.8,
       repeat: -1,
       yoyo: true,
       ease: "sine.inOut"
-    }, "+=0.2")
+    }, "+=0.1")
 
     // 5. Procedural Tail Motion
     applyDuikRig(tailPaths)
@@ -80,9 +80,9 @@ export const transitions = {
     // 6. Final Exit
     tl.to(refs.splash, {
       opacity: 0,
-      duration: 1.0,
+      duration: 0.6,
       ease: 'power4.inOut'
-    }, '+=1.5')
+    }, '+=0.8')
 
     tl.set(refs.splash, { display: 'none' })
     tl.set([tailPaths], { clearProps: "all" })
