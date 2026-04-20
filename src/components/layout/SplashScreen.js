@@ -11,6 +11,7 @@ export default function SplashScreen({ onComplete }) {
   const logoRef = useRef(null)
   const brandNameRef = useRef(null)
   const logoSvgRef = useRef(null)
+  const glowRef = useRef(null)
 
   useEffect(() => {
     const refs = {
@@ -19,10 +20,10 @@ export default function SplashScreen({ onComplete }) {
       rightPanel: rightPanelRef.current,
       logo: logoRef.current,
       brandName: brandNameRef.current,
-      logoSvg: logoSvgRef.current
+      logoSvg: logoSvgRef.current,
+      glow: glowRef.current
     }
 
-    // Use the finalized cinematic transition
     const tl = transitions.finalSplash(refs)
 
     tl.eventCallback('onComplete', () => {
@@ -42,8 +43,12 @@ export default function SplashScreen({ onComplete }) {
 
       {/* ── Center Content ── */}
       <div className={styles.content}>
-        {/* Wolf SVG Logo */}
+
+        {/* Logo Wrapper with Glow behind */}
         <div ref={logoRef} className={styles.logoWrap} style={{ opacity: 0 }}>
+          {/* Glow layer — sits behind the SVG */}
+          <div ref={glowRef} className={styles.logoGlow} />
+
           <svg
             ref={logoSvgRef}
             width="200"
@@ -51,34 +56,14 @@ export default function SplashScreen({ onComplete }) {
             viewBox="-100 0 630 593"
             xmlns="http://www.w3.org/2000/svg"
             className={styles.logoSvg}
-            style={{ overflow: 'visible' }}
+            style={{ overflow: 'visible', position: 'relative', zIndex: 1 }}
           >
             <defs>
-              <linearGradient id="glassy-shine" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="white" stopOpacity="0" />
-                <stop offset="45%" stopColor="white" stopOpacity="0" />
-                <stop offset="50%" stopColor="white" stopOpacity="0.9" />
-                <stop offset="55%" stopColor="white" stopOpacity="0" />
-                <stop offset="100%" stopColor="white" stopOpacity="0" />
-              </linearGradient>
-
               <clipPath id="logo-reveal-mask">
                 <rect id="reveal-rect" x="-100" y="0" width="630" height="593" />
               </clipPath>
-
-              {/* Mask for the Glint — duplication ensures high performance and sharp edges */}
-              <mask id="logo-silhouette-mask">
-                <g fill="white">
-                  {/* These paths must match the ones below exactly for the glint to align */}
-                  <path d="M95.7916 208.421L172.729 269.321C172.729 269.321 173.464 258.689 172.729 251.921C168 208.375 85.6217 165.284 85.1795 166.009C84.7373 166.734 80.6694 174.056 67.9349 197.546C55.2003 221.036 55.5541 282.733 57.3228 310.646C59.0914 338.558 6.47318 367.92 16.2009 387.858C25.9287 407.795 57.3228 459.632 57.3228 459.632C57.3228 459.632 102.424 481.382 132.934 495.52C157.342 506.83 168.75 555.332 168.75 555.332C168.75 555.332 212.714 583.575 222 593C222 593 222.871 570.992 221.81 564.032C220.749 557.072 203.681 548.807 195.28 545.544C195.28 545.544 197.402 395.408 195.28 375.398C193.158 355.388 149.016 342.032 126.465 334.42C130.445 342.395 132.094 348.825 138.462 361.875C144.829 374.925 166.097 380.914 172.729 382.364L155.485 481.382C131.077 455.282 94.9072 445.857 79.8735 444.407L48.0372 387.858L89.159 314.996C68.996 265.406 85.1795 223.284 95.7916 208.421Z" />
-                  <path d="M348.49 208.421L271.553 269.321C271.553 269.321 270.817 258.689 271.553 251.921C276.282 208.375 358.66 165.284 359.102 166.009C359.544 166.734 363.612 174.056 376.347 197.546C389.081 221.036 388.728 282.733 386.959 310.646C385.19 338.558 437.809 367.92 428.081 387.858C418.353 407.795 386.959 459.632 386.959 459.632C386.959 459.632 341.858 481.382 311.348 495.52C286.94 506.83 275.532 555.332 275.532 555.332C275.532 555.332 231.286 583.575 222 593C222 593 221.41 570.992 222.472 564.032C223.533 557.072 240.601 548.807 249.002 545.544C249.002 545.544 246.879 395.408 249.002 375.398C251.124 355.388 295.266 342.032 317.816 334.42C313.837 342.395 312.187 348.825 305.82 361.875C299.453 374.925 278.185 380.914 271.553 382.364L288.797 481.382C313.205 455.282 349.374 445.857 364.408 444.407L396.245 387.858L355.123 314.996C375.286 265.406 359.102 223.284 348.49 208.421Z" />
-                  <path d="M198.5 150.5L221 123V359L188.5 248L210.5 222C210.5 222 196.5 224 174 211.5C151.5 199 141.5 199 141.5 199L151 185C168.5 165.5 189.333 165 198.5 162V150.5Z" />
-                  <path d="M243 150.5L220.5 123V359L253 248L231 222C231 222 245 224 267.5 211.5C290 199 300 199 300 199L290.5 185C273 165.5 252.167 165 243 162V150.5Z" />
-                  <path d="M260.332 82.1131C255.813 108.324 221.719 133.974 221.719 133.974C221.719 133.974 196.806 91.2368 151.549 133.974C106.292 176.711 49.4092 123.89 29.4794 92.6774C9.54968 61.4648 2.35282 19.848 0 0C1.93762 3.84155 12.0408 28.3314 29.4794 46.0986C46.9181 63.8658 66.8479 60.9846 66.8479 60.9846C66.8479 60.9846 46.0877 47.059 40.69 18.7276C42.3508 20.1681 62.1322 41.413 78.4734 46.0986C111.428 55.5478 130.528 25.1532 161.514 16.3266C192.5 7.5 269.04 31.6097 260.332 82.1131Z" />
-                </g>
-              </mask>
             </defs>
-            
+
             {/* Base Logo Layer (Pure White) */}
             <g clipPath="url(#logo-reveal-mask)">
               <g data-part="face" fill="white">
@@ -88,11 +73,6 @@ export default function SplashScreen({ onComplete }) {
                 <path d="M243 150.5L220.5 123V359L253 248L231 222C231 222 245 224 267.5 211.5C290 199 300 199 300 199L290.5 185C273 165.5 252.167 165 243 162V150.5Z" />
               </g>
               <path data-part="tail" fill="white" d="M260.332 82.1131C255.813 108.324 221.719 133.974 221.719 133.974C221.719 133.974 196.806 91.2368 151.549 133.974C106.292 176.711 49.4092 123.89 29.4794 92.6774C9.54968 61.4648 2.35282 19.848 0 0C1.93762 3.84155 12.0408 28.3314 29.4794 46.0986C46.9181 63.8658 66.8479 60.9846 66.8479 60.9846C66.8479 60.9846 46.0877 47.059 40.69 18.7276C42.3508 20.1681 62.1322 41.413 78.4734 46.0986C111.428 55.5478 130.528 25.1532 161.514 16.3266C192.5 7.5 269.04 31.6097 260.332 82.1131Z" />
-            </g>
-
-            {/* Cinematic Shine Layer (Moving glint masked by logo silhouette) */}
-            <g mask="url(#logo-silhouette-mask)" pointerEvents="none">
-              <rect data-part="logo-shine-rect" x="-300" y="0" width="1200" height="593" fill="url(#glassy-shine)" transform="rotate(25, 222, 296)" />
             </g>
           </svg>
         </div>
@@ -105,6 +85,7 @@ export default function SplashScreen({ onComplete }) {
             ))}
           </div>
         </div>
+
       </div>
     </div>
   )
