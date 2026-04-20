@@ -56,6 +56,7 @@
 .logoWrap {
   margin-bottom: -10px;
   will-change: filter, transform;
+  overflow: visible;
 }
 
 .logoSvg {
@@ -66,6 +67,7 @@
 
 /* ── Brand Name ── */
 .brandName {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -79,6 +81,34 @@
   margin-bottom: 0;
   padding-top: 0;
   will-change: transform, opacity;
+}
+
+/* Container to hide text as it reveals from behind */
+.textMask {
+  position: relative;
+  overflow: hidden;
+  padding: 10px 20px;
+  margin-top: -10px;
+}
+
+/* The Glassy Glint for the text */
+.textShine {
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0) 20%,
+    rgba(255, 255, 255, 0.8) 50%,
+    rgba(255, 255, 255, 0) 80%,
+    transparent 100%
+  );
+  transform: skewX(-25deg);
+  pointer-events: none;
+  mix-blend-mode: overlay;
 }
 
 .letter {

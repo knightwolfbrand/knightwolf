@@ -90,11 +90,15 @@ export default function SplashScreen({ onComplete }) {
           </svg>
         </div>
 
-        {/* Brand Name — letter by letter */}
-        <div ref={brandNameRef} className={styles.brandName} aria-label="Knight Wolf">
-          {brandLetters.map((letter, i) => (
-            <span key={i} className={styles.letter}>{letter}</span>
-          ))}
+        {/* Brand Name — Masked Reveal Wrapper */}
+        <div className={styles.textMask}>
+          <div ref={brandNameRef} className={styles.brandName} aria-label="Knight Wolf">
+            {brandLetters.map((letter, i) => (
+              <span key={i} className={styles.letter}>{letter}</span>
+            ))}
+            {/* The Shine Glint overlay for text */}
+            <div className={styles.textShine} />
+          </div>
         </div>
       </div>
     </div>

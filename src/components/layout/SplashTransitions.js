@@ -1,8 +1,8 @@
 import gsap from 'gsap'
 
 /**
- * Knight Wolf — Final Cinematic Splash Transition
- * Procedural "Duik" Tail Rig + ScaleSync Collective Entrance.
+ * Knight Wolf — Final Polished Splash Transition
+ * Masked Reveal + Procedural "Duik" Rig + Cinematic Glassy Shine.
  */
 
 // --- Shared Procedural Components ---
@@ -55,12 +55,39 @@ const applyDuikRig = (tailPaths) => {
   })
 }
 
-const revealText = (tl, brandNameRef, duration = 2.5, startAt = "<") => {
+/**
+ * MASKED REVEAL: Text slides up from 'behind' a blank space.
+ */
+const revealTextMasked = (tl, brandNameRef, duration = 2.0, startAt = "<") => {
   const letters = brandNameRef.querySelectorAll('span')
   tl.fromTo(letters, 
-    { opacity: 0, y: 30 },
-    { opacity: 1, y: 0, duration: duration, ease: 'expo.out', stagger: 0 },
+    { opacity: 0, y: 50 },
+    { opacity: 1, y: 0, duration: duration, ease: 'power4.out', stagger: 0.02 },
     startAt
+  )
+}
+
+/**
+ * SHINE SEQUENCE: Sychronized glassy glints across Logo then Text.
+ */
+const applyShineSequence = (tl, refs) => {
+  const logoShine = refs.logoSvg.querySelector('[data-part="shine-overlay"]')
+  const shineStops = refs.logoSvg.querySelectorAll('.shine-stop')
+  const textShine = refs.brandName.querySelector(`div:last-child`) // Selects styles.textShine
+
+  // 1. Logo Shine Sweep
+  tl.set(logoShine, { opacity: 1 }, "+=0.2")
+  tl.fromTo(shineStops, 
+    { attr: { offset: "-100%" } },
+    { attr: { offset: "200%" }, duration: 1.2, ease: "power2.inOut" }
+  )
+  tl.set(logoShine, { opacity: 0 })
+
+  // 2. Text Shine Sweep (Overlaps slightly)
+  tl.fromTo(textShine,
+    { left: "-150%" },
+    { left: "150%", duration: 1.0, ease: "power2.inOut" },
+    "-=0.8"
   )
 }
 
@@ -78,23 +105,26 @@ export const transitions = {
     tl.set(revealRect, { attr: { y: 0, height: 593 } }) 
     tl.set([refs.logo, refs.brandName], { opacity: 1 })
 
-    // 2. ScaleSync Collective Entrance
+    // 2. ScaleSync Collective Entrance (Subtle Zoom + Simultaneous Reveal)
     tl.fromTo(refs.logo, 
-      { opacity: 0, scale: 1.15 }, 
-      { opacity: 1, scale: 1, duration: 2.5, ease: 'expo.out' }
+      { opacity: 0, scale: 1.1 }, 
+      { opacity: 1, scale: 1, duration: 2.2, ease: 'expo.out' }
     )
-    revealText(tl, refs.brandName, 2.5, "<")
+    revealTextMasked(tl, refs.brandName, 2.2, "<")
 
-    // 3. Constant Procedural Motion
+    // 3. Cinematic Polish (Shine Sequence)
+    applyShineSequence(tl, refs)
+
+    // 4. Constant Procedural Motion (Idle State)
     applyHyperShake(tl, facePaths)
     applyDuikRig(tailPaths)
 
-    // 4. Power Down / Final Exit
+    // 5. Power Down / Final Exit
     tl.to(refs.splash, { 
       opacity: 0, 
       duration: 1.5, 
       ease: 'power4.inOut' 
-    }, '+=4.5') 
+    }, '+=4.0') 
     
     tl.set(refs.splash, { display: 'none' })
     tl.set([facePaths, tailPaths], { clearProps: "all" })
