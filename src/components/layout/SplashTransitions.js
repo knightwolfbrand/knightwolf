@@ -2,7 +2,7 @@ import gsap from 'gsap'
 
 /**
  * Knight Wolf — Final Polished Splash Transition
- * Masked Reveal + Procedural "Duik" Rig + Cinematic Glassy Shine.
+ * Masked Reveal + Procedural "Duik" Rig + Corrected Cinematic Shine.
  */
 
 // --- Shared Procedural Components ---
@@ -68,18 +68,17 @@ const revealTextMasked = (tl, brandNameRef, duration = 2.0, startAt = "<") => {
 }
 
 /**
- * LOGO SHINE: A fast, glassy glint that sweeps across the wolf mascot.
+ * LOGO SHINE: A vibrant 'CC Light Sweep' that travels across the mascot.
  */
 const applyLogoShine = (tl, logoSvg) => {
-  const logoShine = logoSvg.querySelector('[data-part="shine-overlay"]')
-  const shineStops = logoSvg.querySelectorAll('.shine-stop')
+  const shineRect = logoSvg.querySelector('[data-part="logo-shine-rect"]')
 
-  tl.set(logoShine, { opacity: 1 }, "+=0.2")
-  tl.fromTo(shineStops, 
-    { attr: { offset: "-100%" } },
-    { attr: { offset: "200%" }, duration: 1.4, ease: "power2.inOut" }
+  // Sweep from left to right across the logo area
+  tl.fromTo(shineRect, 
+    { x: -600 },
+    { x: 600, duration: 1.5, ease: "power2.inOut" },
+    "+=0.2"
   )
-  tl.set(logoShine, { opacity: 0 })
 }
 
 // --- Main Transition ---
@@ -96,21 +95,21 @@ export const transitions = {
     tl.set(revealRect, { attr: { y: 0, height: 593 } }) 
     tl.set([refs.logo, refs.brandName], { opacity: 1 })
 
-    // 2. ScaleSync Collective Entrance (Subtle Zoom + Simultaneous Reveal)
+    // 2. ScaleSync Entrance (Simultaneous Zoom + Masked Reveal)
     tl.fromTo(refs.logo, 
       { opacity: 0, scale: 1.1 }, 
       { opacity: 1, scale: 1, duration: 2.2, ease: 'expo.out' }
     )
     revealTextMasked(tl, refs.brandName, 2.2, "<")
 
-    // 3. Cinematic Logo Shine
+    // 3. Cinematic Logo Shine (Sweeps across while logo is static)
     applyLogoShine(tl, refs.logoSvg)
 
     // 4. Constant Procedural Motion (Idle State)
     applyHyperShake(tl, facePaths)
     applyDuikRig(tailPaths)
 
-    // 5. Power Down / Final Exit
+    // 5. Final Exit
     tl.to(refs.splash, { 
       opacity: 0, 
       duration: 1.5, 
