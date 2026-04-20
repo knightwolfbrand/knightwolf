@@ -1,8 +1,8 @@
 import gsap from 'gsap'
 
 /**
- * Knight Wolf — Cinematic Splash Transition Library
- * Includes 5 distinct "Demo" styles + the Core Rig.
+ * Knight Wolf — Final Cinematic Splash Transition
+ * Procedural "Duik" Tail Rig + ScaleSync Collective Entrance.
  */
 
 // --- Shared Procedural Components ---
@@ -55,122 +55,50 @@ const applyDuikRig = (tailPaths) => {
   })
 }
 
-// --- Transition Library ---
+const revealText = (tl, brandNameRef, duration = 2.5, startAt = "<") => {
+  const letters = brandNameRef.querySelectorAll('span')
+  tl.fromTo(letters, 
+    { opacity: 0, y: 30 },
+    { opacity: 1, y: 0, duration: duration, ease: 'expo.out', stagger: 0 },
+    startAt
+  )
+}
+
+// --- Main Transition ---
 
 export const transitions = {
-  // 1. UNITIZED ENTRANCE: Simultaneous collective fade
-  unitizedEntrance: (refs) => {
+  finalSplash: (refs) => {
     const tl = gsap.timeline()
     const revealRect = refs.logoSvg.querySelector('#reveal-rect')
     const tailPaths = refs.logoSvg.querySelectorAll('[data-part="tail"]')
     const facePaths = refs.logoSvg.querySelectorAll('[data-part="face"]')
 
+    // 1. Initial State
     tl.set(refs.splash, { opacity: 1, display: 'flex' })
     tl.set(revealRect, { attr: { y: 0, height: 593 } }) 
-    
-    tl.fromTo([refs.logo, refs.brandName], 
-      { opacity: 0 }, 
-      { opacity: 1, duration: 1.5, ease: 'power2.inOut' }
-    )
+    tl.set([refs.logo, refs.brandName], { opacity: 1 })
 
-    applyHyperShake(tl, facePaths)
-    applyDuikRig(tailPaths)
-    return tl
-  },
-
-  // 2. LINKED EXPOSURE: Blur-to-sharp cinematic focus
-  linkedExposure: (refs) => {
-    const tl = gsap.timeline()
-    const revealRect = refs.logoSvg.querySelector('#reveal-rect')
-    const tailPaths = refs.logoSvg.querySelectorAll('[data-part="tail"]')
-    const facePaths = refs.logoSvg.querySelectorAll('[data-part="face"]')
-
-    tl.set(refs.splash, { opacity: 1, display: 'flex' })
-    tl.set(revealRect, { attr: { y: 0, height: 593 } }) 
-
-    tl.fromTo([refs.logo, refs.brandName], 
-      { opacity: 0, filter: 'blur(20px)' }, 
-      { opacity: 1, filter: 'blur(0px)', duration: 2, ease: 'power3.out' }
-    )
-
-    applyHyperShake(tl, facePaths)
-    applyDuikRig(tailPaths)
-    return tl
-  },
-
-  // 3. SOLID REVEAL: Immediate mask reveal, static text fade
-  solidReveal: (refs) => {
-    const tl = gsap.timeline()
-    const revealRect = refs.logoSvg.querySelector('#reveal-rect')
-    const tailPaths = refs.logoSvg.querySelectorAll('[data-part="tail"]')
-    const facePaths = refs.logoSvg.querySelectorAll('[data-part="face"]')
-
-    tl.set(refs.splash, { opacity: 1, display: 'flex' })
-    
-    // Quick Mask Reveal
-    tl.fromTo(revealRect, 
-      { attr: { y: 593 } }, 
-      { attr: { y: 0 }, duration: 1.2, ease: 'power4.out' }
-    )
-    
-    // Smooth Text Fade (Static)
-    tl.fromTo(refs.brandName, 
-      { opacity: 0 }, 
-      { opacity: 1, duration: 2 }, "-=0.8"
-    )
-
-    applyHyperShake(tl, facePaths)
-    applyDuikRig(tailPaths)
-    return tl
-  },
-
-  // 4. ATMOSPHERIC CROSS-FADE: Perfect overlap at 50%
-  atmosphericCrossFade: (refs) => {
-    const tl = gsap.timeline()
-    const revealRect = refs.logoSvg.querySelector('#reveal-rect')
-    const tailPaths = refs.logoSvg.querySelectorAll('[data-part="tail"]')
-    const facePaths = refs.logoSvg.querySelectorAll('[data-part="face"]')
-
-    tl.set(refs.splash, { opacity: 1, display: 'flex' })
-    
-    tl.fromTo(revealRect, 
-      { attr: { y: 593 } }, 
-      { attr: { y: 0 }, duration: 2, ease: 'power2.inOut' }
-    )
-    
-    tl.fromTo(refs.brandName, 
-      { opacity: 0 }, 
-      { opacity: 1, duration: 1.5, ease: 'power2.inOut' }, 1.0 // Start at exactly 1.0s (halfway)
-    )
-
-    applyHyperShake(tl, facePaths)
-    applyDuikRig(tailPaths)
-    return tl
-  },
-
-  // 5. SCALE SYNC: Zoom-out + collective fade
-  scaleSync: (refs) => {
-    const tl = gsap.timeline()
-    const revealRect = refs.logoSvg.querySelector('#reveal-rect')
-    const tailPaths = refs.logoSvg.querySelectorAll('[data-part="tail"]')
-    const facePaths = refs.logoSvg.querySelectorAll('[data-part="face"]')
-
-    tl.set(refs.splash, { opacity: 1, display: 'flex' })
-    tl.set(revealRect, { attr: { y: 0, height: 593 } }) 
-
-    tl.fromTo([refs.logo, refs.brandName], 
+    // 2. ScaleSync Collective Entrance
+    tl.fromTo(refs.logo, 
       { opacity: 0, scale: 1.15 }, 
       { opacity: 1, scale: 1, duration: 2.5, ease: 'expo.out' }
     )
+    revealText(tl, refs.brandName, 2.5, "<")
 
+    // 3. Constant Procedural Motion
     applyHyperShake(tl, facePaths)
     applyDuikRig(tailPaths)
-    return tl
-  },
 
-  // The Original/Default Final Splash
-  finalSplash: (refs) => {
-    // For now, we'll map default to scaleSync as it's the most "cinematic"
-    return transitions.scaleSync(refs)
+    // 4. Power Down / Final Exit
+    tl.to(refs.splash, { 
+      opacity: 0, 
+      duration: 1.5, 
+      ease: 'power4.inOut' 
+    }, '+=4.5') 
+    
+    tl.set(refs.splash, { display: 'none' })
+    tl.set([facePaths, tailPaths], { clearProps: "all" })
+
+    return tl
   }
 }

@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { Geist, Geist_Mono } from 'next/font/google'
 import SplashScreen from '@/components/layout/SplashScreen'
-import SplashLab from '@/components/dev/SplashLab'
 import './globals.css'
 
 const geistSans = Geist({
@@ -18,14 +17,6 @@ const geistMono = Geist_Mono({
 
 export default function RootLayout({ children }) {
   const [splashDone, setSplashDone] = useState(false)
-  const [splashMode, setSplashMode] = useState('scaleSync')
-
-  const handleModeChange = (mode, forceReplay = false) => {
-    if (forceReplay) {
-      setSplashDone(false)
-    }
-    setSplashMode(mode)
-  }
 
   return (
     <html lang="en">
@@ -39,16 +30,9 @@ export default function RootLayout({ children }) {
         {/* Finalized Cinematic Splash Screen */}
         {!splashDone && (
           <SplashScreen 
-            mode={splashMode}
             onComplete={() => setSplashDone(true)} 
           />
         )}
-
-        {/* Development Tool */}
-        <SplashLab 
-          currentMode={splashMode} 
-          onModeChange={handleModeChange} 
-        />
 
         {/* Main app content */}
         <main style={{
