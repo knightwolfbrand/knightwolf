@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react'
 import { transitions } from './SplashTransitions'
 import styles from './SplashScreen.module.css'
 
-export default function SplashScreen({ onComplete }) {
+export default function SplashScreen({ onComplete, mode = 'scaleSync' }) {
   const splashRef = useRef(null)
   const leftPanelRef = useRef(null)
   const rightPanelRef = useRef(null)
@@ -22,15 +22,16 @@ export default function SplashScreen({ onComplete }) {
       logoSvg: logoSvgRef.current
     }
 
-    // Always use the finalized transition
-    const tl = transitions.finalSplash(refs)
+    // Select the transition based on the mode prop
+    const transitionFn = transitions[mode] || transitions.finalSplash
+    const tl = transitionFn(refs)
 
     tl.eventCallback('onComplete', () => {
       if (onComplete) onComplete()
     })
 
     return () => tl.kill()
-  }, [onComplete])
+  }, [onComplete, mode])
 
   const brandLetters = 'KNIGHTWOLF'.split('')
 
