@@ -41,7 +41,6 @@ export const transitions = {
     tl.to(facePaths, {
       x: "random(-1.5, 1.5)",
       y: "random(-1, 1)",
-      rotation: "random(-1, 1)",
       duration: 0.08,
       repeat: 6,
       yoyo: true,
