@@ -67,6 +67,21 @@ const revealTextMasked = (tl, brandNameRef, duration = 2.0, startAt = "<") => {
   )
 }
 
+/**
+ * LOGO SHINE: A fast, glassy glint that sweeps across the wolf mascot.
+ */
+const applyLogoShine = (tl, logoSvg) => {
+  const logoShine = logoSvg.querySelector('[data-part="shine-overlay"]')
+  const shineStops = logoSvg.querySelectorAll('.shine-stop')
+
+  tl.set(logoShine, { opacity: 1 }, "+=0.2")
+  tl.fromTo(shineStops, 
+    { attr: { offset: "-100%" } },
+    { attr: { offset: "200%" }, duration: 1.4, ease: "power2.inOut" }
+  )
+  tl.set(logoShine, { opacity: 0 })
+}
+
 // --- Main Transition ---
 
 export const transitions = {
@@ -88,7 +103,10 @@ export const transitions = {
     )
     revealTextMasked(tl, refs.brandName, 2.2, "<")
 
-    // 3. Constant Procedural Motion (Idle State)
+    // 3. Cinematic Logo Shine
+    applyLogoShine(tl, refs.logoSvg)
+
+    // 4. Constant Procedural Motion (Idle State)
     applyHyperShake(tl, facePaths)
     applyDuikRig(tailPaths)
 
