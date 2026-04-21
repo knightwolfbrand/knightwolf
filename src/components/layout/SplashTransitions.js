@@ -64,15 +64,16 @@ export const transitions = {
       0.3 // starts t=0.3s
     )
 
-    // 4. Subtle Glow Pulse (idle breathing)
-    tl.to(refs.glow, {
+    // 4. Subtle Glow Pulse (idle breathing) - Move to independent tween so timeline can complete
+    gsap.to(refs.glow, {
       opacity: 0.6,
       scale: 1.08,
       duration: 0.8,
       repeat: -1,
       yoyo: true,
-      ease: "sine.inOut"
-    }, "+=0.1")
+      ease: "sine.inOut",
+      delay: 1.0
+    })
 
     // 5. Procedural Tail Motion
     applyDuikRig(tailPaths)
@@ -82,7 +83,7 @@ export const transitions = {
       opacity: 0,
       duration: 0.6,
       ease: 'power4.inOut'
-    }, '+=0.8')
+    }, '+=1.2') // Slight delay to enjoy the animation before exit
 
     tl.set(refs.splash, { display: 'none' })
     tl.set([tailPaths], { clearProps: "all" })

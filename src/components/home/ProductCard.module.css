@@ -1,0 +1,184 @@
+.card {
+  padding: var(--space-6);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  transition: transform 0.5s var(--ease-apple), box-shadow 0.5s var(--ease-apple);
+  position: relative;
+  min-width: 280px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(40px);
+}
+
+.card:hover {
+  transform: translateY(-16px) scale(1.03);
+  box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+  border-color: rgba(165, 243, 252, 0.3);
+}
+
+.imageContainer {
+  width: 100%;
+  aspect-ratio: 1/1.2;
+  background: radial-gradient(circle at center, rgba(165, 243, 252, 0.05) 0%, transparent 70%);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* 3D Floating Mockup Styles */
+.floatingWrapper {
+  width: 80%;
+  height: 80%;
+  animation: float 5s ease-in-out infinite;
+  perspective: 1000px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes float {
+  0% { transform: translateY(0px) rotateY(0deg) rotateX(0deg); }
+  33% { transform: translateY(-15px) rotateY(10deg) rotateX(5deg); }
+  66% { transform: translateY(-5px) rotateY(-10deg) rotateX(-5deg); }
+  100% { transform: translateY(0px) rotateY(0deg) rotateX(0deg); }
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center 25%; /* Focus on the chest area of mockups */
+  filter: drop-shadow(0 20px 40px rgba(0,0,0,0.4));
+  transition: transform 0.4s var(--ease-apple);
+}
+
+.glassMockup {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background-position: center 25%;
+}
+
+.tshirtSvg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 20px 40px rgba(0,0,0,0.4));
+}
+
+.innerGlow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40%;
+  height: 40%;
+  background: var(--color-accent);
+  filter: blur(60px);
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+.branding {
+  position: absolute;
+  bottom: 25%;
+  font-family: var(--font-accent);
+  font-weight: 700;
+  font-size: 8px;
+  letter-spacing: 0.4em;
+  color: var(--color-accent);
+  opacity: 0.3;
+}
+
+.productLabel {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 10;
+  background: var(--color-accent);
+  color: #000;
+  font-family: var(--font-accent);
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 999px;
+  letter-spacing: 0.1em;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.metaRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.price {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--color-accent);
+}
+
+.colorSelector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.colorName {
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.colorName span {
+  color: var(--color-accent);
+  margin-left: 4px;
+}
+
+.swatches {
+  display: flex;
+  gap: 12px;
+}
+
+.swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s var(--ease-apple);
+  position: relative;
+}
+
+.swatchActive {
+  border-color: var(--color-accent);
+  transform: scale(1.3);
+  box-shadow: 0 0 15px var(--color-accent-soft);
+}
+
+.swatch:hover:not(.swatchActive) {
+  transform: scale(1.1);
+}

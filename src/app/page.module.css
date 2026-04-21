@@ -1,55 +1,80 @@
-/* page.module.css — Home placeholder */
-
 .page {
   min-height: 100vh;
-  background: var(--color-bg-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  padding-bottom: var(--space-10);
+  background-color: var(--color-bg-primary);
 }
 
 .hero {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  padding-top: var(--space-10);
+  padding-bottom: var(--space-8);
   text-align: center;
-  gap: 16px;
-  padding: 2rem;
-}
-
-.heroLogo {
-  width: 80px;
-  height: auto;
-  opacity: 0.9;
-  margin-bottom: 8px;
 }
 
 .heroTitle {
-  font-family: var(--font-display);
-  font-size: clamp(3rem, 8vw, 7rem);
-  color: var(--color-white);
-  letter-spacing: 0.12em;
+  font-size: var(--text-display-lg);
+  color: var(--color-text-primary);
   line-height: 1;
-  margin: 0;
+  margin-bottom: var(--space-4);
 }
 
-.heroSub {
-  font-family: var(--font-accent);
-  font-size: 0.75rem;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-  margin: 0;
+.heroTitle span {
+  color: var(--color-accent);
 }
 
-.heroBadge {
-  font-family: var(--font-body);
-  font-size: 0.75rem;
+.heroSubtitle {
+  font-size: var(--text-body-lg);
+  color: var(--color-text-secondary);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.sectionHeader {
+  margin-bottom: var(--space-6);
+  text-align: left;
+}
+
+.sectionTitle {
+  font-size: var(--text-h2);
+  margin-bottom: var(--space-1);
+}
+
+.sectionSubtitle {
+  font-size: var(--text-body);
   color: var(--color-text-muted);
-  margin-top: 32px;
-  border: 1px solid var(--color-border);
-  padding: 8px 16px;
-  border-radius: var(--radius-pill);
-  letter-spacing: 0.04em;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--space-6);
+}
+
+.gridTrending {
+  display: flex;
+  gap: var(--space-6);
+  overflow-x: auto;
+  padding-bottom: var(--space-5);
+  scrollbar-width: thin;
+}
+
+.bestSellers {
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8) 0;
+  margin-top: var(--space-10);
+}
+
+.footer {
+  margin-top: var(--space-10);
+  padding: var(--space-8) 0;
+  border-top: 1px solid var(--color-border);
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: var(--text-caption);
+}
+
+@media (max-width: 768px) {
+  .heroTitle {
+    font-size: var(--text-display-md);
+  }
 }
