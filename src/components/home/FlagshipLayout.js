@@ -1,10 +1,69 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/dist/ScrollTrigger'
 import styles from './FlagshipLayout.module.css'
 import Banner from './Banner'
 import ProductCard from './ProductCard'
+import CollectionCard from './CollectionCard'
+
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger)
+}
 
 export default function FlagshipLayout({ data }) {
+  const containerRef = useRef(null)
+
+  useEffect(() => {
+    const sections = containerRef.current.querySelectorAll(`.${styles.swipeSection}`)
+    
+    sections.forEach((section) => {
+      const header = section.querySelector(`.${styles.sectionHeader}`)
+      const content = section.querySelector(`.${styles.collectionsGrid}, .${styles.horizontalScroll}`)
+
+      // Refined Cinematic Reveal
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          scroller: containerRef.current,
+          start: 'top 60%',
+          toggleActions: 'play none none none'
+        }
+      })
+
+      tl.fromTo(header, 
+        { opacity: 0, x: -30 },
+        { opacity: 1, x: 0, duration: 1.2, ease: 'power4.out' }
+      )
+      
+      if (content) {
+        tl.fromTo(content,
+          { opacity: 0, y: 40 },
+          { opacity: 1, y: 0, duration: 1.5, ease: 'expo.out' },
+          '-=0.8'
+        )
+      }
+    })
+
+    // Scroll Progress Indicator Logic
+    const handleScroll = () => {
+      const container = containerRef.current
+      if (!container) return
+      const progress = container.scrollTop / (container.scrollHeight - container.clientHeight)
+      const progressBar = document.getElementById('scrollProgress')
+      if (progressBar) {
+        progressBar.style.height = `${progress * 100}%`
+      }
+    }
+
+    containerRef.current.addEventListener('scroll', handleScroll)
+
+    return () => {
+      ScrollTrigger.getAll().forEach(t => t.kill())
+      containerRef.current?.removeEventListener('scroll', handleScroll)
+    }
+  }, [])
   const ads = [
     {
       title: "₹SUMMER SALE: 20% OFF", 
@@ -28,10 +87,15 @@ export default function FlagshipLayout({ data }) {
         <Banner items={ads} />
       </div>
 
+      {/* Cinematic Scroll Progress Indicator */}
+      <div className={styles.scrollIndicatorTrack}>
+        <div id="scrollProgress" className={styles.scrollIndicatorBar}></div>
+      </div>
+
       {/* Swipe-Based Navigation Container (Strict Alignment) */}
-      <div className={styles.swipeContainer}>
+      <div ref={containerRef} className={styles.swipeContainer}>
         
-        {/* Section 1: Collections */}
+        {/* Section 1: Collections (Interactive 3D Grid) */}
         <div className={styles.swipeSection}>
           <div className={styles.sectionHeader}>
             <span className={styles.badge}>NEW DROP</span>
@@ -39,11 +103,38 @@ export default function FlagshipLayout({ data }) {
           </div>
           <div style={{ height: '40px' }} /> {/* Structural Spacer */}
           <div className={styles.horizontalScroll}>
-            {data.newCollections.map((item, idx) => (
-              <div key={idx} className={styles.snapItem}>
-                <ProductCard {...item} />
-              </div>
-            ))}
+            {/* 3D CARD 1: OVERSIZE ROUND */}
+            <div className={styles.snapItem}>
+              <CollectionCard 
+                title="Oversize Round" 
+                price="₹2,499" 
+                modelPath="/models/tshirt.glb" 
+                defaultColor="#111111"
+                scale={3.5}
+              />
+            </div>
+
+            {/* 3D CARD 2: KNIGHT POLO */}
+            <div className={styles.snapItem}>
+              <CollectionCard 
+                title="Knight Polo" 
+                price="₹2,999" 
+                modelPath="/models/tshirt.glb" 
+                defaultColor="#111111"
+                scale={3.2}
+              />
+            </div>
+
+            {/* 3D CARD 3: V-NECK TECH */}
+            <div className={styles.snapItem}>
+              <CollectionCard 
+                title="V-Neck Tech" 
+                price="₹2,299" 
+                modelPath="/models/tshirt.glb" 
+                defaultColor="#111111"
+                scale={3.5}
+              />
+            </div>
           </div>
         </div>
 
@@ -79,7 +170,8 @@ export default function FlagshipLayout({ data }) {
           </div>
         </div>
 
-        {/* Section 4: Brand Outro / Footer */}
+
+        {/* Section 6: Brand Outro / Footer */}
         <div className={`${styles.swipeSection} ${styles.footerSection}`}>
           <div className={styles.brandOutro}>
             <h3>KNIGHT WOLF</h3>
