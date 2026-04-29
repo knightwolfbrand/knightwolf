@@ -32,7 +32,7 @@
   position: relative;
   min-height: 220px;
   background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg-primary) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .content {
@@ -59,7 +59,7 @@
   line-height: 1.1;
   text-transform: uppercase;
   letter-spacing: -0.02em;
-  text-shadow: 0 4px 20px rgba(0,0,0,0.8);
+  text-shadow: none;
 }
 
 .subtitle {
@@ -67,7 +67,7 @@
   color: var(--color-text-secondary);
   margin-bottom: var(--space-6);
   line-height: 1.5;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+  text-shadow: none;
 }
 
 /* Background Elements Clarity Fix - Increased visibility */

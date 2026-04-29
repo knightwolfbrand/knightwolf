@@ -2,90 +2,53 @@
 
 import React, { useRef, useEffect, useState, Suspense, useMemo } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { OrbitControls, useGLTF, Environment, ContactShadows } from '@react-three/drei'
+import { OrbitControls, useGLTF, Environment, ContactShadows, AdaptiveDpr, AdaptiveEvents, Decal, useTexture } from '@react-three/drei'
 import * as THREE from 'three'
 import gsap from 'gsap'
 import styles from './KnightWolfPoloCard.module.css'
 
-// --- 1. THE POLO MODEL (PROCEDURAL ENHANCEMENT) ---
-function PoloModel({ shirtColor, collarColor = "#E5E4E2", buttonColor = "#ffffff", scale = 3.5 }) {
-  const { nodes } = useGLTF('/models/tshirt.glb');
+// --- 1. THE SHIRT MODEL (OFFICIAL MOCKUP) ---
+function ShirtModel({ shirtColor, scale = 3.5 }) {
+  const { nodes, materials } = useGLTF('/models/shirt_baked.glb');
   const groupRef = useRef();
   
-  // Extract specific meshes from the GLB
-  const meshes = useMemo(() => Object.values(nodes).filter(n => n.isMesh), [nodes]);
-  const fabricMesh = useMemo(() => 
-    meshes.find(n => n.name.toLowerCase().includes('fabric') || n.name.toLowerCase().includes('shirt')) || meshes[0]
-  , [meshes]);
 
-  // Animation: "Oversized Round-Neck Look"
+  // Animation: "Smooth Interaction"
   useFrame((state) => {
     if (groupRef.current) {
       const time = state.clock.getElapsedTime();
-      const targetRotation = Math.sin(time * 0.5) * 0.15 + state.mouse.x * 0.4;
+      
+      // Smoother rotation with lerp
       groupRef.current.rotation.y = THREE.MathUtils.lerp(
         groupRef.current.rotation.y,
-        targetRotation,
-        0.05
+        Math.sin(time * 0.4) * 0.12 + state.mouse.x * 0.3,
+        0.04
       );
-      // Breathing effect
-      const breathing = 1 + Math.sin(time * 1.5) * 0.008;
-      groupRef.current.scale.set(
-        scale * breathing,
-        scale * (1 + Math.cos(time * 1.5) * 0.004),
-        scale * breathing
-      );
+
+      // Breathing effect - optimized scale setting
+      const breathing = 1 + Math.sin(time * 1.5) * 0.006;
+      groupRef.current.scale.setScalar(scale * breathing);
     }
   });
 
   return (
-    <group ref={groupRef} dispose={null} position={[0, -0.8, 0]}>
-      {/* 1. THE BASE SHIRT (Re-rendering geometry to ensure clean material application) */}
-      {fabricMesh && (
-        <mesh geometry={fabricMesh.geometry}>
-          <meshStandardMaterial 
-            color={shirtColor}
-            roughness={0.8} 
-            metalness={0.05} 
-            envMapIntensity={0.8} 
-          />
-        </mesh>
-      )}
-
-      {/* 2. THE POLO COLLAR (Procedural) */}
-      <group position={[0, 0.48, 0.02]} rotation={[-0.1, 0, 0]}>
-        {/* Collar "Neck Wrap" */}
-        <mesh rotation={[0, Math.PI / 2, 0]}>
-          <cylinderGeometry args={[0.095, 0.105, 0.06, 32, 1, true, 0, Math.PI * 2]} />
-          <meshStandardMaterial color={collarColor} side={THREE.DoubleSide} roughness={0.7} />
-        </mesh>
-        
-        {/* The Fold-Down Parts (Wings) */}
-        <mesh position={[0.06, -0.04, 0.08]} rotation={[0.4, -0.5, -0.3]}>
-          <boxGeometry args={[0.08, 0.01, 0.12]} />
-          <meshStandardMaterial color={collarColor} roughness={0.7} />
-        </mesh>
-        <mesh position={[-0.06, -0.04, 0.08]} rotation={[0.4, 0.5, 0.3]}>
-          <boxGeometry args={[0.08, 0.01, 0.12]} />
-          <meshStandardMaterial color={collarColor} roughness={0.7} />
-        </mesh>
-
-        {/* 3. THE PLACKET (Center strip) */}
-        <mesh position={[0, -0.12, 0.085]} rotation={[0.1, 0, 0]}>
-          <boxGeometry args={[0.035, 0.18, 0.005]} />
-          <meshStandardMaterial color={shirtColor} roughness={0.9} />
-        </mesh>
-
-        {/* 4. BUTTONS */}
-        <mesh position={[0, -0.07, 0.092]} rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.008, 0.008, 0.004, 16]} />
-          <meshStandardMaterial color={buttonColor} metalness={0.4} roughness={0.3} />
-        </mesh>
-        <mesh position={[0, -0.13, 0.092]} rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.008, 0.008, 0.004, 16]} />
-          <meshStandardMaterial color={buttonColor} metalness={0.4} roughness={0.3} />
-        </mesh>
-      </group>
+    <group ref={groupRef} dispose={null} position={[0, 0, 0]}>
+      <mesh
+        castShadow
+        geometry={nodes.T_Shirt_male.geometry}
+        dispose={null}
+      >
+        <meshPhysicalMaterial 
+          color={shirtColor || "#708090"}
+          roughness={1.0}
+          metalness={0.0}
+          sheen={1.0}
+          sheenRoughness={1.0}
+          sheenColor={0xffffff}
+          map={materials.lambert1?.map}
+          normalMap={materials.lambert1?.normalMap}
+        />
+      </mesh>
     </group>
   )
 }
@@ -98,35 +61,38 @@ export default function KnightWolfPoloCard({
   return (
     <div className={styles.card}>
       <div className={styles.viewArea}>
-        <Canvas camera={{ position: [0, 0, 4.5], fov: 35 }} shadows gl={{ antialias: true }}>
+        <Canvas 
+          camera={{ position: [0, 0, 6.2], fov: 35 }} 
+          shadows 
+          gl={{ 
+            antialias: true,
+            powerPreference: 'high-performance',
+            alpha: true,
+            stencil: false,
+            depth: true
+          }}
+          dpr={[1, 2]} 
+        >
           <Suspense fallback={null}>
-            <ambientLight intensity={0.5} />
-            <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1.5} castShadow />
-            <pointLight position={[-10, -10, -10]} intensity={0.5} />
+            <AdaptiveDpr pixelated />
+            <AdaptiveEvents />
+            <ambientLight intensity={0.8} />
+            <pointLight position={[10, 10, 10]} intensity={1} />
             
-            <PoloModel 
-              shirtColor={shirtColor} 
-              collarColor={collarColor} 
-              buttonColor={buttonColor} 
-              scale={3.8} 
-            />
-            
-            <ContactShadows 
-              position={[0, -1.2, 0]} 
-              opacity={0.4} 
-              scale={10} 
-              blur={2.5} 
-              far={1.5}
+            <ShirtModel 
+              shirtColor="#708090" 
+              scale={4} 
             />
 
             <OrbitControls 
               enablePan={false} 
               enableZoom={false} 
-              minPolarAngle={Math.PI / 2.2} 
-              maxPolarAngle={Math.PI / 1.8} 
+              minPolarAngle={Math.PI / 2} 
+              maxPolarAngle={Math.PI / 2} 
+              rotateSpeed={2}
               makeDefault
             />
-            <Environment preset="city" />
+            <Environment preset="studio" />
           </Suspense>
         </Canvas>
       </div>
@@ -150,4 +116,4 @@ export default function KnightWolfPoloCard({
   )
 }
 
-useGLTF.preload('/models/tshirt.glb')
+useGLTF.preload('/models/shirt_baked.glb')

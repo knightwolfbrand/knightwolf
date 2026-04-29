@@ -3,42 +3,67 @@ import styles from './ProductSpinner360.module.css';
 
 export default function ProductSpinner360({ children, image }) {
   const [rotation, setRotation] = useState(0);
-  const [isRotating, setIsRotating] = useState(false);
-  const startX = useRef(0);
-  const startRotation = useRef(0);
+  const isRotating = useRef(false);
+  const velocity = useRef(0);
+  const lastX = useRef(0);
+  const rotationRef = useRef(0);
   const containerRef = useRef(null);
+  const animationId = useRef(null);
+
+  const applyInertia = () => {
+    if (!isRotating.current) {
+      velocity.current *= 0.95; // Friction
+      if (Math.abs(velocity.current) > 0.1) {
+        rotationRef.current += velocity.current;
+        setRotation(rotationRef.current);
+        animationId.current = requestAnimationFrame(applyInertia);
+      } else {
+        velocity.current = 0;
+      }
+    } else {
+      animationId.current = requestAnimationFrame(applyInertia);
+    }
+  };
 
   const handlePointerDown = (e) => {
-    setIsRotating(true);
-    startX.current = e.pageX || e.touches?.[0]?.pageX;
-    startRotation.current = rotation;
+    isRotating.current = true;
+    lastX.current = e.pageX || e.touches?.[0]?.pageX;
+    velocity.current = 0;
     if (containerRef.current) {
       containerRef.current.style.cursor = 'grabbing';
     }
   };
 
   const handlePointerMove = (e) => {
-    if (!isRotating) return;
+    if (!isRotating.current) return;
     
     const currentX = e.pageX || e.touches?.[0]?.pageX;
-    const deltaX = currentX - startX.current;
+    const deltaX = currentX - lastX.current;
     
-    // Sensitivity: 1px = 1 degree
-    const newRotation = startRotation.current + (deltaX * 0.5);
-    setRotation(newRotation);
+    velocity.current = deltaX * 1.2; 
+    rotationRef.current += velocity.current;
+    setRotation(rotationRef.current);
+    
+    lastX.current = currentX;
   };
 
   const handlePointerUp = () => {
-    setIsRotating(false);
+    isRotating.current = false;
     if (containerRef.current) {
       containerRef.current.style.cursor = 'grab';
     }
   };
 
   useEffect(() => {
-    const handleGlobalUp = () => setIsRotating(false);
+    animationId.current = requestAnimationFrame(applyInertia);
+    const handleGlobalUp = () => {
+      isRotating.current = false;
+    };
     window.addEventListener('pointerup', handleGlobalUp);
-    return () => window.removeEventListener('pointerup', handleGlobalUp);
+    return () => {
+      window.removeEventListener('pointerup', handleGlobalUp);
+      if (animationId.current) cancelAnimationFrame(animationId.current);
+    };
   }, []);
 
   return (
@@ -54,12 +79,10 @@ export default function ProductSpinner360({ children, image }) {
         className={styles.spinner}
         style={{ transform: `rotateY(${rotation}deg)` }}
       >
-        {/* Front Face */}
         <div className={styles.faceFront}>
           {children}
         </div>
 
-        {/* Back Face (Placeholder for 360 effect) */}
         <div className={styles.faceBack}>
           {image ? (
              <div 

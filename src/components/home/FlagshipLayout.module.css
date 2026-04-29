@@ -12,7 +12,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.6) 100%);
+  background: radial-gradient(circle at center, transparent 0%, rgba(255,255,255,0.2) 100%);
   pointer-events: none;
   z-index: 50;
 }
@@ -22,7 +22,7 @@
   top: 0;
   z-index: 1000;
   background: var(--color-bg-primary);
-  box-shadow: 0 4px 60px rgba(0, 0, 0, 0.9);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
 }
 
 .scrollIndicatorTrack {
@@ -32,7 +32,7 @@
   transform: translateY(-50%);
   width: 2px;
   height: 200px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.05);
   border-radius: 999px;
   z-index: 1200;
 }
@@ -64,7 +64,7 @@
   justify-content: center;
   position: relative;
   overflow: hidden;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   scroll-margin-top: 50px; /* Accounts for header overlap */
 }
 

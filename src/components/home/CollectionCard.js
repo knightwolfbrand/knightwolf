@@ -2,16 +2,16 @@
 
 import React, { useRef, useEffect, useState, Suspense } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { OrbitControls, Stage, useGLTF, Environment, useTexture, ContactShadows } from '@react-three/drei'
+import { OrbitControls, Stage, useGLTF, Environment, useTexture, ContactShadows, AdaptiveDpr, AdaptiveEvents } from '@react-three/drei'
 import * as THREE from 'three'
 import gsap from 'gsap'
 import styles from './CollectionCard.module.css'
 
 // --- 1. REUSABLE PRODUCT MODEL COMPONENT ---
 function ProductModel({ modelPath, tshirtColor, scale = 2.2, position = [0, 0, 0] }) {
-  // Use fallback if model doesn't exist (handled by useGLTF error or checked before)
-  const { nodes, scene } = useGLTF(modelPath);
+  const { nodes, materials, scene } = useGLTF(modelPath);
   const groupRef = useRef();
+  const materialRef = useRef();
 
   // Automatically center the geometry and then apply user position offset
   useEffect(() => {
@@ -28,58 +28,50 @@ function ProductModel({ modelPath, tshirtColor, scale = 2.2, position = [0, 0, 0
 
   // GSAP for smooth color transitions
   useEffect(() => {
-    scene.traverse((child) => {
-      if (child.isMesh && child.material) {
-        const targetColor = new THREE.Color(tshirtColor);
-        gsap.to(child.material.color, {
-          r: targetColor.r,
-          g: targetColor.g,
-          b: targetColor.b,
-          duration: 0.8,
-          ease: "power2.out"
-        });
-      }
-    });
-  }, [scene, tshirtColor]);
+    if (materialRef.current) {
+      const targetColor = new THREE.Color(tshirtColor);
+      gsap.to(materialRef.current.color, {
+        r: targetColor.r,
+        g: targetColor.g,
+        b: targetColor.b,
+        duration: 0.8,
+        ease: "power2.out"
+      });
+    }
+  }, [tshirtColor]);
 
-  // Smooth rotation logic from user snippet
+  // Smooth rotation logic
   useFrame((state) => {
     if (groupRef.current) {
       const time = state.clock.getElapsedTime();
-      // Combine idle breathing with mouse interaction
-      // We use lerp-like behavior for mouse for extra smoothness
-      const targetRotation = Math.sin(time) * 0.2 + state.mouse.x * 0.4;
+      const targetRotation = Math.sin(time * 0.5) * 0.15 + state.mouse.x * 0.3;
       groupRef.current.rotation.y = THREE.MathUtils.lerp(
         groupRef.current.rotation.y,
         targetRotation,
-        0.1
+        0.05
       );
     }
   });
 
-  // Identify the main fabric mesh (Safe fallback)
-  const meshes = Object.values(nodes).filter(n => n.isMesh);
-  const fabricMesh = meshes.find(n => n.name.toLowerCase().includes('fabric') || n.name.toLowerCase().includes('shirt')) || meshes[0];
-  const graphicMesh = meshes.find(n => n.name.toLowerCase().includes('graphic') || n.name.toLowerCase().includes('print')) || meshes[1];
-
   return (
     <group ref={groupRef} dispose={null} scale={[scale, scale, scale]}>
-      {fabricMesh && (
-        <mesh geometry={fabricMesh.geometry}>
-          <meshStandardMaterial 
-            roughness={0.8} 
-            metalness={0.1} 
-            envMapIntensity={0.5} 
-          />
-        </mesh>
-      )}
-      {graphicMesh && (
-        <mesh 
-          geometry={graphicMesh.geometry} 
-          material={graphicMesh.material} 
-          material-roughness={0.8}
+      <mesh 
+        geometry={nodes.T_Shirt_male.geometry} 
+        castShadow
+        receiveShadow
+      >
+        <meshPhysicalMaterial 
+          ref={materialRef}
+          color={tshirtColor}
+          roughness={1.0}
+          metalness={0.0}
+          sheen={1.0}
+          sheenRoughness={1.0}
+          sheenColor={0xffffff}
+          map={materials.lambert1?.map}
+          normalMap={materials.lambert1?.normalMap}
         />
-      )}
+      </mesh>
     </group>
   )
 }
@@ -88,7 +80,7 @@ function ProductModel({ modelPath, tshirtColor, scale = 2.2, position = [0, 0, 0
 export default function CollectionCard({ 
   title = "K-WOLF OVERSIZE TEE", 
   price = "₹2,499", 
-  modelPath = "/models/tshirt.glb", 
+  modelPath = "/models/shirt_baked.glb", 
   defaultColor = "#111111", 
   scale = 3.5 
 }) {
@@ -96,7 +88,7 @@ export default function CollectionCard({
   const colors = [
     { name: 'Pitch Black', hex: '#111111' },
     { name: 'Cyber White', hex: '#F0F0F0' },
-    { name: 'Neon Red', hex: '#FF0055' },
+    { name: 'Vibrant Red', hex: '#E60000' },
     { name: 'Volt Green', hex: '#CCFF00' }
   ];
 
@@ -105,17 +97,29 @@ export default function CollectionCard({
       
       {/* --- 3D VIEW AREA --- */}
       <div className={styles.viewArea}>
-        <Canvas camera={{ position: [0, 0, 5], fov: 35 }} shadows gl={{ antialias: true }}>
+        <Canvas 
+          camera={{ position: [0, 0, 6.5], fov: 35 }} 
+          shadows 
+          gl={{ 
+            antialias: true,
+            powerPreference: 'high-performance',
+            alpha: true,
+            stencil: false,
+            depth: true
+          }}
+          dpr={[1, 2]}
+        >
           <Suspense fallback={null}>
+            <AdaptiveDpr pixelated />
+            <AdaptiveEvents />
             {/* Studio Lighting from user snippet */}
-            <hemisphereLight intensity={1.2} color="#ffffff" groundColor="#444444" />
-            <directionalLight position={[2, 2, 2]} intensity={1} castShadow />
+            <hemisphereLight intensity={1.5} color="#ffffff" groundColor="#444444" />
             
             <ProductModel 
               modelPath={modelPath} 
               tshirtColor={color} 
               scale={scale} 
-              position={[0, -0.8, 0]} 
+              position={[0, 0, 0]} 
             />
             
             <ContactShadows 
@@ -142,6 +146,7 @@ export default function CollectionCard({
       <div className={styles.info}>
         <div className={styles.headerWrapper}>
           <div className={styles.titleArea}>
+            <span className={styles.badge}>EXCLUSIVE DROP</span>
             <h2 className={styles.title}>{title}</h2>
           </div>
           <div className={styles.priceArea}>
@@ -149,8 +154,10 @@ export default function CollectionCard({
           </div>
         </div>
         
+        <p className={styles.collection}>Summer Collection 2026</p>
+
         <button className={styles.buyBtn}>
-          Customize
+          CUSTOMIZE
         </button>
       </div>
     </div>
@@ -158,4 +165,4 @@ export default function CollectionCard({
 }
 
 // Preload common model
-useGLTF.preload('/models/tshirt.glb')
+useGLTF.preload('/models/shirt_baked.glb')

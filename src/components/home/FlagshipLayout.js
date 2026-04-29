@@ -8,8 +8,7 @@ import Banner from './Banner'
 import ProductCard from './ProductCard'
 import CollectionCard from './CollectionCard'
 import KnightWolfPoloCard from './KnightWolfPoloCard'
-import ClassicPoloCard from './ClassicPoloCard'
-
+import OversizedTeeCard from './OversizedTeeCard'
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger)
@@ -111,8 +110,8 @@ export default function FlagshipLayout({ data }) {
               <CollectionCard 
                 title="Oversize Round" 
                 price="₹2,499" 
-                modelPath="/models/tshirt.glb" 
-                defaultColor="#111111"
+                modelPath="/models/shirt_baked.glb" 
+                defaultColor="#E60000"
                 scale={3.5}
               />
             </div>
@@ -122,15 +121,18 @@ export default function FlagshipLayout({ data }) {
               <KnightWolfPoloCard shirtColor="#5D8AA8" collarColor="#E5E4E2" />
             </div>
 
-            {/* 3D CARD 3: CLASSIC WHITE POLO (CINEMATIC) */}
+            {/* NEW: OVERSIZED TEE CARD WITH VELVETY SHEEN */}
             <div className={styles.snapItem}>
-              <ClassicPoloCard />
+              <OversizedTeeCard />
             </div>
+
+
+
             <div className={styles.snapItem}>
               <CollectionCard 
                 title="V-Neck Tech" 
                 price="₹2,299" 
-                modelPath="/models/tshirt.glb" 
+                modelPath="/models/shirt_baked.glb" 
                 defaultColor="#111111"
                 scale={3.5}
               />

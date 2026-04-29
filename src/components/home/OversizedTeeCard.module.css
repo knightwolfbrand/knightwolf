@@ -17,7 +17,7 @@
   height: 450px;
   border-radius: 1.5rem;
   overflow: hidden;
-  background-color: transparent;
+  background-color: #000000;
   margin-bottom: 2rem;
   position: relative;
 }
@@ -79,23 +79,21 @@
 .buyBtn {
   width: 100%;
   padding: 1.2rem 0;
-  background: var(--color-accent);
-  color: #000;
+  background: var(--color-text-primary);
+  color: var(--color-bg-primary);
   font-weight: 900;
   border-radius: 9999px;
   transition: all 0.3s ease;
-  border: 1px solid rgba(11, 61, 46, 0.4);
+  border: none;
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 0.15em;
   font-size: 0.8rem;
-  backdrop-filter: blur(15px);
 }
 
 .buyBtn:hover {
-  background-color: #fff;
+  background-color: var(--color-accent);
   color: #000;
   transform: translateY(-4px);
-  box-shadow: 0 15px 30px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
 }
-
