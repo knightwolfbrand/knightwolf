@@ -40,16 +40,12 @@ function ProductModel({ modelPath, tshirtColor, scale = 2.2, position = [0, 0, 0
     }
   }, [tshirtColor]);
 
-  // Smooth rotation logic
+  // Smooth breathing effect instead of mouse-following rotation
   useFrame((state) => {
     if (groupRef.current) {
       const time = state.clock.getElapsedTime();
-      const targetRotation = Math.sin(time * 0.5) * 0.15 + state.mouse.x * 0.3;
-      groupRef.current.rotation.y = THREE.MathUtils.lerp(
-        groupRef.current.rotation.y,
-        targetRotation,
-        0.05
-      );
+      const breathing = 1 + Math.sin(time * 1.5) * 0.01;
+      groupRef.current.scale.setScalar(scale * breathing);
     }
   });
 
@@ -135,6 +131,9 @@ export default function CollectionCard({
               enableZoom={false} 
               minPolarAngle={Math.PI / 2} 
               maxPolarAngle={Math.PI / 2} 
+              autoRotate={false}
+              autoRotateSpeed={4}
+              rotateSpeed={2}
               makeDefault
             />
             <Environment preset="city" />
@@ -156,7 +155,10 @@ export default function CollectionCard({
         
         <p className={styles.collection}>Summer Collection 2026</p>
 
-        <button className={styles.buyBtn}>
+        <button 
+          className={styles.buyBtn}
+          onClick={() => window.location.href = '/customize/configurator.html'}
+        >
           CUSTOMIZE
         </button>
       </div>

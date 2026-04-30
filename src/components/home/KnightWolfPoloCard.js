@@ -18,13 +18,6 @@ function ShirtModel({ shirtColor, scale = 3.5 }) {
     if (groupRef.current) {
       const time = state.clock.getElapsedTime();
       
-      // Smoother rotation with lerp
-      groupRef.current.rotation.y = THREE.MathUtils.lerp(
-        groupRef.current.rotation.y,
-        Math.sin(time * 0.4) * 0.12 + state.mouse.x * 0.3,
-        0.04
-      );
-
       // Breathing effect - optimized scale setting
       const breathing = 1 + Math.sin(time * 1.5) * 0.006;
       groupRef.current.scale.setScalar(scale * breathing);
@@ -89,6 +82,8 @@ export default function KnightWolfPoloCard({
               enableZoom={false} 
               minPolarAngle={Math.PI / 2} 
               maxPolarAngle={Math.PI / 2} 
+              autoRotate={false}
+              autoRotateSpeed={4}
               rotateSpeed={2}
               makeDefault
             />
@@ -108,8 +103,11 @@ export default function KnightWolfPoloCard({
           </div>
         </div>
         <p className={styles.collection}>Polo Collection 2026</p>
-        <button className={styles.buyBtn}>
-          RESERVE NOW
+        <button 
+          className={styles.buyBtn}
+          onClick={() => window.location.href = '/customize/configurator.html'}
+        >
+          CUSTOMIZE
         </button>
       </div>
     </div>

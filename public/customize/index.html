@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knight Wolf | Professional Streetwear & Premium Essentials</title>
+    <meta name="description"
+        content="Knight Wolf - Professional quality t-shirts for the modern alpha. Unleash your inner spirit with our exclusive streetwear collection. Premium fabrics, minimalist design.">
+    <meta name="keywords" content="streetwear, premium t-shirts, Knight Wolf, minimalist fashion, men fashion">
+    <meta property="og:title" content="Knight Wolf | Professional Streetwear">
+    <meta property="og:description" content="Meticulously crafted essentials for the modern pioneer.">
+    <meta property="og:type" content="website">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;700;900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <span class="logo-text">KNIGHT WOLF</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#home" class="active">New Arrivals</a></li>
+                <li><a href="#shop">Collection</a></li>
+                <li><a href="#about">Our Story</a></li>
+            </ul>
+            <div class="nav-actions">
+                <button class="icon-btn" aria-label="Account" id="account-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" class="nav-icon">
+                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </button>
+                <div class="cart-btn">
+                    <button class="icon-btn" aria-label="Cart">
+                        <img src="cart-logo.png" alt="Knight Wolf Logo" class="cart-logo-img">
+                    </button>
+                    <span class="cart-count">0</span>
+                </div>
+            </div>
+            <button class="mobile-menu-btn" aria-label="Menu">
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu-overlay">
+        <div class="mobile-menu-content">
+            <button class="close-mobile-menu">&times;</button>
+            <ul class="mobile-nav-links">
+                <li><a href="#home">New Arrivals</a></li>
+                <li><a href="#shop">Collection</a></li>
+                <li><a href="#about">Our Story</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Cart Drawer -->
+    <div class="cart-drawer">
+        <div class="cart-drawer-header">
+            <h3>Your Bag (<span class="cart-drawer-count">0</span>)</h3>
+            <button class="close-cart">&times;</button>
+        </div>
+        <div class="cart-items-container">
+            <!-- Dynamic items will be injected here -->
+            <p class="empty-cart-msg">Your bag is empty.</p>
+        </div>
+        <div class="cart-drawer-footer">
+            <div class="cart-total">
+                <span>Total</span>
+                <span class="total-amount">₹0.00</span>
+            </div>
+            <button class="checkout-btn">Checkout</button>
+            <button class="continue-shopping">Continue Shopping</button>
+        </div>
+    </div>
+
+    <!-- Product Quick View Modal -->
+    <div class="quick-view-modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-container">
+            <button class="close-modal">&times;</button>
+            <div class="modal-grid">
+                <div class="modal-image">
+                    <img id="modal-img" src="" alt="Product Image">
+                </div>
+                <div class="modal-info">
+                    <h2 id="modal-title">Product Name</h2>
+                    <p class="modal-price" id="modal-price">₹0</p>
+                    <p class="modal-desc">Professional quality fabric, meticulously designed for the modern pioneer.
+                        Part of our exclusive streetwear collection.</p>
+
+                    <div class="size-selector">
+                        <h3>Select Size</h3>
+                        <div class="size-pills">
+                            <button class="size-pill" data-size="S">S</button>
+                            <button class="size-pill active" data-size="M">M</button>
+                            <button class="size-pill" data-size="L">L</button>
+                            <button class="size-pill" data-size="XL">XL</button>
+                        </div>
+                        <button class="size-chart-link">Size Guide</button>
+                    </div>
+
+                    <div class="purchase-controls">
+                        <div class="quantity-selector">
+                            <button class="modal-qty-btn minus">-</button>
+                            <span class="modal-qty-value">1</span>
+                            <button class="modal-qty-btn plus">+</button>
+                        </div>
+                        <select class="modal-purchase-type-select">
+                            <option value="one-time">One-time Purchase</option>
+                            <option value="subscription">Subscription (Save 10%)</option>
+                        </select>
+                    </div>
+
+                    <button class="add-to-cart-modal">Add to Bag</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Size Chart Modal -->
+    <div class="size-chart-modal">
+        <div class="modal-overlay"></div>
+        <div class="chart-container">
+            <button class="close-chart-modal">&times;</button>
+            <h2>Size Guide <span class="accent-dot">.</span></h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Size</th>
+                        <th>Chest (in)</th>
+                        <th>Length (in)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>S</td>
+                        <td>38</td>
+                        <td>27</td>
+                    </tr>
+                    <tr>
+                        <td>M</td>
+                        <td>40</td>
+                        <td>28</td>
+                    </tr>
+                    <tr>
+                        <td>L</td>
+                        <td>42</td>
+                        <td>29</td>
+                    </tr>
+                    <tr>
+                        <td>XL</td>
+                        <td>44</td>
+                        <td>30</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div class="payment-modal">
+        <div class="modal-overlay"></div>
+        <div class="payment-container">
+            <button class="close-payment">&times;</button>
+            <h2 class="anton-title">Secure Checkout <span class="accent-dot">.</span></h2>
+            <div class="payment-options">
+                <div class="pay-method active">UPI / GPay</div>
+                <div class="pay-method">Debit / Credit Card</div>
+                <div class="pay-method">Net Banking</div>
+            </div>
+            <div class="payment-fields">
+                <p>Simulating Razorpay / Stripe Integration...</p>
+                <div class="dummy-qr">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=KnightWolfOrder"
+                        alt="Payment QR">
+                </div>
+                <button class="complete-payment-btn">Complete Purchase</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Confirmed Modal -->
+    <div class="order-confirmed-modal">
+        <div class="modal-overlay"></div>
+        <div class="confirm-container">
+            <div class="success-icon">✓</div>
+            <h2 class="anton-title">Order Unleashed <span class="accent-dot">.</span></h2>
+            <p>Your Wolf Pack essentials are being prepared. Check your email for tracking details.</p>
+            <div class="order-summary-box">
+                <p>Order ID: #KW-2026-001</p>
+                <p>Status: Processing</p>
+            </div>
+            <button class="close-confirm-btn">Return to Shop</button>
+        </div>
+    </div>
+
+    <!-- Authentication Modal -->
+    <div class="auth-modal">
+        <div class="modal-overlay"></div>
+        <div class="auth-container">
+            <button class="close-auth">&times;</button>
+            <h2 class="anton-title">Alpha Entry <span class="accent-dot">.</span></h2>
+
+            <div class="auth-tabs">
+                <button class="auth-tab-btn active" data-auth-method="mobile">Mobile OTP</button>
+                <button class="auth-tab-btn" data-auth-method="email">Email / Pass</button>
+            </div>
+
+            <!-- Mobile OTP Flow -->
+            <div class="auth-content active" id="mobile-auth">
+                <div class="input-group">
+                    <label>Mobile Number</label>
+                    <input type="tel" id="phone-number" placeholder="+91 00000 00000">
+                </div>
+                <div id="recaptcha-container"></div>
+                <button class="auth-btn" id="send-otp-btn">Send Access Code</button>
+
+                <div class="otp-verification" style="display: none;">
+                    <div class="input-group">
+                        <label>Enter 6-Digit Code</label>
+                        <input type="text" id="otp-code" placeholder="000000" maxlength="6">
+                    </div>
+                    <button class="auth-btn" id="verify-otp-btn">Verify & Enter</button>
+                </div>
+            </div>
+
+            <!-- Email/Password Flow -->
+            <div class="auth-content" id="email-auth" style="display: none;">
+                <div class="input-group">
+                    <label>Email Address</label>
+                    <input type="email" id="auth-email" placeholder="alpha@knightwolf.com">
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="auth-password" placeholder="••••••••">
+                </div>
+                <button class="auth-btn" id="email-signin-btn">Sign In</button>
+                <p class="auth-switch">New to the pack? <a href="#" id="show-signup">Join Now</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Tracking Modal -->
+    <div class="account-modal">
+        <div class="modal-overlay"></div>
+        <div class="account-container">
+            <button class="close-account">&times;</button>
+            <h2 class="anton-title">Alpha Hub <span class="accent-dot">.</span></h2>
+
+            <div class="account-tabs">
+                <button class="tab-btn active" data-tab="orders">Recent Orders</button>
+                <button class="tab-btn" data-tab="profile">Profile Details</button>
+            </div>
+
+            <div class="tab-content active" id="orders-tab">
+                <div class="order-card-status">
+                    <div class="order-header">
+                        <span class="order-id">#KW-2026-001</span>
+                        <span class="order-date">Feb 26, 2026</span>
+                    </div>
+                    <div class="status-tracker">
+                        <div class="status-step active">Placed</div>
+                        <div class="status-step active">Processing</div>
+                        <div class="status-step">In Transit</div>
+                        <div class="status-step">Delivered</div>
+                    </div>
+                </div>
+                <p class="no-orders-msg" style="display: none;">No orders found yet.</p>
+            </div>
+
+            <div class="tab-content" id="profile-tab" style="display: none;">
+                <div class="profile-row">
+                    <span>Name</span>
+                    <span>Alpha Pioneer</span>
+                </div>
+                <div class="profile-row">
+                    <span>Email</span>
+                    <span>pioneer@knightwolf.com</span>
+                </div>
+                <button class="logout-btn">Sign Out</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inventory Dashboard Modal -->
+    <div class="inventory-modal">
+        <div class="modal-overlay"></div>
+        <div class="inventory-container">
+            <button class="close-inventory">&times;</button>
+            <h2 class="anton-title">Inventory Control <span class="accent-dot">.</span></h2>
+            <div class="inventory-grid">
+                <div class="inv-item">
+                    <span>Chronos Printed Tee</span>
+                    <div class="inv-stock">
+                        <span>S: 12</span> <span>M: 45</span> <span>L: 8</span> <span>XL: 2</span>
+                    </div>
+                </div>
+                <div class="inv-item">
+                    <span>Neo-Mafia Graphic</span>
+                    <div class="inv-stock">
+                        <span>S: 5</span> <span>M: 18</span> <span>L: 22</span> <span>XL: 10</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shipping Label Modal -->
+    <div class="shipping-modal">
+        <div class="modal-overlay"></div>
+        <div class="shipping-container">
+            <button class="close-shipping">&times;</button>
+            <div class="label-preview">
+                <div class="label-header">KNIGHT WOLF LOGISTICS</div>
+                <div class="label-barcode">|||| || ||||| | |||</div>
+                <div class="label-info">
+                    <p><strong>SHIP TO:</strong> Alpha Pioneer</p>
+                    <p>123 Streetwear Ave, Tech City</p>
+                    <p><strong>ORDER ID:</strong> #KW-2026-001</p>
+                </div>
+                <div class="label-footer">CARRIER: SHIPROCKET / DELHI VERY</div>
+            </div>
+            <button class="print-label-btn">Print Shipping Label</button>
+        </div>
+    </div>
+
+    <!-- 3D Customizer Modal -->
+    <div class="custom-3d-modal">
+        <div class="modal-overlay"></div>
+        <div class="customizer-container">
+            <button class="close-customizer">&times;</button>
+            <div class="customizer-layout">
+                <div class="spline-viewer-container">
+                    <iframe src="https://my.spline.design/untitled-lYvlmEWx0qmGaOBGrjLvDVhR/" frameborder="0"
+                        width="100%" height="100%"></iframe>
+                </div>
+                <div class="customizer-controls">
+                    <h2 class="anton-title">Live Preview <span class="accent-dot">.</span></h2>
+                    <p class="customizer-desc">Rotate, zoom, and inspect every fiber of your custom piece. 3D rendering
+                        provided by Spline Engine.</p>
+
+                    <div class="custom-options">
+                        <h3>Fabric Texture</h3>
+                        <div class="option-row">
+                            <button class="option-btn active" data-texture="classic">Classic Matte</button>
+                            <button class="option-btn" data-texture="premium">Premium Heavyweight</button>
+                        </div>
+                    </div>
+
+                    <button class="add-custom-to-cart">Add Custom Piece to Bag</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main>
+        <section id="home" class="hero">
+            <div class="hero-video-wrapper">
+                <video autoplay muted loop playsinline class="hero-video">
+                    <source src="VIDEO-2026-02-24-15-48-58.mp4" type="video/mp4">
+                </video>
+                <div class="hero-overlay"></div>
+            </div>
+            <div class="container hero-content-wrapper">
+                <div class="hero-branding">
+                    <h1 class="branding-title">KNIGHT WOLF</h1>
+                    <span class="branding-sub">STREET WEAR</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Featured Products -->
+        <section id="shop" class="products">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Selected <span class="italic">Pieces</span></h2>
+                    <p>The Wolf Pack Essentials</p>
+                </div>
+                <div class="product-grid">
+                    <!-- Product Card 1 -->
+                    <div class="product-card">
+                        <div class="product-img">
+                            <img src="image/product_stealth.jpg" alt="Minimalist Stealth Oversize">
+                            <button class="add-to-cart-quick">Add to Bag</button>
+                            <button class="customize-btn-quick" onclick="window.location.href='configurator.html'">Customize</button>
+                        </div>
+                        <div class="product-info">
+                            <p class="product-category">Essentials / Men</p>
+                            <h3>Minimalist Stealth Oversize</h3>
+                            <p class="product-price">₹599</p>
+                        </div>
+                    </div>
+                    <!-- Product Card 2 -->
+                    <div class="product-card">
+                        <div class="product-img">
+                            <img src="image/product_berroless.jpg" alt="White Berroless Tee">
+                            <button class="add-to-cart-quick">Add to Bag</button>
+                            <button class="customize-btn-quick" onclick="window.location.href='configurator.html'">Customize</button>
+                        </div>
+                        <div class="product-info">
+                            <p class="product-category">Originals / Men</p>
+                            <h3>White Berroless Tee</h3>
+                            <p class="product-price">₹549</p>
+                        </div>
+                    </div>
+                    <!-- Product Card 3 -->
+                    <div class="product-card">
+                        <div class="product-img">
+                            <img src="image/product_give.jpeg" alt="GIVE Classic Tee">
+                            <button class="add-to-cart-quick">Add to Bag</button>
+                            <button class="customize-btn-quick" onclick="window.location.href='configurator.html'">Customize</button>
+                        </div>
+                        <div class="product-info">
+                            <p class="product-category">Essentials / Men</p>
+                            <h3>GIVE Classic Tee</h3>
+                            <p class="product-price">₹529</p>
+                        </div>
+                    </div>
+                    <!-- Product Card 4 -->
+                    <div class="product-card">
+                        <div class="product-img">
+                            <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=800&q=80"
+                                alt="Chronos Printed Tee">
+                            <button class="add-to-cart-quick">Add to Bag</button>
+                            <button class="customize-btn-quick" onclick="window.location.href='configurator.html'">Customize</button>
+                        </div>
+                        <div class="product-info">
+                            <p class="product-category">Grafic Series / Men</p>
+                            <h3>Chronos Printed Tee</h3>
+                            <p class="product-price">₹499</p>
+                        </div>
+                    </div>
+                    <!-- Product Card 5 -->
+                    <div class="product-card">
+                        <div class="product-img">
+                            <img src="https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=800&q=80"
+                                alt="Neo-Mafia Graphic">
+                            <button class="add-to-cart-quick">Add to Bag</button>
+                            <button class="customize-btn-quick" onclick="window.location.href='configurator.html'">Customize</button>
+                        </div>
+                        <div class="product-info">
+                            <p class="product-category">Streetwear / Men</p>
+                            <h3>Neo-Mafia Graphic</h3>
+                            <p class="product-price">₹599</p>
+                        </div>
+                    </div>
+                    <!-- Product Card 6 -->
+                    <div class="product-card">
+                        <div class="product-img">
+                            <img src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=800&q=80"
+                                alt="Urban Legend Tee">
+                            <button class="add-to-cart-quick">Add to Bag</button>
+                            <button class="customize-btn-quick" onclick="window.location.href='configurator.html'">Customize</button>
+                        </div>
+                        <div class="product-info">
+                            <p class="product-category">Originals / Boy</p>
+                            <h3>Urban Legend Tee</h3>
+                            <p class="product-price">₹450</p>
+                        </div>
+                    </div>
+                    <!-- Product Card 7 -->
+                    <div class="product-card">
+                        <div class="product-img">
+                            <img src="https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&w=800&q=80"
+                                alt="Pioneer Printed">
+                            <button class="add-to-cart-quick">Add to Bag</button>
+                            <button class="customize-btn-quick" onclick="window.location.href='configurator.html'">Customize</button>
+                        </div>
+                        <div class="product-info">
+                            <p class="product-category">Essentials / Boy</p>
+                            <h3>Pioneer Printed</h3>
+                            <p class="product-price">₹549</p>
+                        </div>
+                    </div>
+                    <!-- Product Card 8 -->
+                    <div class="product-card">
+                        <div class="product-img">
+                            <img src="https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?auto=format&fit=crop&w=800&q=80"
+                                alt="Night Watchman Tee">
+                            <button class="add-to-cart-quick">Add to Bag</button>
+                            <button class="customize-btn-quick" onclick="window.location.href='configurator.html'">Customize</button>
+                        </div>
+                        <div class="product-info">
+                            <p class="product-category">Midnight / Men</p>
+                            <h3>Night Watchman Tee</h3>
+                            <p class="product-price">₹579</p>
+                        </div>
+                    </div>
+                    <!-- Product Card 9 -->
+                    <div class="product-card">
+                        <div class="product-img">
+                            <img src="https://images.unsplash.com/photo-1618354691373-d851c5c3a990?auto=format&fit=crop&w=800&q=80"
+                                alt="Concrete Jungle">
+                            <button class="add-to-cart-quick">Add to Bag</button>
+                            <button class="customize-btn-quick" onclick="window.location.href='configurator.html'">Customize</button>
+                        </div>
+                        <div class="product-info">
+                            <p class="product-category">Urban / Men</p>
+                            <h3>Concrete Jungle</h3>
+                            <p class="product-price">₹579</p>
+                        </div>
+                    </div>
+                    <!-- Product Card 11 -->
+                    <div class="product-card">
+                        <div class="product-img">
+                            <img src="https://images.unsplash.com/photo-1618354691229-88d47f285158?auto=format&fit=crop&w=800&q=80"
+                                alt="Shadow Stalker">
+                            <button class="add-to-cart-quick">Add to Bag</button>
+                            <button class="customize-btn-quick" onclick="window.location.href='configurator.html'">Customize</button>
+                        </div>
+                        <div class="product-info">
+                            <p class="product-category">Essentials / Men</p>
+                            <h3>Shadow Stalker</h3>
+                            <p class="product-price">₹529</p>
+                        </div>
+                    </div>
+                    <!-- Product Card 12 -->
+                    <div class="product-card">
+                        <div class="product-img">
+                            <img src="https://images.unsplash.com/photo-1554568218-0f1715e72254?auto=format&fit=crop&w=800&q=80"
+                                alt="Alpha Horizon Tee">
+                            <button class="add-to-cart-quick">Add to Bag</button>
+                            <button class="customize-btn-quick" onclick="window.location.href='configurator.html'">Customize</button>
+                        </div>
+                        <div class="product-info">
+                            <p class="product-category">Limited / Men</p>
+                            <h3>Alpha Horizon Tee</h3>
+                            <p class="product-price">₹599</p>
+                        </div>
+                    </div>
+                    <!-- Product Card 13 -->
+                    <div class="product-card">
+                        <div class="product-img">
+                            <img src="https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?auto=format&fit=crop&w=800&q=80"
+                                alt="Never Enough Time Tee">
+                            <button class="add-to-cart-quick">Add to Bag</button>
+                            <button class="customize-btn-quick" onclick="window.location.href='configurator.html'">Customize</button>
+                        </div>
+                        <div class="product-info">
+                            <p class="product-category">Grafic Series / Men</p>
+                            <h3>Never Enough Time Tee</h3>
+                            <p class="product-price">₹549</p>
+                        </div>
+                    </div>
+                    <!-- Product Card 14 -->
+                    <div class="product-card">
+                        <div class="product-img">
+                            <img src="image/product_speed.jpg" alt="Speed Printed Tee">
+                            <button class="add-to-cart-quick">Add to Bag</button>
+                            <button class="customize-btn-quick" onclick="window.location.href='configurator.html'">Customize</button>
+                        </div>
+                        <div class="product-info">
+                            <p class="product-category">Grafic Series / Men</p>
+                            <h3>Speed Printed Tee</h3>
+                            <p class="product-price">₹599</p>
+                        </div>
+                    </div>
+                    <!-- Product Card 15 -->
+                    <div class="product-card">
+                        <div class="product-img">
+                            <img src="image/product_faith_grey.jpg" alt="Faith Over Fear Tee - Grey">
+                            <button class="add-to-cart-quick">Add to Bag</button>
+                            <button class="customize-btn-quick" onclick="window.location.href='configurator.html'">Customize</button>
+                        </div>
+                        <div class="product-info">
+                            <p class="product-category">Grafic Series / Men</p>
+                            <h3>Faith Over Fear Tee (Grey)</h3>
+                            <p class="product-price">₹649</p>
+                        </div>
+                    </div>
+                    <!-- Product Card 16 -->
+                    <div class="product-card">
+                        <div class="product-img">
+                            <img src="image/product_faith_black.jpg" alt="Faith Over Fear Tee - Black">
+                            <button class="add-to-cart-quick">Add to Bag</button>
+                            <button class="customize-btn-quick" onclick="window.location.href='configurator.html'">Customize</button>
+                        </div>
+                        <div class="product-info">
+                            <p class="product-category">Grafic Series / Men</p>
+                            <h3>Faith Over Fear Tee (Black)</h3>
+                            <p class="product-price">₹649</p>
+                        </div>
+                    </div>
+                    <!-- Product Card 17 -->
+                    <div class="product-card">
+                        <div class="product-img">
+                            <img src="image/product_sage_green.jpg" alt="Sage Green Essentials Tee">
+                            <button class="add-to-cart-quick">Add to Bag</button>
+                            <button class="customize-btn-quick" onclick="window.location.href='configurator.html'">Customize</button>
+                        </div>
+                        <div class="product-info">
+                            <p class="product-category">Essentials / Men</p>
+                            <h3>Sage Green Essentials Tee</h3>
+                            <p class="product-price">₹549</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Our Story Section -->
+        <section id="about" class="about">
+            <div class="container about-container">
+                <div class="about-image">
+                    <img src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=1200&q=80"
+                        alt="Brand Narrative">
+                </div>
+                <div class="about-text">
+                    <div class="hero-tag">OUR NARRATIVE</div>
+                    <h2>Forged in the <span class="italic">Concrete Jungle</span></h2>
+                    <p>Knight Wolf was born from a desire to bridge the gap between high-end fashion and raw street
+                        culture. We believe that true luxury lies in the details—the weight of the fabric, the precision
+                        of the print, and the spirit of the wearer.</p>
+                    <p>Our pieces are designed for those who navigate the world with purpose. The alphas, the pioneers,
+                        the ones who lead the pack.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Newsletter -->
+        <section class="newsletter">
+            <div class="container">
+                <div class="newsletter-content">
+                    <h2>Join the <span class="italic">Wolf Pack</span></h2>
+                    <p>Be the first to know about new drops and exclusive member pricing.</p>
+                    <form class="newsletter-form">
+                        <input type="email" placeholder="Email Address" required>
+                        <button type="submit">Subscribe</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer-container">
+            <div class="logo">KNIGHT WOLF</div>
+            <div class="footer-links-row">
+                <a href="#">Shop</a>
+                <a href="#">Sustainability</a>
+                <a href="#">Support</a>
+                <a href="#" id="admin-link">Admin</a>
+            </div>
+            <p class="copyright">&copy; 2026 Knight Wolf. Crafted for a new era.</p>
+        </div>
+    </footer>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+    <script src="auth.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

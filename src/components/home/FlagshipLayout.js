@@ -121,10 +121,7 @@ export default function FlagshipLayout({ data }) {
               <KnightWolfPoloCard shirtColor="#5D8AA8" collarColor="#E5E4E2" />
             </div>
 
-            {/* NEW: OVERSIZED TEE CARD WITH VELVETY SHEEN */}
-            <div className={styles.snapItem}>
-              <OversizedTeeCard />
-            </div>
+
 
 
 

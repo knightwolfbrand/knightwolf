@@ -48,8 +48,11 @@ export default function OversizedTeeCard() {
           </div>
         </div>
         <p className={styles.collection}>Core Collection 2026</p>
-        <button className={styles.buyBtn}>
-          ADD TO CART
+        <button 
+          className={styles.buyBtn}
+          onClick={() => window.location.href = '/customize/configurator.html'}
+        >
+          CUSTOMIZE
         </button>
       </div>
     </div>

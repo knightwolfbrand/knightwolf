@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knight Wolf | 3D Configurator | Cyber-Chic Essentials</title>
+    <meta name="description" content="Configure your custom Knight Wolf premium streetwear in high-fidelity 3D.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="configurator.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Left Side: 3D Canvas -->
+        <main class="viewer-section">
+            <div id="canvas-container">
+                <!-- Three.js will inject canvas here -->
+                <div class="viewer-overlay">
+                    <div class="brand-badge">
+                        <span class="badge-text">KNIGHT WOLF</span>
+                    </div>
+                    <button id="fabric-zoom-btn">🔍 FABRIC ZOOM</button>
+                    <div class="viewer-controls-hint">
+                        <span>DRAG TO ROTATE • SCROLL TO ZOOM</span>
+                    </div>
+                </div>
+                <div id="loader">
+                    <div class="loader-container">
+                        <div class="loader-circle"></div>
+                        <img src="/images/logo.svg" class="loader-logo" alt="Knight Wolf Logo">
+                    </div>
+                    <span class="loader-text">INITIALIZING QUANTUM RENDER...</span>
+                </div>
+            </div>
+        </main>
+
+        <!-- Right Side: Controls Panel -->
+        <aside class="controls-section">
+            <header class="panel-header">
+                <a href="/" class="back-link">← BACK TO SHOP</a>
+                <div class="logo-area">
+                    <h1 class="logo-text">KNIGHT<br><span class="accent">WOLF</span></h1>
+                </div>
+                <div class="status-indicator">
+                    <span class="pulse"></span> LIVE CONFIGURATOR
+                </div>
+            </header>
+
+            <div class="panel-content">
+                <!-- Section: Base Color -->
+                <section class="control-group">
+                    <h2 class="group-title">BASE FINISH</h2>
+                    <div class="color-grid" id="color-options">
+                        <button class="color-swatch active" style="--swatch-color: #050505;" data-color="#050505" title="Stealth Black"></button>
+                        <button class="color-swatch" style="--swatch-color: #1a1a1a;" data-color="#1a1a1a" title="Midnight Charcoal"></button>
+                        <button class="color-swatch" style="--swatch-color: #f5f5f5;" data-color="#f5f5f5" title="Arctic White"></button>
+                        <button class="color-swatch" style="--swatch-color: #00d2ff;" data-color="#00d2ff" title="Neon Pulse"></button>
+                    </div>
+                </section>                <!-- Section: Stickers -->
+                <section class="control-group">
+                    <h2 class="group-title">ARTWORK</h2>
+                    <button id="toggle-stickers" class="cyber-action-btn">
+                        <span>ADD STICKER</span>
+                        <span class="btn-icon">+</span>
+                    </button>
+                    <div id="sticker-grid" class="sticker-grid-container hidden">
+                        <div class="sticker-controls">
+                            <label>STICKER SIZE</label>
+                            <input type="range" id="sticker-resize" min="1.0" max="4.5" step="0.1" value="2.8">
+                        </div>
+                        <div class="sticker-grid">
+                            <button class="sticker-opt" data-sticker="logo" title="Classic Logo">
+                                <img src="/images/logo.png" alt="Logo">
+                            </button>
+                            <button class="sticker-opt" data-sticker="wolf" title="Wolf Pride">
+                                <img src="/images/sticker_wolf.png" alt="Wolf">
+                            </button>
+                            <button class="sticker-opt" data-sticker="bolt" title="Cyber Bolt">
+                                <img src="/images/sticker_bolt.png" alt="Bolt">
+                            </button>
+                            <button class="sticker-opt" data-sticker="sacrifice" title="Sacrifice">
+                                <img src="/images/sticker_sacrifice.png" alt="Sacrifice">
+                            </button>
+                            <button class="sticker-opt" data-sticker="justdoit" title="Just Do It">
+                                <img src="/images/sticker_justdoit.png" alt="Just Do It">
+                            </button>
+                            <button class="sticker-opt" data-sticker="realistic" title="Realistic">
+                                <img src="/images/sticker_realistic.png" alt="Realistic">
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section: Fit Style -->
+                <section class="control-group">
+                    <h2 class="group-title">FIT STYLE</h2>
+                    <div class="style-toggle">
+                        <button class="style-btn active" data-style="regular">REGULAR</button>
+                        <button class="style-btn" data-style="oversized">OVERSIZED</button>
+                    </div>
+                </section>
+            </div>
+
+
+        </aside>
+    </div>
+
+    <!-- Scripts -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://esm.sh/three@0.160.0",
+            "three/addons/": "https://esm.sh/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="configurator.js"></script>
+</body>
+</html>

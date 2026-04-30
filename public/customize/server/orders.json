@@ -1,0 +1,24 @@
+[
+    {
+        "_id": "74969097-2dc4-480c-90f8-78129a8bd8df",
+        "userId": "TEST_USER_PYTHON",
+        "items": [
+            {
+                "name": "Minimalist Stealth Oversize",
+                "size": "L",
+                "quantity": 1,
+                "price": 599
+            },
+            {
+                "name": "White Berroless Tee",
+                "size": "M",
+                "quantity": 2,
+                "price": 549
+            }
+        ],
+        "totalAmount": 1697,
+        "paymentStatus": "Paid",
+        "createdAt": "2026-02-26T23:51:43.742468",
+        "transactionId": "KW-PY-TXN-1772130103"
+    }
+]
