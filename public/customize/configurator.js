@@ -64,7 +64,7 @@ controls.target.set(0, 4, 0);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
 controls.enablePan = false;
-controls.minDistance = 3;    // allow zooming in close enough to see fabric detail
+controls.minDistance = 9;
 controls.maxDistance = 22;
 controls.minPolarAngle = Math.PI * 0.25;
 controls.maxPolarAngle = Math.PI * 0.75;
@@ -303,7 +303,7 @@ function generateCottonNormalMap() {
 
     const tex = new THREE.CanvasTexture(canvas);
     tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-    tex.repeat.set(80, 80); // Finer ribbing for ultra-realistic detail
+    tex.repeat.set(60, 60); // very dense — ribs are microscopic
     tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
     return tex;
 }
@@ -554,71 +554,9 @@ document.querySelectorAll('[data-style]').forEach(btn => {
     });
 });
 
-// --- FABRIC ZOOM ---
-// Dynamic targets based on model height
-const ZOOM_CONFIGS = {
-    regular:   { pos: new THREE.Vector3(0, 4.8, 3.8), target: new THREE.Vector3(0, 4.8, 0) },
-    oversized: { pos: new THREE.Vector3(0, 5.8, 4.2), target: new THREE.Vector3(0, 5.8, 0) },
-    default:   { pos: new THREE.Vector3(0, 4.0, 16),  target: new THREE.Vector3(0, 4.0, 0) }
-};
-
-let zoomState    = 'out';
-let zoomGoal     = null;
-let zoomStartPos = new THREE.Vector3();
-let zoomStartTar = new THREE.Vector3();
-let zoomProgress = 1.0;
-const ZOOM_SPEED = 0.04;
-
-function startZoom(goal) {
-    zoomGoal = goal;
-    zoomStartPos.copy(camera.position);
-    zoomStartTar.copy(controls.target);
-    zoomProgress = 0.0;
-    controls.enabled = false;
-}
-
-const zoomBtn = document.getElementById('fabric-zoom-btn');
-if (zoomBtn) {
-    zoomBtn.addEventListener('click', () => {
-        if (zoomState === 'out') {
-            zoomState = 'animating';
-            // Use model-specific target
-            const target = ZOOM_CONFIGS[STATE.modelStyle] || ZOOM_CONFIGS.regular;
-            startZoom(target);
-            zoomBtn.textContent = 'EXIT ZOOM';
-            zoomBtn.classList.add('active');
-        } else {
-            zoomState = 'animating';
-            startZoom(ZOOM_CONFIGS.default);
-            zoomBtn.textContent = '🔍 FABRIC ZOOM';
-            zoomBtn.classList.remove('active');
-        }
-    });
-}
-
-// Smooth easing function (ease-in-out)
-function easeInOut(t) {
-    return t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
-}
-
-// --- ANIMATION LOOP ---
+// --- ANIMATION LOOP (no floating) ---
 function animate() {
     requestAnimationFrame(animate);
-
-    // Camera zoom lerp
-    if (zoomGoal && zoomProgress < 1.0) {
-        zoomProgress = Math.min(zoomProgress + ZOOM_SPEED, 1.0);
-        const t = easeInOut(zoomProgress);
-
-        camera.position.lerpVectors(zoomStartPos, zoomGoal.pos, t);
-        controls.target.lerpVectors(zoomStartTar, zoomGoal.target, t);
-
-        if (zoomProgress >= 1.0) {
-            controls.enabled = true;
-            zoomState = (zoomGoal === ZOOM_CONFIGS.default) ? 'out' : 'in';
-        }
-    }
-
     controls.update();
     renderer.render(scene, camera);
 }

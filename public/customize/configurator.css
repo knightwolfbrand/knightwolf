@@ -593,37 +593,3 @@ body {
     background: rgba(0, 210, 255, 0.12);
     box-shadow: 0 0 12px rgba(0, 210, 255, 0.2);
 }
-
-/* Fabric Zoom Button */
-#fabric-zoom-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 18px;
-    background: rgba(0, 0, 0, 0.55);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    color: rgba(255, 255, 255, 0.75);
-    font-family: var(--font-logo);
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 2px;
-    border-radius: 30px;
-    cursor: pointer;
-    backdrop-filter: blur(8px);
-    transition: all 0.25s ease;
-    margin-top: 8px;
-}
-
-#fabric-zoom-btn:hover {
-    border-color: var(--accent-blue);
-    color: var(--accent-blue);
-    background: rgba(0, 210, 255, 0.08);
-    box-shadow: 0 0 14px rgba(0, 210, 255, 0.25);
-}
-
-#fabric-zoom-btn.active {
-    border-color: var(--accent-blue);
-    color: var(--accent-blue);
-    background: rgba(0, 210, 255, 0.15);
-    box-shadow: 0 0 20px rgba(0, 210, 255, 0.35);
-}
