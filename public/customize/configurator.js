@@ -248,6 +248,7 @@ texLoader.load('/images/sticker_bolt.png',      img => { stickerTextures.bolt   
 texLoader.load('/images/sticker_sacrifice.png', img => { stickerTextures.sacrifice = processTexture(img.image); });
 texLoader.load('/images/sticker_justdoit.png',  img => { stickerTextures.justdoit  = processTexture(img.image); });
 texLoader.load('/images/sticker_realistic.png', img => { stickerTextures.realistic = processTexture(img.image); });
+texLoader.load('/images/sticker_risktakers.png', img => { stickerTextures.risktakers = processTexture(img.image); });
 
 // ---------------------------------------------------------------------------
 // TERRY COTTON FABRIC TEXTURES — generated procedurally, no external files

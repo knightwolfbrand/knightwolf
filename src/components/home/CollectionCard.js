@@ -13,18 +13,34 @@ function ProductModel({ modelPath, tshirtColor, scale = 2.2, position = [0, 0, 0
   const groupRef = useRef();
   const materialRef = useRef();
 
-  // Automatically center the geometry and then apply user position offset
+  // Apply material and settings to all meshes in the scene
   useEffect(() => {
-    if (groupRef.current) {
-      const box = new THREE.Box3().setFromObject(groupRef.current);
-      const center = new THREE.Vector3();
-      box.getCenter(center);
-      
-      groupRef.current.position.set(0, 0, 0);
-      groupRef.current.position.sub(center);
-      groupRef.current.position.add(new THREE.Vector3(...position));
-    }
-  }, [scene, position]);
+    scene.traverse((child) => {
+      if (child.isMesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+        
+        // Use existing textures if they exist (baked shadows/normals)
+        const hasMap = child.material.map;
+        const hasNormal = child.material.normalMap;
+
+        child.material = new THREE.MeshPhysicalMaterial({
+          color: new THREE.Color(tshirtColor),
+          roughness: 1.0,
+          metalness: 0.0,
+          sheen: 1.0,
+          sheenRoughness: 0.8,
+          sheenColor: new THREE.Color(0xffffff),
+          map: hasMap,
+          normalMap: hasNormal,
+          side: THREE.DoubleSide
+        });
+        
+        // Store reference for animations
+        if (!materialRef.current) materialRef.current = child.material;
+      }
+    });
+  }, [scene]); // Only run when scene changes
 
   // GSAP for smooth color transitions
   useEffect(() => {
@@ -40,7 +56,7 @@ function ProductModel({ modelPath, tshirtColor, scale = 2.2, position = [0, 0, 0
     }
   }, [tshirtColor]);
 
-  // Smooth breathing effect instead of mouse-following rotation
+  // Smooth breathing effect
   useFrame((state) => {
     if (groupRef.current) {
       const time = state.clock.getElapsedTime();
@@ -50,24 +66,8 @@ function ProductModel({ modelPath, tshirtColor, scale = 2.2, position = [0, 0, 0
   });
 
   return (
-    <group ref={groupRef} dispose={null} scale={[scale, scale, scale]}>
-      <mesh 
-        geometry={nodes.T_Shirt_male.geometry} 
-        castShadow
-        receiveShadow
-      >
-        <meshPhysicalMaterial 
-          ref={materialRef}
-          color={tshirtColor}
-          roughness={1.0}
-          metalness={0.0}
-          sheen={1.0}
-          sheenRoughness={1.0}
-          sheenColor={0xffffff}
-          map={materials.lambert1?.map}
-          normalMap={materials.lambert1?.normalMap}
-        />
-      </mesh>
+    <group ref={groupRef} dispose={null}>
+      <primitive object={scene} />
     </group>
   )
 }
