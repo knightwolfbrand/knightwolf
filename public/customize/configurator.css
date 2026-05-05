@@ -593,3 +593,119 @@ body {
     background: rgba(0, 210, 255, 0.12);
     box-shadow: 0 0 12px rgba(0, 210, 255, 0.2);
 }
+
+/* --- Custom Upload Area --- */
+.custom-upload-area {
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid var(--glass-border);
+    display: flex;
+    justify-content: center;
+}
+
+.cyber-outline-btn {
+    width: 100%;
+    padding: 14px 20px;
+    background: transparent;
+    border: 1px solid var(--accent-blue);
+    color: var(--accent-blue);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+.cyber-outline-btn:hover {
+    background: rgba(var(--accent-blue-rgb), 0.1);
+    box-shadow: 0 0 20px rgba(var(--accent-blue-rgb), 0.3);
+    transform: translateY(-1px);
+}
+
+/* Fabric Texture Selection */
+.fabric-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.fabric-btn {
+    padding: 12px 6px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.5);
+    font-family: var(--font-logo);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    text-transform: uppercase;
+}
+
+.fabric-btn:hover {
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
+    background: rgba(0, 210, 255, 0.06);
+}
+
+.fabric-btn.active {
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
+    background: rgba(0, 210, 255, 0.12);
+    box-shadow: 0 0 12px rgba(0, 210, 255, 0.2);
+}
+
+.fabric-btn[data-fabric="hyper"] {
+    grid-column: span 2; /* Highlight the hyper-knit demo */
+    border-color: rgba(var(--accent-blue-rgb), 0.4);
+}
+
+/* View Angle Buttons */
+.view-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.view-btn {
+    padding: 12px 6px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.55);
+    font-family: var(--font-logo);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    text-transform: uppercase;
+}
+
+.view-btn:hover {
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
+    background: rgba(0, 210, 255, 0.07);
+    transform: translateY(-1px);
+}
+
+.view-btn.active {
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
+    background: rgba(0, 210, 255, 0.15);
+    box-shadow: 0 0 14px rgba(0, 210, 255, 0.25);
+}
+
+.view-hint {
+    font-size: 0.6rem;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 0.5px;
+    line-height: 1.5;
+    margin-top: 4px;
+    text-transform: uppercase;
+}

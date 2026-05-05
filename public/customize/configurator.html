@@ -56,7 +56,8 @@
                         <button class="color-swatch" style="--swatch-color: #f5f5f5;" data-color="#f5f5f5" title="Arctic White"></button>
                         <button class="color-swatch" style="--swatch-color: #00d2ff;" data-color="#00d2ff" title="Neon Pulse"></button>
                     </div>
-                </section>                <!-- Section: Stickers -->
+
+                <!-- Section: Stickers -->
                 <section class="control-group">
                     <h2 class="group-title">ARTWORK</h2>
                     <button id="toggle-stickers" class="cyber-action-btn">
@@ -66,7 +67,7 @@
                     <div id="sticker-grid" class="sticker-grid-container hidden">
                         <div class="sticker-controls">
                             <label>STICKER SIZE</label>
-                            <input type="range" id="sticker-resize" min="1.0" max="4.5" step="0.1" value="2.8">
+                            <input type="range" id="sticker-resize" min="0.05" max="0.5" step="0.01" value="0.15">
                         </div>
                         <div class="sticker-grid">
                             <button class="sticker-opt" data-sticker="logo" title="Classic Logo">
@@ -91,6 +92,13 @@
                                 <img src="/images/sticker_risktakers.png" alt="Risk Takers">
                             </button>
                         </div>
+                        
+                        <div class="custom-upload-area">
+                            <input type="file" id="custom-sticker-upload" accept="image/*" hidden>
+                            <button id="trigger-upload" class="cyber-outline-btn">
+                                <span>UPLOAD CUSTOM ART</span>
+                            </button>
+                        </div>
                     </div>
                 </section>
 
@@ -102,6 +110,8 @@
                         <button class="style-btn" data-style="oversized">OVERSIZED</button>
                     </div>
                 </section>
+
+                <!-- Fabric locked to Structured as per user choice -->
             </div>
 
 

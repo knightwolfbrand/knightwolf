@@ -1,45 +1,45 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { DecalGeometry } from 'three/addons/geometries/DecalGeometry.js';
+import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 
 // --- CONFIGURATION & STATE ---
 const STATE = {
-    color: '#888888',
-    sticker: null,
-    stickerScale: 2.8,
+    color: '#949494',
     loaded: false,
-    modelStyle: 'regular' // 'regular' | 'oversized'
+    modelStyle: 'regular',
+    fabricStyle: 'structured',
+    stickerImage: null,      // raw HTMLImageElement of chosen sticker
+    stickerZone: 'front',    // 'front' | 'back' | 'left' | 'right'
+    stickerScale: 0.15,      // Ultra-minimalist logo size
 };
 
-// Matte fabric colors — zero metalness, high roughness
+
+// ─── COLORS ──────────────────────────────────────────────────────────────────
 const COLORS = {
-    '#888888': { roughness: 0.95, metalness: 0.0 },
+    '#949494': { roughness: 0.95, metalness: 0.0 },
     '#050505': { roughness: 0.95, metalness: 0.0 },
     '#1a1a1a': { roughness: 0.95, metalness: 0.0 },
     '#f5f5f5': { roughness: 0.92, metalness: 0.0 },
-    '#00d2ff': { roughness: 0.90, metalness: 0.0 }
+    '#00d2ff': { roughness: 0.90, metalness: 0.0 },
 };
 
-// Model configs — each points to its own GLB
+// ─── MODEL CONFIGS ────────────────────────────────────────────────────────────
 const MODEL_CONFIGS = {
-    regular: {
-        url: 'https://raw.githubusercontent.com/adrianhajdin/project_threejs_ai/main/client/public/shirt_baked.glb',
-        scale: [6.5, 6.5, 6.5],
-        position: [0, 4.0, 0],
-        stickerPos: [0, 4.15, 0.5],
-        stickerDepth: 1.2    // shallow enough to not project through to the back
+    regular:   { 
+        url: '/models/Tshirt2.glb', 
+        uvCenter: { cx: 0.25, cy: 0.68 },
+        isFlipped: true // Correction for inverted UVs
     },
-    oversized: {
-        url: '/models/oversized_tshirt.glb',
-        scale: [0.028, 0.028, 0.028],   // auto-adjusts after fitModel()
-        position: [0, 0, 0],
-        stickerPos: [0, 5.2, 0.5],     // Centered on the chest (y=5.2)
-        stickerDepth: 1.2              // Deep enough to wrap the boxy fit
-    }
+    oversized: { 
+        url: '/models/oversized_tshirt.glb', 
+        uvCenter: { cx: 0.30, cy: 0.45 },
+        aspectY: 1.25,
+        isFlipped: true
+    },
 };
 
-// --- SCENE SETUP ---
+// ─── SCENE ───────────────────────────────────────────────────────────────────
 const container = document.getElementById('canvas-container');
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0a0a0a);
@@ -47,18 +47,17 @@ scene.background = new THREE.Color(0x0a0a0a);
 const camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 0.1, 1000);
 camera.position.set(0, 4, 16);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(container.clientWidth, container.clientHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-// ACESFilmic gives natural color rolloff so fabric stays rich
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.0; 
+renderer.toneMappingExposure = 1.0;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 container.appendChild(renderer.domElement);
 
-// --- ORBIT CONTROLS (smooth, limited zoom) ---
+// ─── ORBIT CONTROLS ───────────────────────────────────────────────────────────
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(0, 4, 0);
 controls.enableDamping = true;
@@ -68,11 +67,10 @@ controls.minDistance = 9;
 controls.maxDistance = 22;
 controls.minPolarAngle = Math.PI * 0.25;
 controls.maxPolarAngle = Math.PI * 0.75;
-controls.zoomSpeed = 0.4;
-controls.rotateSpeed = 1.2;
 controls.update();
 
-// --- DRESSING ROOM ENVIRONMENT ---
+
+// ─── ENVIRONMENT ─────────────────────────────────────────────────────────────
 const texLoader = new THREE.TextureLoader();
 
 // Floor
@@ -85,435 +83,306 @@ const floor = new THREE.Mesh(
 );
 floor.rotation.x = -Math.PI / 2;
 floor.position.y = -1.25;
-floor.receiveShadow = true;  // catches the shirt's cast shadow on the floor
+floor.receiveShadow = true;
 scene.add(floor);
 
-// Walls (charcoal gradient)
+// Walls
 function createWallTexture() {
-    const c = document.createElement('canvas');
-    c.width = 512; c.height = 512;
+    const c = document.createElement('canvas'); c.width = c.height = 512;
     const ctx = c.getContext('2d');
     const g = ctx.createLinearGradient(0, 512, 0, 0);
-    g.addColorStop(0, '#050505');
-    g.addColorStop(1, '#1c1c1c');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, 512, 512);
+    g.addColorStop(0, '#050505'); g.addColorStop(1, '#1c1c1c');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, 512, 512);
     return new THREE.CanvasTexture(c);
 }
-const wallTex = createWallTexture();
-const wallMat = new THREE.MeshStandardMaterial({ map: wallTex, roughness: 0.98, metalness: 0.0 });
+const wallMat = new THREE.MeshStandardMaterial({ map: createWallTexture(), roughness: 0.98, metalness: 0.0 });
 const wallGeo = new THREE.PlaneGeometry(30, 20);
-[
-    { pos: [0, 8.75, -15], ry: 0 },
-    { pos: [0, 8.75,  15], ry: Math.PI },
-    { pos: [-15, 8.75, 0], ry:  Math.PI / 2 },
-    { pos: [ 15, 8.75, 0], ry: -Math.PI / 2 },
-].forEach(({ pos, ry }) => {
+[{pos:[0,8.75,-15],ry:0},{pos:[0,8.75,15],ry:Math.PI},{pos:[-15,8.75,0],ry:Math.PI/2},{pos:[15,8.75,0],ry:-Math.PI/2}]
+.forEach(({pos,ry}) => {
     const w = new THREE.Mesh(wallGeo, wallMat);
-    w.position.set(...pos);
-    w.rotation.y = ry;
-    w.receiveShadow = true;
-    scene.add(w);
+    w.position.set(...pos); w.rotation.y = ry; w.receiveShadow = true; scene.add(w);
 });
 
-// --- LIGHTING — Form Depth without self-shadow ---
-// Key insight: The T-shirt has receiveShadow = false, so it NEVER receives
-// shadows ON itself. Depth/form comes purely from normal-based shading.
-// The shirt casts its shadow on the floor only (looks professional).
-
-// Soft ambient base — keeps the dark side from going pitch black
+// ─── LIGHTING ─────────────────────────────────────────────────────────────────
 scene.add(new THREE.AmbientLight(0xffffff, 1.4));
-
-// Key Light — front-top-right. This is what creates the 3D form highlights.
-// Because shirt has receiveShadow=false, this light only shades via normals.
 const keyLight = new THREE.DirectionalLight(0xffffff, 1.6);
-keyLight.position.set(4, 8, 10);
-keyLight.castShadow = true;
-keyLight.shadow.mapSize.width  = 1024;
-keyLight.shadow.mapSize.height = 1024;
-keyLight.shadow.camera.near   = 1;
-keyLight.shadow.camera.far    = 40;
-keyLight.shadow.bias          = -0.001;
-keyLight.shadow.radius        = 6; // soft shadow edge on the floor
+keyLight.position.set(4, 8, 10); keyLight.castShadow = true;
+keyLight.shadow.mapSize.set(1024, 1024); keyLight.shadow.bias = -0.001; keyLight.shadow.radius = 6;
 scene.add(keyLight);
-
-// Fill Light — left side, counters the key without flattening
 const fillLight = new THREE.DirectionalLight(0xffffff, 0.7);
-fillLight.position.set(-8, 3, 6);
-scene.add(fillLight);
-
-// Rim Light — from behind, creates the bright outline that separates
-// the shirt's silhouette from the dark background (premium look)
+fillLight.position.set(-8, 3, 6); scene.add(fillLight);
 const rimLight = new THREE.DirectionalLight(0xffffff, 0.6);
-rimLight.position.set(0, 6, -12);
-scene.add(rimLight);
-// --- ASSETS ---
-let tshirtModel = null;
-let tshirtMesh = null;    // the mesh we project decals onto
-let logoMesh = null;
-const loader = new GLTFLoader();
-const stickerTextures = {};
+rimLight.position.set(0, 6, -12); scene.add(rimLight);
 
-// Picks the mesh with the most vertices (the main body, not collar/label)
-function findMainMesh(gltfScene) {
-    let best = null;
-    let bestCount = 0;
-    gltfScene.traverse(child => {
-        if (child.isMesh) {
-            const count = child.geometry.attributes.position.count;
-            if (count > bestCount) { bestCount = count; best = child; }
-        }
-    });
-    return best;
+// ─── FABRIC TEXTURE GENERATORS ───────────────────────────────────────────────
+function createFabricTex(size, drawFn) {
+    const c = document.createElement('canvas'); c.width = c.height = size;
+    const ctx = c.getContext('2d'); drawFn(ctx, size);
+    const t = new THREE.CanvasTexture(c);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
 }
 
-// Auto-fit a loaded model to a target height and snap it to the SAME
-// visual center as the regular tee (y = 4.0) so the camera framing
-// never changes when the user switches fit styles.
-function fitModel(model, targetHeight) {
-    // 1. Scale to target height
-    const box1 = new THREE.Box3().setFromObject(model);
-    const size1 = new THREE.Vector3();
-    box1.getSize(size1);
-    const fitScale = targetHeight / size1.y;
-    model.scale.multiplyScalar(fitScale);
+const FABRIC_MAPS = {
+    structured: {
+        normal: null, roughness: null, repeat: 50, normalScale: 1.2,
+        _makeNormal: (s) => createFabricTex(s, (ctx,s) => {
+            ctx.fillStyle='#8080ff'; ctx.fillRect(0,0,s,s);
+            for(let x=0;x<s;x+=8){ctx.fillStyle='#9090ff';ctx.fillRect(x,0,4,s);}
+        }),
+        _makeRoughness: (s) => createFabricTex(s, (ctx,s) => { ctx.fillStyle='#f5f5f5'; ctx.fillRect(0,0,s,s); })
+    }
+};
 
-    // 2. Re-measure after scale
-    const box2 = new THREE.Box3().setFromObject(model);
-    const center2 = new THREE.Vector3();
-    box2.getCenter(center2);
-
-    // 3. Center X/Z, then lift so the model centre sits at y = 4.0
-    //    (same visual position the regular tee occupies)
-    model.position.x -= center2.x;
-    model.position.z -= center2.z;
-    model.position.y  = 4.0 - center2.y;  // centre of model at y=4.0
+function ensureFabricMaps(style) {
+    const cfg = FABRIC_MAPS[style] || FABRIC_MAPS.structured;
+    if (!cfg.normal) {
+        cfg.normal = cfg._makeNormal(128);
+        cfg.normal.repeat.set(cfg.repeat, cfg.repeat);
+        cfg.normal.anisotropy = 4;
+    }
+    if (!cfg.roughness) {
+        cfg.roughness = cfg._makeRoughness(128);
+        cfg.roughness.repeat.set(cfg.repeat, cfg.repeat);
+    }
+    return cfg;
 }
 
-// Flood-Fill background removal — removes only the outer background, preserves internal pixels
-function processTexture(image) {
-    const canvas = document.createElement('canvas');
-    canvas.width = image.width;
-    canvas.height = image.height;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(image, 0, 0);
+// ─── UV CANVAS STICKER SYSTEM ────────────────────────────────────────────────
+// The shirt material uses a 1024×1024 canvas as its .map texture.
+// We paint the base fabric colour + sticker directly onto this canvas.
+// No 3D projection needed — works on every model.
 
-    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+const UV_SIZE = 2048; // Doubled resolution for crisp stickers
+const uvCanvas = document.createElement('canvas');
+uvCanvas.width = uvCanvas.height = UV_SIZE;
+const uvCtx = uvCanvas.getContext('2d');
+const uvTexture = new THREE.CanvasTexture(uvCanvas);
+uvTexture.colorSpace = THREE.SRGBColorSpace;
+uvTexture.flipY = false;
+uvTexture.anisotropy = 16; // Max sharpness for fabric details
+uvTexture.minFilter = THREE.LinearMipmapLinearFilter;
+uvTexture.magFilter = THREE.LinearFilter;
+uvTexture.wrapS = uvTexture.wrapT = THREE.ClampToEdgeWrapping; // Ensure no tiling/repetition
+
+function hexToRgb(hex) {
+    const r = parseInt(hex.slice(1,3),16);
+    const g = parseInt(hex.slice(3,5),16);
+    const b = parseInt(hex.slice(5,7),16);
+    return `rgb(${r},${g},${b})`;
+}
+
+// ─── BACKGROUND REMOVAL ──────────────────────────────────────────────────────
+// Flood-fills from all 4 corners, removes any solid background colour,
+// returns a new canvas with the background made transparent.
+function removeBackground(img) {
+    const c = document.createElement('canvas');
+    c.width = img.naturalWidth || img.width;
+    c.height = img.naturalHeight || img.height;
+    const ctx = c.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+
+    const W = c.width, H = c.height;
+    const imgData = ctx.getImageData(0, 0, W, H);
     const data = imgData.data;
-    const W = canvas.width;
-    const H = canvas.height;
-
     const visited = new Uint8Array(W * H);
     const queue = [];
 
-    // Seed from all four corners
-    [[0,0],[W-1,0],[0,H-1],[W-1,H-1]].forEach(([x,y]) => {
-        const idx = y * W + x;
-        if (!visited[idx]) { visited[idx] = 1; queue.push(x, y); }
-    });
-
+    // Sample background colour from all 4 corners
     const bgR = data[0], bgG = data[1], bgB = data[2];
-    const TOL = 20; // tight tolerance — only removes background, not artwork edges
+    const TOL = 55; // Increased tolerance for cleaner background removal
+
+    [[0,0],[W-1,0],[0,H-1],[W-1,H-1]].forEach(([x,y]) => {
+        const idx = y*W+x;
+        if (!visited[idx]) { visited[idx]=1; queue.push(x,y); }
+    });
 
     let head = 0;
     while (head < queue.length) {
-        const x = queue[head++];
-        const y = queue[head++];
-        const pos = (y * W + x) * 4;
-        const r = data[pos], g = data[pos+1], b = data[pos+2];
-        const diff = Math.abs(r-bgR) + Math.abs(g-bgG) + Math.abs(b-bgB);
+        const x = queue[head++], y = queue[head++];
+        const pos = (y*W+x)*4;
+        const diff = Math.abs(data[pos]-bgR)+Math.abs(data[pos+1]-bgG)+Math.abs(data[pos+2]-bgB);
         if (diff < TOL) {
-            data[pos+3] = 0;
+            data[pos+3] = 0; // make transparent
             for (const [nx,ny] of [[x+1,y],[x-1,y],[x,y+1],[x,y-1]]) {
-                if (nx>=0 && nx<W && ny>=0 && ny<H) {
+                if (nx>=0&&nx<W&&ny>=0&&ny<H) {
                     const nIdx = ny*W+nx;
                     if (!visited[nIdx]) { visited[nIdx]=1; queue.push(nx,ny); }
                 }
             }
         }
     }
-
     ctx.putImageData(imgData, 0, 0);
-    const tex = new THREE.CanvasTexture(canvas);
-    tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
-    tex.minFilter = THREE.LinearFilter;
-    tex.magFilter = THREE.LinearFilter;
-    return tex;
+    return c; // return processed canvas (can be drawn like an image)
 }
 
-// Preload all sticker textures
-texLoader.load('/images/logo.png',              img => { stickerTextures.logo      = processTexture(img.image); });
-texLoader.load('/images/sticker_wolf.png',      img => { stickerTextures.wolf      = processTexture(img.image); });
-texLoader.load('/images/sticker_bolt.png',      img => { stickerTextures.bolt      = processTexture(img.image); });
-texLoader.load('/images/sticker_sacrifice.png', img => { stickerTextures.sacrifice = processTexture(img.image); });
-texLoader.load('/images/sticker_justdoit.png',  img => { stickerTextures.justdoit  = processTexture(img.image); });
-texLoader.load('/images/sticker_realistic.png', img => { stickerTextures.realistic = processTexture(img.image); });
-texLoader.load('/images/sticker_risktakers.png', img => { stickerTextures.risktakers = processTexture(img.image); });
+function repaintStickerCanvas() {
+    // 1. Fill base colour
+    uvCtx.fillStyle = hexToRgb(STATE.color);
+    uvCtx.fillRect(0, 0, UV_SIZE, UV_SIZE);
 
-// ---------------------------------------------------------------------------
-// TERRY COTTON FABRIC TEXTURES — generated procedurally, no external files
-// ---------------------------------------------------------------------------
-// JERSEY COTTON FABRIC TEXTURES (Standard T-Shirt Fabric)
-// ---------------------------------------------------------------------------
+    // 2. Draw sticker if one is selected
+    if (STATE.stickerImage) {
+        const cfg = MODEL_CONFIGS[STATE.modelStyle];
+        const uv = cfg.uvCenter;
+        const stickerSize = Math.round(UV_SIZE * STATE.stickerScale);
+        const aspectY = cfg.aspectY || 1.0;
+        const cleanSticker = removeBackground(STATE.stickerImage);
 
-// 1. Normal Map — Microscopic Jersey Weave
-//    Simulates the tiny 'V' shape interlocking threads of cotton jersey.
-// JERSEY COTTON — VERTICAL MICRO-RIB normal map
-// Fine vertical columns simulate the warp threads of real cotton jersey.
-// Tiled very densely so individual ribs are microscopic (realistic scale).
-function generateCottonNormalMap() {
-    const SIZE = 128; // small tile, tiled densely
-    const canvas = document.createElement('canvas');
-    canvas.width = canvas.height = SIZE;
-    const ctx = canvas.getContext('2d');
+        const sx = Math.round(uv.cx * UV_SIZE);
+        const sy = Math.round(uv.cy * UV_SIZE);
 
-    // Base: flat normal (128,128,255)
-    ctx.fillStyle = '#8080ff';
-    ctx.fillRect(0, 0, SIZE, SIZE);
+        uvCtx.save();
+        uvCtx.translate(sx, sy);
 
-    const RIB_W = 3;   // px width of each rib column
-    const GAP   = 1;   // px gap (valley) between ribs
-    const PITCH  = RIB_W + GAP; // total cycle = 4px
-
-    for (let x = 0; x < SIZE; x++) {
-        const phase = x % PITCH;
-        let r, g, b;
-
-        if (phase === 0) {
-            // Left slope of rib — normal tilts right
-            r = 148; g = 128; b = 255;
-        } else if (phase === 1) {
-            // Rib peak — normal points straight forward (brightest)
-            r = 138; g = 128; b = 255;
-        } else if (phase === 2) {
-            // Rib peak continues
-            r = 128; g = 128; b = 255;
-        } else {
-            // Gap/valley — normal tilts left (shadow side)
-            r = 108; g = 128; b = 235;
+        // Apply orientation correction if the model has inverted UVs
+        if (cfg.isFlipped) {
+            uvCtx.scale(1, -1);
         }
 
-        // Draw the full vertical column
-        for (let y = 0; y < SIZE; y++) {
-            // Add tiny horizontal micro-noise for organic cotton feel
-            const noise = Math.floor((Math.random() - 0.5) * 6);
-            ctx.fillStyle = `rgb(${r+noise},${g},${b})`;
-            ctx.fillRect(x, y, 1, 1);
-        }
+        // Draw centered on the target UV point with aspect ratio correction
+        uvCtx.drawImage(
+            cleanSticker, 
+            -stickerSize / 2, 
+            -(stickerSize * aspectY) / 2, 
+            stickerSize, 
+            stickerSize * aspectY
+        );
+        uvCtx.restore();
     }
 
-    const tex = new THREE.CanvasTexture(canvas);
-    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-    tex.repeat.set(60, 60); // very dense — ribs are microscopic
-    tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
-    return tex;
+    // 3. Tell Three.js the texture changed
+    uvTexture.needsUpdate = true;
 }
 
-// 2. Roughness Map — Soft, matte cotton feel
-function generateCottonRoughnessMap() {
-    const SIZE = 128;
-    const canvas = document.createElement('canvas');
-    canvas.width = canvas.height = SIZE;
-    const ctx = canvas.getContext('2d');
-
-    // High roughness base for matte cotton
-    ctx.fillStyle = '#f0f0f0';
-    ctx.fillRect(0, 0, SIZE, SIZE);
-
-    // Micro-noise for organic feel
-    const imgData = ctx.getImageData(0, 0, SIZE, SIZE);
-    for (let i = 0; i < imgData.data.length; i += 4) {
-        const v = 230 + Math.floor(Math.random() * 25);
-        imgData.data[i] = imgData.data[i+1] = imgData.data[i+2] = v;
-        imgData.data[i+3] = 255;
-    }
-    ctx.putImageData(imgData, 0, 0);
-
-    const tex = new THREE.CanvasTexture(canvas);
-    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-    tex.repeat.set(50, 50);
-    return tex;
-}
-
-// Generate once
-const cottonNormalMap    = generateCottonNormalMap();
-const cottonRoughnessMap = generateCottonRoughnessMap();
-
-// ---------------------------------------------------------------------------
-// Shared material factory — MeshPhysicalMaterial for premium "Depth"
-// ---------------------------------------------------------------------------
-function makeFabricMaterial(color) {
+// ─── MATERIAL FACTORY ────────────────────────────────────────────────────────
+function makeFabricMaterial() {
+    const cfg = ensureFabricMaps(STATE.fabricStyle);
+    // Start with a fresh canvas paint
+    repaintStickerCanvas();
     const mat = new THREE.MeshPhysicalMaterial({
-        color:        new THREE.Color(color),
-        roughness:    0.95,
+        map:          uvTexture,      // UV-painted canvas drives colour + sticker
+        roughness:    0.98,
         metalness:    0.0,
-        side:         THREE.DoubleSide,
-        
-        // Jersey cotton textures
-        normalMap:    cottonNormalMap,
-        roughnessMap: cottonRoughnessMap,
-
-        // SHEEN: Essential for fabric depth.
-        sheen: 0.6,
-        sheenRoughness: 0.9,
-        sheenColor: new THREE.Color(0xffffff),
-
-        // Clear any baked GLB maps
-        map:         null,
-        aoMap:       null,
-        metalnessMap: null,
-        emissiveMap: null,
+        side:         THREE.FrontSide,
+        normalMap:    cfg.normal,
+        roughnessMap: cfg.roughness,
+        sheen:        1.0,
+        sheenRoughness: 0.8,
+        sheenColor:   new THREE.Color(0xffffff),
     });
-    // Normal scale for tactile feel
-    mat.normalScale.set(1.4, 1.4); 
+    mat.normalScale.set(cfg.normalScale, cfg.normalScale);
     return mat;
 }
 
-// Loads a model by style key, tears down the previous one first
+// ─── MODEL LOADING ────────────────────────────────────────────────────────────
+let tshirtModel = null;
+const loader = new GLTFLoader();
+
+function fitModel(model, targetHeight) {
+    const box1 = new THREE.Box3().setFromObject(model);
+    const size1 = new THREE.Vector3(); box1.getSize(size1);
+    model.scale.multiplyScalar(targetHeight / size1.y);
+    const box2 = new THREE.Box3().setFromObject(model);
+    const center2 = new THREE.Vector3(); box2.getCenter(center2);
+    model.position.x -= center2.x;
+    model.position.z -= center2.z;
+    model.position.y  = 4.0 - center2.y;
+}
+
+function applyMaterialToModel() {
+    if (!tshirtModel) return;
+    console.log("--- Applying Material to Meshes ---");
+    const mat = makeFabricMaterial();
+    tshirtModel.traverse(child => {
+        if (child.isMesh) {
+            console.log("Found Mesh:", child.name);
+            child.castShadow    = true;
+            child.receiveShadow = false;
+            child.material = mat;
+        }
+    });
+}
+
 function loadModel(style) {
-    const cfg = MODEL_CONFIGS[style];
-
-    // Remove current model + decal
-    if (logoMesh) { scene.remove(logoMesh); logoMesh.geometry.dispose(); logoMesh.material.dispose(); logoMesh = null; }
-    if (tshirtModel) { scene.remove(tshirtModel); tshirtModel = null; tshirtMesh = null; }
-
+    if (tshirtModel) { scene.remove(tshirtModel); tshirtModel = null; }
     loader.load(
-        cfg.url,
+        MODEL_CONFIGS[style].url,
         (gltf) => {
             tshirtModel = gltf.scene;
-
-            if (style === 'regular') {
-                tshirtModel.scale.set(...cfg.scale);
-                tshirtModel.position.set(...cfg.position);
-            } else {
-                // Fit to same visual height as regular tee, centre at y=4.0
-                fitModel(tshirtModel, 9.0);
-            }
-
-            tshirtMesh = findMainMesh(tshirtModel);
-
-            tshirtModel.traverse(child => {
-                if (child.isMesh) {
-                    child.castShadow    = true;  // shirt casts shadow on the floor
-                    child.receiveShadow = false; // shirt NEVER receives shadows on itself
-                    child.material = makeFabricMaterial(STATE.color);
-                }
-            });
-
+            fitModel(tshirtModel, 9.0);
+            applyMaterialToModel();
             scene.add(tshirtModel);
-
-            // Re-apply active sticker to new mesh geometry
-            if (STATE.sticker && STATE.loaded) {
-                setTimeout(() => applySticker(STATE.sticker, true), 80);
-            }
         },
         undefined,
         err => console.error('Model load error:', err)
     );
 }
 
-// Initial load — regular model with splash screen
+// ─── INITIAL LOAD ─────────────────────────────────────────────────────────────
 (function initialLoad() {
     loader.load(
         MODEL_CONFIGS.regular.url,
         (gltf) => {
             tshirtModel = gltf.scene;
-            tshirtModel.scale.set(...MODEL_CONFIGS.regular.scale);
-            tshirtModel.position.set(...MODEL_CONFIGS.regular.position);
-            tshirtMesh = findMainMesh(tshirtModel);
-            tshirtModel.traverse(child => {
-                if (child.isMesh) {
-                    child.castShadow    = true;  // shirt casts shadow on the floor
-                    child.receiveShadow = false; // shirt NEVER receives shadows on itself
-                    child.material = makeFabricMaterial(STATE.color);
-                }
-            });
+            fitModel(tshirtModel, 9.0);
+            applyMaterialToModel();
             scene.add(tshirtModel);
+            STATE.loaded = true;
 
-            const start = Date.now();
-            const msgs = ['INITIALIZING RENDER ENGINE...', 'LOADING FABRIC GEOMETRY...', 'CALIBRATING SHADERS...', 'FINALIZING...'];
-            let mi = 0;
-            const t = setInterval(() => { if (mi < msgs.length) document.querySelector('.loader-text').innerText = msgs[mi++]; }, 1000);
-            const check = () => {
-                if (Date.now() - start >= 4000) {
-                    clearInterval(t);
-                    const el = document.getElementById('loader');
-                    el.style.transition = 'opacity 0.5s ease';
-                    el.style.opacity = '0';
-                    setTimeout(() => { el.style.display = 'none'; STATE.loaded = true; }, 500);
-                } else setTimeout(check, 100);
-            };
-            check();
+            const el = document.getElementById('loader');
+            el.style.transition = 'opacity 0.5s ease';
+            el.style.opacity = '0';
+            setTimeout(() => { el.style.display = 'none'; }, 500);
         },
         undefined,
-        err => { console.error(err); document.querySelector('.loader-text').innerText = 'ERROR. PLEASE REFRESH.'; }
+        err => {
+            console.error(err);
+            document.querySelector('.loader-text').innerText = 'ERROR. PLEASE REFRESH.';
+        }
     );
 })();
 
-
-function updateTshirtMaterial() {
-    if (!tshirtModel) return;
-    const props = COLORS[STATE.color] || { roughness: 0.95, metalness: 0.0 };
-    tshirtModel.traverse(child => {
-        if (child.isMesh) {
-            child.material.color.set(STATE.color);
-            child.material.roughness = props.roughness;
-            child.material.metalness = props.metalness;
-        }
-    });
+// ─── UPDATE COLOUR ────────────────────────────────────────────────────────────
+function updateColor(hex) {
+    STATE.color = hex;
+    repaintStickerCanvas(); // Re-paint canvas with new base colour
 }
 
-// --- STICKER APPLICATION ---
-function applySticker(stickerId, skipStateUpdate = false) {
-    if (!tshirtMesh || !STATE.loaded) return;
-    if (!stickerTextures[stickerId]) { console.warn('Texture not ready:', stickerId); return; }
+// ─── PRELOAD STICKER IMAGES ───────────────────────────────────────────────────
+// We load them as HTMLImageElements (not THREE textures) so we can drawImage()
+const stickerImages = {};
+const STICKER_SRCS = {
+    logo:       '/images/logo.png',
+    wolf:       '/images/sticker_wolf.png',
+    bolt:       '/images/sticker_bolt.png',
+    sacrifice:  '/images/sticker_sacrifice.png',
+    justdoit:   '/images/sticker_justdoit.png',
+    realistic:  '/images/sticker_realistic.png',
+    risktakers: '/images/sticker_risktakers.png',
+};
+Object.entries(STICKER_SRCS).forEach(([key, src]) => {
+    const img = new Image();
+    // No crossOrigin needed — images are same-origin local files
+    img.onload = () => {
+        stickerImages[key] = img;
+        console.log(`✅ Sticker loaded: ${key}`);
+    };
+    img.onerror = () => console.error(`❌ Sticker failed to load: ${src}`);
+    img.src = src;
+});
 
-    if (logoMesh) { scene.remove(logoMesh); logoMesh.geometry.dispose(); logoMesh.material.dispose(); logoMesh = null; }
-    if (!skipStateUpdate) STATE.sticker = stickerId;
-
-    const cfg = MODEL_CONFIGS[STATE.modelStyle];
-    const pos = new THREE.Vector3(...cfg.stickerPos);
-    const rot = new THREE.Euler(0, 0, 0);
-    const s = STATE.stickerScale;
-    const size = new THREE.Vector3(s, s, cfg.stickerDepth);
-
-    const decalGeo = new DecalGeometry(tshirtMesh, pos, rot, size);
-    const decalMat = new THREE.MeshStandardMaterial({
-        map: stickerTextures[stickerId],
-        transparent: true,
-        alphaTest: 0.05,
-        depthTest: true,
-        depthWrite: false,
-        polygonOffset: true,
-        polygonOffsetFactor: -2,
-        polygonOffsetUnits: -2,
-        side: THREE.FrontSide,
-        roughness: 0.85,
-        metalness: 0.0
-    });
-
-    logoMesh = new THREE.Mesh(decalGeo, decalMat);
-    logoMesh.renderOrder = 2;
-    scene.add(logoMesh);
+function applySticker(key) {
+    if (!stickerImages[key]) { console.warn('Sticker image not loaded yet:', key); return; }
+    STATE.stickerImage = stickerImages[key];
+    repaintStickerCanvas();
 }
 
-// Resize: re-apply without clearing sticker state
-function resizeSticker(scale) {
-    STATE.stickerScale = scale;
-    if (STATE.sticker) applySticker(STATE.sticker, true);
+function applyCustomSticker(imgEl) {
+    STATE.stickerImage = imgEl;
+    repaintStickerCanvas();
 }
 
-// Model style toggle — swaps between real GLB files
-// Camera target stays at y=4 for both so the frame never jumps.
-function setModelStyle(style) {
-    STATE.modelStyle = style;
-    loadModel(style);
-    // Keep camera locked on the same centre point for both styles
-    controls.target.set(0, 4.0, 0);
-    controls.update();
-}
-
-// --- UI EVENT LISTENERS ---
+// ─── UI EVENT LISTENERS ──────────────────────────────────────────────────────
 
 // Toggle sticker panel
 document.getElementById('toggle-stickers').addEventListener('click', () => {
@@ -522,12 +391,7 @@ document.getElementById('toggle-stickers').addEventListener('click', () => {
     document.getElementById('toggle-stickers').querySelector('.btn-icon').innerText = isHidden ? '+' : '-';
 });
 
-// Resize slider — NEVER removes the sticker
-document.getElementById('sticker-resize').addEventListener('input', (e) => {
-    resizeSticker(parseFloat(e.target.value));
-});
-
-// Sticker buttons — clicking the active sticker does NOT remove it
+// Sticker buttons
 document.querySelectorAll('.sticker-opt').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('.sticker-opt').forEach(b => b.classList.remove('active'));
@@ -536,33 +400,58 @@ document.querySelectorAll('.sticker-opt').forEach(btn => {
     });
 });
 
+// Sticker size slider
+document.getElementById('sticker-resize').addEventListener('input', (e) => {
+    STATE.stickerScale = parseFloat(e.target.value);
+    repaintStickerCanvas();
+});
+// View buttons removed — user rotates freely with mouse
+
 // Color swatches
 document.querySelectorAll('.color-swatch').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelector('.color-swatch.active')?.classList.remove('active');
         btn.classList.add('active');
-        STATE.color = btn.dataset.color;
-        updateTshirtMaterial();
+        updateColor(btn.dataset.color);
     });
 });
 
-// Model style buttons (regular / oversized)
+// Model style (Regular / Oversized)
 document.querySelectorAll('[data-style]').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('[data-style]').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        setModelStyle(btn.dataset.style);
+        STATE.modelStyle = btn.dataset.style;
+        loadModel(btn.dataset.style);
+        controls.target.set(0, 4.0, 0);
+        controls.update();
     });
 });
 
-// --- ANIMATION LOOP (no floating) ---
+// Custom image upload
+const uploadInput = document.getElementById('custom-sticker-upload');
+document.getElementById('trigger-upload').addEventListener('click', () => uploadInput.click());
+uploadInput.addEventListener('change', (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+            document.querySelectorAll('.sticker-opt').forEach(b => b.classList.remove('active'));
+            applyCustomSticker(img);
+        };
+        img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+});
+
+// ─── ANIMATION LOOP ───────────────────────────────────────────────────────────
 function animate() {
     requestAnimationFrame(animate);
     controls.update();
     renderer.render(scene, camera);
 }
 
-// Handle resize
 window.addEventListener('resize', () => {
     camera.aspect = container.clientWidth / container.clientHeight;
     camera.updateProjectionMatrix();
@@ -570,4 +459,4 @@ window.addEventListener('resize', () => {
 });
 
 animate();
-console.log('Knight Wolf Configurator v3.0 — Initialized');
+console.log('Knight Wolf Configurator v4.0 — UV Canvas Mode');
