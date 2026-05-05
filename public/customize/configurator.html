@@ -9,6 +9,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="configurator.css">
+    <!-- GSAP for smooth animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 </head>
 <body>
     <div class="app-container">
@@ -65,6 +67,10 @@
                         <span class="btn-icon">+</span>
                     </button>
                     <div id="sticker-grid" class="sticker-grid-container hidden">
+                        <div class="zone-switcher">
+                            <button class="zone-btn active" data-zone="front">FRONT</button>
+                            <button class="zone-btn" data-zone="back">BACK</button>
+                        </div>
                         <div class="sticker-controls">
                             <label>STICKER SIZE</label>
                             <input type="range" id="sticker-resize" min="0.05" max="0.5" step="0.01" value="0.15">
@@ -90,6 +96,28 @@
                             </button>
                             <button class="sticker-opt" data-sticker="risktakers" title="Risk Takers">
                                 <img src="/images/sticker_risktakers.png" alt="Risk Takers">
+                            </button>
+                            <!-- New Collection -->
+                            <button class="sticker-opt" data-sticker="art1" title="Cyber Art 1">
+                                <img src="/images/PHOTO-2026-05-05-23-58-49.png" alt="Art 1">
+                            </button>
+                            <button class="sticker-opt" data-sticker="art2" title="Cyber Art 2">
+                                <img src="/images/PHOTO-2026-05-05-23-59-10.png" alt="Art 2">
+                            </button>
+                            <button class="sticker-opt" data-sticker="art3" title="Cyber Art 3">
+                                <img src="/images/PHOTO-2026-05-06-00-00-01.png" alt="Art 3">
+                            </button>
+                            <button class="sticker-opt" data-sticker="art4" title="Cyber Art 4">
+                                <img src="/images/PHOTO-2026-05-06-00-00-28.png" alt="Art 4">
+                            </button>
+                            <button class="sticker-opt" data-sticker="art5" title="Cyber Art 5">
+                                <img src="/images/PHOTO-2026-05-06-00-02-47.png" alt="Art 5">
+                            </button>
+                            <button class="sticker-opt" data-sticker="art6" title="Cyber Art 6">
+                                <img src="/images/PHOTO-2026-05-06-00-03-52.png" alt="Art 6">
+                            </button>
+                            <button class="sticker-opt" data-sticker="art7" title="Cyber Art 7">
+                                <img src="/images/PHOTO-2026-05-06-00-05-23.png" alt="Art 7">
                             </button>
                         </div>
                         

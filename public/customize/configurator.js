@@ -29,11 +29,13 @@ const MODEL_CONFIGS = {
     regular:   { 
         url: '/models/Tshirt2.glb', 
         uvCenter: { cx: 0.25, cy: 0.68 },
-        isFlipped: true // Correction for inverted UVs
+        uvBack:   { cx: 0.75, cy: 0.68 }, // Calibrated Back Center
+        isFlipped: true 
     },
     oversized: { 
         url: '/models/oversized_tshirt.glb', 
         uvCenter: { cx: 0.30, cy: 0.45 },
+        uvBack:   { cx: 0.74, cy: 0.45 }, // Calibrated Back Center
         aspectY: 1.25,
         isFlipped: true
     },
@@ -223,7 +225,9 @@ function repaintStickerCanvas() {
     // 2. Draw sticker if one is selected
     if (STATE.stickerImage) {
         const cfg = MODEL_CONFIGS[STATE.modelStyle];
-        const uv = cfg.uvCenter;
+        // Select coordinates based on Front or Back zone
+        const uv = (STATE.stickerZone === 'front') ? cfg.uvCenter : cfg.uvBack;
+        
         const stickerSize = Math.round(UV_SIZE * STATE.stickerScale);
         const aspectY = cfg.aspectY || 1.0;
         const cleanSticker = removeBackground(STATE.stickerImage);
@@ -359,6 +363,13 @@ const STICKER_SRCS = {
     justdoit:   '/images/sticker_justdoit.png',
     realistic:  '/images/sticker_realistic.png',
     risktakers: '/images/sticker_risktakers.png',
+    art1:       '/images/PHOTO-2026-05-05-23-58-49.png',
+    art2:       '/images/PHOTO-2026-05-05-23-59-10.png',
+    art3:       '/images/PHOTO-2026-05-06-00-00-01.png',
+    art4:       '/images/PHOTO-2026-05-06-00-00-28.png',
+    art5:       '/images/PHOTO-2026-05-06-00-02-47.png',
+    art6:       '/images/PHOTO-2026-05-06-00-03-52.png',
+    art7:       '/images/PHOTO-2026-05-06-00-05-23.png',
 };
 Object.entries(STICKER_SRCS).forEach(([key, src]) => {
     const img = new Image();
@@ -400,12 +411,46 @@ document.querySelectorAll('.sticker-opt').forEach(btn => {
     });
 });
 
+// Zone switching (Front/Back)
+document.querySelectorAll('.zone-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const zone = btn.dataset.zone;
+        STATE.stickerZone = zone;
+
+        // Update UI
+        document.querySelectorAll('.zone-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // Natural Orbital Swivel (arcs around the shirt instead of zooming through it)
+        const targetAngle = (zone === 'front') ? 0 : Math.PI; // 0 for front, 180 degrees for back
+        const distance = 18;
+        
+        // We animate a dummy object to handle the arc calculation
+        const proxy = { angle: (zone === 'front') ? Math.PI : 0 }; 
+        gsap.to(proxy, {
+            angle: targetAngle,
+            duration: 1.5,
+            ease: "power2.inOut",
+            onUpdate: () => {
+                camera.position.x = Math.sin(proxy.angle) * distance;
+                camera.position.z = Math.cos(proxy.angle) * distance;
+                camera.position.y = 4;
+                controls.update();
+            }
+        });
+
+        repaintStickerCanvas();
+    });
+});
+
+// Sticker size slider
+// View buttons removed — user rotates freely with mouse
+
 // Sticker size slider
 document.getElementById('sticker-resize').addEventListener('input', (e) => {
     STATE.stickerScale = parseFloat(e.target.value);
     repaintStickerCanvas();
 });
-// View buttons removed — user rotates freely with mouse
 
 // Color swatches
 document.querySelectorAll('.color-swatch').forEach(btn => {

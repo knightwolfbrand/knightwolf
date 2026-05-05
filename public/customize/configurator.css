@@ -519,6 +519,39 @@ body {
     filter: brightness(1);
 }
 
+.zone-switcher {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding: 0 10px;
+}
+
+.zone-btn {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #888;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.zone-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.zone-btn.active {
+    background: rgba(0, 210, 255, 0.15);
+    border-color: #00d2ff;
+    color: #00d2ff;
+    box-shadow: 0 0 15px rgba(0, 210, 255, 0.2);
+}
+
 .sticker-controls {
     margin-bottom: 20px;
     padding: 15px;
