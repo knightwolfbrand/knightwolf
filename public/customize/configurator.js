@@ -370,6 +370,10 @@ const STICKER_SRCS = {
     art5:       '/images/PHOTO-2026-05-06-00-02-47.png',
     art6:       '/images/PHOTO-2026-05-06-00-03-52.png',
     art7:       '/images/PHOTO-2026-05-06-00-05-23.png',
+    art8:       '/images/PHOTO-2026-05-07-11-16-19.png',
+    art9:       '/images/PHOTO-2026-05-07-11-16-41.png',
+    art10:      '/images/PHOTO-2026-05-07-11-19-49.png',
+    art11:      '/images/PHOTO-2026-05-07-11-22-00.png',
 };
 Object.entries(STICKER_SRCS).forEach(([key, src]) => {
     const img = new Image();
