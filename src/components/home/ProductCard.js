@@ -4,16 +4,8 @@ import { useState } from 'react'
 import styles from './ProductCard.module.css'
 import ProductSpinner360 from './ProductSpinner360'
 
-const COLORS = [
-  { name: 'White', hex: '#ffffff' },
-  { name: 'Black', hex: '#000000' },
-  { name: 'Olive Green', hex: '#556b2f' },
-  { name: 'Peach', hex: '#ffdab9' },
-  { name: 'Navy Blue', hex: '#000080' },
-]
 
 export default function ProductCard({ title, price, image, rating, reviews, label }) {
-  const [selectedColor, setSelectedColor] = useState(COLORS[1]) // Default to Black
 
   const renderStars = (rating) => {
     return Array.from({ length: 5 }, (_, i) => (
@@ -63,21 +55,6 @@ export default function ProductCard({ title, price, image, rating, reviews, labe
           <span className={styles.price}>₹{price}</span>
         </div>
 
-        {/* Color Selection UI */}
-        <div className={styles.colorSelector}>
-          <p className={styles.colorName}>Color: <span>{selectedColor.name}</span></p>
-          <div className={styles.swatches}>
-            {COLORS.map((color) => (
-              <button
-                key={color.name}
-                className={`${styles.swatch} ${selectedColor.name === color.name ? styles.swatchActive : ''}`}
-                style={{ backgroundColor: color.hex }}
-                onClick={() => setSelectedColor(color)}
-                aria-label={`Select ${color.name}`}
-              />
-            ))}
-          </div>
-        </div>
 
         <div className={styles.ratingRow}>
           {rating && (

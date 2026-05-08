@@ -1,16 +1,28 @@
 .card {
-  background: var(--color-bg-secondary);
+  background: rgba(20, 20, 20, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   color: var(--color-text-primary);
-  padding: 1.5rem;
-  border-radius: 2rem;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+  padding: 1.8rem;
+  border-radius: 2.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
   width: 100%;
+  min-height: 750px; /* Force equal heights */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   font-family: var(--font-display, sans-serif);
-  transition: transform 0.4s ease;
+  transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
   overflow: hidden;
-  will-change: transform;
-  transform: translateZ(0);
+  will-change: transform, box-shadow;
+  position: relative;
+}
+
+.card:hover {
+  transform: translateY(-10px) scale(1.02);
+  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5);
+  border-color: var(--color-accent);
 }
 
 .viewArea {

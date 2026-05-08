@@ -73,7 +73,7 @@ export default function KnightWolfPoloCard({
             <pointLight position={[10, 10, 10]} intensity={1} />
             
             <ShirtModel 
-              shirtColor="#708090" 
+              shirtColor="#ffffff" 
               scale={4} 
             />
 

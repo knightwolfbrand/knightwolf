@@ -1,4 +1,5 @@
 import gsap from 'gsap'
+import { textAnimations } from './SplashTextAnimations'
 
 /**
  * Knight Wolf — Final Splash Transition
@@ -29,11 +30,9 @@ const applyDuikRig = (tailPaths) => {
 
 const revealTextMasked = (tl, brandNameRef, duration, startAt) => {
   const letters = brandNameRef.querySelectorAll('span')
-  tl.fromTo(letters,
-    { opacity: 0, y: 50 },
-    { opacity: 1, y: 0, duration, ease: 'power4.out', stagger: 0 },
-    startAt
-  )
+  
+  // --- VELVET MIST SELECTED ---
+  textAnimations.velvetMist(tl, letters, duration, startAt)
 }
 
 // --- Main Transition ---
@@ -44,24 +43,27 @@ export const transitions = {
     const revealRect = refs.logoSvg.querySelector('#reveal-rect')
     const tailPaths = refs.logoSvg.querySelectorAll('[data-part="tail"]')
 
+    const letters = refs.brandName.querySelectorAll('span')
+
     // 1. Initial State
     tl.set(refs.splash, { opacity: 1, display: 'flex' })
     tl.set(revealRect, { attr: { y: 0, height: 593 } })
-    tl.set([refs.logo, refs.brandName], { opacity: 1 })
     tl.set(refs.glow, { opacity: 0 })
+    // Ensure letters are ready for container-level fade
+    tl.set(letters, { autoAlpha: 1, opacity: 1 }) 
 
-    // 2. ScaleSync Entrance — logo + text simultaneously at t=0
-    tl.fromTo(refs.logo,
-      { opacity: 0, scale: 1.1 },
-      { opacity: 1, scale: 1, duration: 0.6, ease: 'expo.out' }
+    // 2. Buttery Smooth Entrance — logo + text fade in together
+    // Removed 'y' drift to eliminate any "jerk" or jumping
+    tl.fromTo([refs.logo, refs.brandName],
+      { autoAlpha: 0, force3D: true },
+      { autoAlpha: 1, duration: 1.8, ease: 'power2.inOut', force3D: true }
     )
-    revealTextMasked(tl, refs.brandName, 0.6, "<")
 
     // 3. Atmospheric Glow — fades in as the logo settles
     tl.fromTo(refs.glow,
       { opacity: 0, scale: 0.8 },
-      { opacity: 1, scale: 1, duration: 0.8, ease: 'power2.out' },
-      0.3 // starts t=0.3s
+      { opacity: 1, scale: 1, duration: 1.0, ease: 'power2.out' },
+      0.6 
     )
 
     // 4. Subtle Glow Pulse (idle breathing) - Move to independent tween so timeline can complete
@@ -83,7 +85,7 @@ export const transitions = {
       opacity: 0,
       duration: 0.6,
       ease: 'power4.inOut'
-    }, '+=1.2') // Slight delay to enjoy the animation before exit
+    }, '+=2.0') 
 
     tl.set(refs.splash, { display: 'none' })
     tl.set([tailPaths], { clearProps: "all" })
@@ -91,3 +93,4 @@ export const transitions = {
     return tl
   }
 }
+

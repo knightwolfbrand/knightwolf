@@ -55,8 +55,8 @@
 }
 
 .swipeSection {
-  min-height: 100vh; /* Aggressive isolation */
-  padding: 100px 0; /* Massive vertical buffer */
+  min-height: auto; /* Removed aggressive isolation */
+  padding: 60px 0; /* Reduced vertical buffer */
   scroll-snap-align: start;
   scroll-snap-stop: always;
   display: flex;
@@ -69,8 +69,8 @@
 }
 
 .sectionHeader {
-  margin-bottom: var(--space-10); /* Massive gap between header and boxes */
-  padding: 0 10%;
+  margin-bottom: var(--space-6); /* Reduced gap between header and boxes */
+  padding: 0 5%;
 }
 
 .badge {
@@ -94,10 +94,10 @@
 /* Super-Spacious Horizontal Side-Swipe */
 .horizontalScroll {
   display: flex;
-  gap: 120px; /* Extreme gaps between boxes as requested */
+  gap: 40px; /* Normalized gaps between boxes */
   overflow-x: auto;
   scroll-snap-type: x mandatory;
-  padding: var(--space-10) 15%; /* Massive side padding for centered boxes */
+  padding: var(--space-4) 5%; /* Reduced side padding */
   scrollbar-width: none;
 }
 

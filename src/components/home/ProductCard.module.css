@@ -1,15 +1,17 @@
 .card {
   padding: var(--space-6);
-  border-radius: var(--radius-lg);
+  border-radius: 2.5rem;
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
-  transition: transform 0.5s var(--ease-apple), box-shadow 0.5s var(--ease-apple);
+  transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
   position: relative;
-  min-width: 280px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  min-width: 320px;
+  min-height: 580px; /* Force equal heights for trending cards */
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(40px);
+  justify-content: space-between;
 }
 
 .card:hover {

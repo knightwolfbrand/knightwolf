@@ -9,6 +9,7 @@ import ProductCard from './ProductCard'
 import CollectionCard from './CollectionCard'
 import KnightWolfPoloCard from './KnightWolfPoloCard'
 import OversizedTeeCard from './OversizedTeeCard'
+import Offers from './Offers'
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger)
@@ -35,8 +36,20 @@ export default function FlagshipLayout({ data }) {
       })
 
       tl.fromTo(header, 
-        { opacity: 0, x: -30 },
-        { opacity: 1, x: 0, duration: 1.2, ease: 'power4.out' }
+        { 
+          opacity: 0, 
+          filter: 'blur(20px)',
+          scale: 0.9,
+          y: 20
+        },
+        { 
+          opacity: 1, 
+          filter: 'blur(0px)',
+          scale: 1,
+          y: 0,
+          duration: 1.5, 
+          ease: 'power3.out' 
+        }
       )
       
       if (content) {
@@ -68,16 +81,16 @@ export default function FlagshipLayout({ data }) {
   }, [])
   const ads = [
     {
-      title: "₹SUMMER SALE: 20% OFF", 
-      subtitle: "Get ready with premium heavyweight fabrics. Code: KNIGHT20",
+      title: "SUMMER SALE: 20% OFF", 
+      subtitle: "Get ready with premium heavyweight fabrics. Use Code: KNIGHT20 at checkout.",
       ctaText: "REDEEM NOW",
       label: "SEASONAL DROP"
     },
     {
       title: "EXCLUSIVE GIFT BUNDLE", 
-      subtitle: "Free stickers with every order above ₹2,000.",
-      ctaText: "SHOP ACCESSORIES",
-      label: "LIMITIED OFFER"
+      subtitle: "Claim your limited edition sticker pack with every order above ₹2,000.",
+      ctaText: "SHOP NOW",
+      label: "LIMITED OFFER"
     }
   ]
 
@@ -97,13 +110,22 @@ export default function FlagshipLayout({ data }) {
       {/* Swipe-Based Navigation Container (Strict Alignment) */}
       <div ref={containerRef} className={styles.swipeContainer}>
         
+        {/* Section 0: Offers & Perks (Moved to Top) */}
+        <div className={styles.swipeSection}>
+          <div className={styles.sectionHeader}>
+            <span className={styles.badge}>EXCLUSIVE PERKS</span>
+            <h2 className={styles.sectionTitle}>MEMBER OFFERS</h2>
+          </div>
+          <Offers />
+        </div>
+        
         {/* Section 1: Collections (Interactive 3D Grid) */}
         <div className={styles.swipeSection}>
           <div className={styles.sectionHeader}>
             <span className={styles.badge}>NEW DROP</span>
             <h2 className={styles.sectionTitle}>T-SHIRT COLLECTIONS</h2>
           </div>
-          <div style={{ height: '40px' }} /> {/* Structural Spacer */}
+
           <div className={styles.horizontalScroll}>
             {/* 3D CARD 1: OVERSIZE ROUND */}
             <div className={styles.snapItem}>
@@ -111,14 +133,14 @@ export default function FlagshipLayout({ data }) {
                 title="Oversize Round" 
                 price="₹2,499" 
                 modelPath="/models/shirt_baked.glb" 
-                defaultColor="#E60000"
+                defaultColor="#ffffff"
                 scale={3.5}
               />
             </div>
 
 
             <div className={styles.snapItem}>
-              <KnightWolfPoloCard shirtColor="#5D8AA8" collarColor="#E5E4E2" />
+              <KnightWolfPoloCard shirtColor="#ffffff" collarColor="#eeeeee" />
             </div>
 
 
@@ -143,7 +165,7 @@ export default function FlagshipLayout({ data }) {
             <span className={styles.badge}>TRENDING</span>
             <h2 className={styles.sectionTitle}>FAST-MOVING & STICKERS</h2>
           </div>
-          <div style={{ height: '40px' }} /> {/* Structural Spacer */}
+
           <div className={styles.horizontalScroll}>
             {data.fastSelling.map((item, idx) => (
               <div key={idx} className={styles.snapItem}>

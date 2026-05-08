@@ -1,8 +1,34 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
+import gsap from 'gsap'
 import styles from './Banner.module.css'
 
 export default function Banner({ items = [] }) {
+  const contentRefs = useRef([])
+  
+  useEffect(() => {
+    if (contentRefs.current.length > 0) {
+      gsap.fromTo(contentRefs.current,
+        { 
+          opacity: 0, 
+          filter: 'blur(30px)',
+          scale: 0.8,
+          y: 40
+        },
+        { 
+          opacity: 1, 
+          filter: 'blur(0px)',
+          scale: 1,
+          y: 0,
+          duration: 1.8, 
+          ease: 'expo.out',
+          stagger: 0.2
+        }
+      )
+    }
+  }, [items])
+
   if (!items || items.length === 0) return null
 
   return (
@@ -11,7 +37,10 @@ export default function Banner({ items = [] }) {
         {items.map((item, index) => (
           <div key={index} className={styles.slide}>
             <div className={`${styles.banner} glass`}>
-              <div className={styles.content}>
+              <div 
+                className={styles.content}
+                ref={el => contentRefs.current[index] = el}
+              >
                 <span className={styles.label}>{item.label || 'Special Offer'}</span>
                 <h2 className={styles.title}>{item.title}</h2>
                 <p className={styles.subtitle}>{item.subtitle}</p>

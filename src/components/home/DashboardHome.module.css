@@ -1,0 +1,489 @@
+/* ================================================
+   Hero Section — Lavender Health Dashboard Style
+   ================================================ */
+
+.heroSection {
+  width: 100%;
+  height: 100vh;
+  /* Lavender Theme */
+  background:
+    radial-gradient(ellipse at 0% 50%, rgba(180, 170, 220, 0.6) 0%, transparent 60%),
+    radial-gradient(ellipse at 100% 40%, rgba(220, 190, 210, 0.55) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 0%, rgba(210, 200, 235, 0.4) 0%, transparent 60%),
+    radial-gradient(ellipse at 30% 100%, rgba(195, 185, 230, 0.35) 0%, transparent 50%),
+    linear-gradient(135deg, #cec8e8 0%, #ddd8ef 35%, #e6ddf0 60%, #e8d8e8 100%);
+  color: #2d2540;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display, 'Outfit', sans-serif);
+  transition: background 0.8s ease, color 0.8s ease;
+}
+
+.heroSectionDark {
+  composes: heroSection;
+  /* Midnight Slate Palette: Deeper and more immersive */
+  background:
+    radial-gradient(circle at 45% 50%, rgba(100, 120, 150, 0.1) 0%, transparent 60%), /* Subtle glow */
+    radial-gradient(circle at 100% 0%, rgba(20, 30, 45, 0.4) 0%, transparent 50%),
+    radial-gradient(circle at 0% 100%, rgba(10, 20, 35, 0.3) 0%, transparent 40%),
+    linear-gradient(135deg, #05070a 0%, #0b111a 45%, #121a26 100%);
+  color: #ffffff;
+}
+
+
+/* ─── Floating Navbar ─── */
+.navbar {
+  position: absolute;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.navItemActive {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.navItem:hover {
+  color: #fff;
+}
+
+/* ─── Hero Content ─── */
+.content {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  max-width: 900px;
+}
+
+.btnSolid {
+  background: #ffffff;
+  color: #000000;
+  padding: 16px 40px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btnOutline {
+  background: transparent;
+  color: #ffffff;
+  padding: 16px 40px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btnSolid:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+}
+
+.btnOutline:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: #fff;
+}
+
+/* ─── UI Decorations ─── */
+.bottomLeft {
+  position: absolute;
+  bottom: 60px;
+  left: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.counter {
+  font-family: var(--font-accent, monospace);
+  font-size: 14px;
+  letter-spacing: 0.2em;
+}
+
+.progressBar {
+  width: 120px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  position: relative;
+}
+
+.progressFill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 33%;
+  background: #ffffff;
+}
+
+.bottomRight {
+  position: absolute;
+  bottom: 60px;
+  right: 80px;
+}
+
+.categoryLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+.indicators {
+  position: absolute;
+  right: 40px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.dotActive {
+  background: #ffffff;
+  border-color: #ffffff;
+  transform: scale(1.3);
+}
+
+@media (max-width: 768px) {
+  .bottomLeft, .bottomRight, .indicators {
+    display: none;
+  }
+}
+
+/* ─── Bento Grid Layout (5-Column Reference Match) ─── */
+.gridContainer {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(2, 260px);
+  gap: 20px;
+  width: 98%;
+  max-width: 1400px;
+  margin-top: 20px;
+  padding: 20px;
+  z-index: 10;
+}
+
+.bentoBox {
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(30px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bentoBox:hover {
+  transform: translateY(-8px);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* ─── Refined Folder Shape Variants (Subtle & Elegant) ─── */
+.tabLeft {
+  clip-path: polygon(
+    0 24px, 
+    80px 24px, 
+    95px 0, 
+    100% 0, 
+    100% 100%, 
+    0 100%
+  );
+}
+
+.tabRight {
+  clip-path: polygon(
+    0 0, 
+    calc(100% - 95px) 0, 
+    calc(100% - 80px) 24px, 
+    100% 24px, 
+    100% 100%, 
+    0 100%
+  );
+}
+
+.tabCenter {
+  clip-path: polygon(
+    0 24px, 
+    calc(50% - 50px) 24px, 
+    calc(50% - 40px) 0, 
+    calc(50% + 40px) 0, 
+    calc(50% + 50px) 24px, 
+    100% 24px, 
+    100% 100%, 
+    0 100%
+  );
+}
+
+/* ─── Model Box Styles ─── */
+.modelBox {
+  padding: 0;
+}
+
+.modelImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 20%; /* Prioritize faces */
+  display: block;
+}
+
+/* Span Definitions */
+.spanTall { grid-row: span 2; }
+.spanWide { grid-column: span 2; }
+.spanNormal { grid-column: span 1; grid-row: span 1; }
+
+/* ─── Offer Styles ─── */
+.offerBox {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 40px;
+  gap: 20px;
+}
+
+.offerText {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.offerLabel {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+}
+
+.offerTitle {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.offerPrice {
+  font-size: 18px;
+  font-weight: 300;
+  opacity: 0.8;
+}
+
+.offerImageWrap {
+  width: 140px;
+  height: 140px;
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.offerImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ─── Product Square Styles ─── */
+.productBox {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.productImageWrap {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.productImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.productBox:hover .productImage {
+  transform: scale(1.1);
+}
+
+.productOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.productBox:hover .productOverlay {
+  opacity: 1;
+}
+
+.productName {
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.productName {
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* ─── Folder Shape Styles ─── */
+.folderBox {
+  composes: bentoBox;
+  clip-path: polygon(
+    0 24px, 
+    80px 24px, 
+    95px 0, 
+    100% 0, 
+    100% 100%, 
+    0 100%
+  );
+  /* Adjusting content padding to account for the tab offset */
+  padding-top: 24px;
+}
+
+/* Alternative 'Tab' look using pseudo-element for more flexibility */
+.folderTab {
+  composes: bentoBox;
+  border-top-left-radius: 0;
+  margin-top: 20px;
+}
+
+.folderTab::before {
+  content: "";
+  position: absolute;
+  top: -20px;
+  left: 0;
+  width: 100px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: none;
+  border-radius: 16px 16px 0 0;
+}
+
+.themeToggle {
+  position: absolute;
+  top: 40px;
+  right: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1000;
+  color: inherit;
+  transition: all 0.3s ease;
+}
+
+.themeToggle:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(15deg);
+}
+
+/* ─── Explore Button Styles ─── */
+.exploreBtnWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.exploreBtn {
+  background: #000;
+  color: #fff;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.exploreBtn:hover {
+  transform: scale(1.05);
+  background: #111;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+}
+
+.arrow {
+  display: inline-block;
+  transform: rotate(-45deg);
+  font-size: 14px;
+}

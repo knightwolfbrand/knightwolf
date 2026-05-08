@@ -1,15 +1,22 @@
 .card {
-  background: var(--color-bg-secondary);
+  background: rgba(20, 20, 20, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   color: var(--color-text-primary);
-  padding: 1.5rem;
-  border-radius: 0;
-  border: none;
-  box-shadow: none;
+  padding: 1.8rem;
+  border-radius: 2.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
   width: 100%;
+  min-height: 750px; /* Match CollectionCard height */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   font-family: var(--font-display, sans-serif);
-  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  will-change: transform;
-  transform: translateZ(0);
+  transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  overflow: hidden;
+  will-change: transform, box-shadow;
+  position: relative;
 }
 
 .viewArea {
