@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Knight Wolf — Text Fade Animation Demo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #10b981;
+      --bg: #050505;
+      --bg2: #0f0f0f;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ─── PAGE HEADER ─── */
+    .page-header {
+      text-align: center;
+      padding: 80px 20px 60px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .page-header .label {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.4em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .page-header h1 {
+      font-size: clamp(2rem, 5vw, 4rem);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      color: #fff;
+    }
+    .page-header p {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 1.1rem;
+    }
+
+    /* ─── DEMO GRID ─── */
+    .demo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 2px;
+      padding: 2px;
+    }
+
+    .demo-cell {
+      background: var(--bg2);
+      padding: 60px 50px;
+      min-height: 240px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+      cursor: default;
+    }
+
+    .demo-cell::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 0%, rgba(16,185,129,0.04), transparent 70%);
+      pointer-events: none;
+    }
+
+    .demo-number {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.3em;
+      color: var(--accent);
+      text-transform: uppercase;
+      opacity: 0.7;
+    }
+
+    .demo-label {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      font-family: 'Space Mono', monospace;
+      margin-top: auto;
+    }
+
+    /* ─── ANIMATION TEXT BASE ─── */
+    .anim-text {
+      font-weight: 800;
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      color: #fff;
+    }
+
+    /* ════════════════════════════════════
+       01 — FADE IN UPWARD (Classic)
+    ════════════════════════════════════ */
+    .demo-1 .anim-text {
+      opacity: 0;
+      transform: translateY(30px);
+      animation: fadeUp 1.2s ease forwards;
+      animation-delay: 0.3s;
+    }
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ════════════════════════════════════
+       02 — WORD-BY-WORD FADE
+    ════════════════════════════════════ */
+    .demo-2 .anim-text .word {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeWord 0.7s ease forwards;
+    }
+    .demo-2 .anim-text .word:nth-child(1) { animation-delay: 0.1s; }
+    .demo-2 .anim-text .word:nth-child(2) { animation-delay: 0.3s; }
+    .demo-2 .anim-text .word:nth-child(3) { animation-delay: 0.5s; }
+    .demo-2 .anim-text .word:nth-child(4) { animation-delay: 0.7s; }
+    @keyframes fadeWord {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ════════════════════════════════════
+       03 — LETTER-BY-LETTER REVEAL
+    ════════════════════════════════════ */
+    .demo-3 .anim-text .char {
+      display: inline-block;
+      opacity: 0;
+      animation: fadeChar 0.4s ease forwards;
+    }
+    .demo-3 .anim-text .char:nth-child(1)  { animation-delay: 0.05s; }
+    .demo-3 .anim-text .char:nth-child(2)  { animation-delay: 0.10s; }
+    .demo-3 .anim-text .char:nth-child(3)  { animation-delay: 0.15s; }
+    .demo-3 .anim-text .char:nth-child(4)  { animation-delay: 0.20s; }
+    .demo-3 .anim-text .char:nth-child(5)  { animation-delay: 0.25s; }
+    .demo-3 .anim-text .char:nth-child(6)  { animation-delay: 0.30s; }
+    .demo-3 .anim-text .char:nth-child(7)  { animation-delay: 0.35s; }
+    .demo-3 .anim-text .char:nth-child(8)  { animation-delay: 0.40s; }
+    .demo-3 .anim-text .char:nth-child(9)  { animation-delay: 0.45s; }
+    .demo-3 .anim-text .char:nth-child(10) { animation-delay: 0.50s; }
+    .demo-3 .anim-text .char:nth-child(11) { animation-delay: 0.55s; }
+    .demo-3 .anim-text .char:nth-child(12) { animation-delay: 0.60s; }
+    @keyframes fadeChar {
+      to { opacity: 1; }
+    }
+
+    /* ════════════════════════════════════
+       04 — BLUR IN
+    ════════════════════════════════════ */
+    .demo-4 .anim-text {
+      opacity: 0;
+      filter: blur(20px);
+      animation: blurIn 1.4s ease forwards;
+      animation-delay: 0.2s;
+    }
+    @keyframes blurIn {
+      to { opacity: 1; filter: blur(0px); }
+    }
+
+    /* ════════════════════════════════════
+       05 — CLIP REVEAL (Wipe Up)
+    ════════════════════════════════════ */
+    .demo-5 .anim-wrapper {
+      overflow: hidden;
+    }
+    .demo-5 .anim-text {
+      transform: translateY(110%);
+      animation: clipUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation-delay: 0.2s;
+    }
+    @keyframes clipUp {
+      to { transform: translateY(0); }
+    }
+
+    /* ════════════════════════════════════
+       06 — SCALE + FADE
+    ════════════════════════════════════ */
+    .demo-6 .anim-text {
+      opacity: 0;
+      transform: scale(0.7);
+      animation: scaleFade 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      animation-delay: 0.2s;
+    }
+    @keyframes scaleFade {
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    /* ════════════════════════════════════
+       07 — GLITCH REVEAL
+    ════════════════════════════════════ */
+    .demo-7 .anim-text {
+      animation: glitchReveal 1.2s steps(1) forwards;
+      animation-delay: 0.2s;
+    }
+    @keyframes glitchReveal {
+      0%   { opacity: 0; transform: translateX(-4px); filter: hue-rotate(90deg) blur(3px); }
+      10%  { opacity: 1; transform: translateX(4px);  filter: hue-rotate(0deg) blur(0); }
+      20%  { transform: translateX(-2px); }
+      30%  { transform: translateX(0); filter: blur(2px); }
+      40%  { filter: blur(0); }
+      100% { opacity: 1; transform: translateX(0); filter: none; }
+    }
+
+    /* ════════════════════════════════════
+       08 — TYPEWRITER + CURSOR
+    ════════════════════════════════════ */
+    .demo-8 .anim-text {
+      border-right: 3px solid var(--accent);
+      white-space: nowrap;
+      overflow: hidden;
+      width: 0;
+      animation:
+        typewriter 2s steps(14, end) forwards 0.3s,
+        blink 0.8s step-end infinite;
+    }
+    @keyframes typewriter {
+      to { width: 14ch; }
+    }
+    @keyframes blink {
+      50% { border-color: transparent; }
+    }
+
+    /* ════════════════════════════════════
+       09 — GRADIENT SHIMMER WIPE
+    ════════════════════════════════════ */
+    .demo-9 .anim-text {
+      background: linear-gradient(90deg, var(--accent) 0%, #fff 40%, var(--accent) 80%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      opacity: 0;
+      animation: shimmerReveal 2s ease forwards;
+      animation-delay: 0.2s;
+    }
+    @keyframes shimmerReveal {
+      0%   { opacity: 0; background-position: 200% center; }
+      30%  { opacity: 1; }
+      100% { opacity: 1; background-position: -200% center; }
+    }
+
+    /* ════════════════════════════════════
+       10 — STAGGER LINES DROP
+    ════════════════════════════════════ */
+    .demo-10 .line-wrap { overflow: hidden; display: block; }
+    .demo-10 .line {
+      display: block;
+      transform: translateY(100%);
+      opacity: 0;
+      animation: lineDrop 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .demo-10 .line:nth-child(1) { animation-delay: 0.1s; }
+    .demo-10 .line:nth-child(2) { animation-delay: 0.3s; }
+    .demo-10 .line:nth-child(3) { animation-delay: 0.5s; }
+    @keyframes lineDrop {
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* ─── REPLAY BUTTON ─── */
+    .replay-btn {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      background: rgba(16,185,129,0.1);
+      border: 1px solid rgba(16,185,129,0.3);
+      color: var(--accent);
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      padding: 6px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.3s ease;
+    }
+    .replay-btn:hover {
+      background: rgba(16,185,129,0.2);
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page-header">
+    <p class="label">Animation System</p>
+    <h1>TEXT FADE DEMOS</h1>
+    <p>10 premium animation styles for Knight Wolf UI — click REPLAY to re-trigger</p>
+  </div>
+
+  <div class="demo-grid">
+
+    <!-- 01: Fade Up -->
+    <div class="demo-cell demo-1" id="d1">
+      <span class="demo-number">01 / 10</span>
+      <div class="anim-text">FADE UP<br>CLASSIC</div>
+      <span class="demo-label">Fade In Upward</span>
+      <button class="replay-btn" onclick="replay('d1')">↺ Replay</button>
+    </div>
+
+    <!-- 02: Word by Word -->
+    <div class="demo-cell demo-2" id="d2">
+      <span class="demo-number">02 / 10</span>
+      <div class="anim-text">
+        <span class="word">KNIGHT&nbsp;</span>
+        <span class="word">WOLF&nbsp;</span>
+        <span class="word">NEW&nbsp;</span>
+        <span class="word">DROP</span>
+      </div>
+      <span class="demo-label">Word by Word</span>
+      <button class="replay-btn" onclick="replay('d2')">↺ Replay</button>
+    </div>
+
+    <!-- 03: Letter by Letter -->
+    <div class="demo-cell demo-3" id="d3">
+      <span class="demo-number">03 / 10</span>
+      <div class="anim-text">
+        <span class="char">P</span><span class="char">R</span><span class="char">E</span><span class="char">M</span><span class="char">I</span><span class="char">U</span><span class="char">M</span><span class="char"> </span><span class="char">D</span><span class="char">R</span><span class="char">O</span><span class="char">P</span>
+      </div>
+      <span class="demo-label">Letter by Letter</span>
+      <button class="replay-btn" onclick="replay('d3')">↺ Replay</button>
+    </div>
+
+    <!-- 04: Blur In -->
+    <div class="demo-cell demo-4" id="d4">
+      <span class="demo-number">04 / 10</span>
+      <div class="anim-text">BLUR<br>REVEAL</div>
+      <span class="demo-label">Blur Dissolve</span>
+      <button class="replay-btn" onclick="replay('d4')">↺ Replay</button>
+    </div>
+
+    <!-- 05: Clip Wipe -->
+    <div class="demo-cell demo-5" id="d5">
+      <span class="demo-number">05 / 10</span>
+      <div class="anim-wrapper">
+        <div class="anim-text">WIPE<br>UPWARD</div>
+      </div>
+      <span class="demo-label">Clip Wipe Up</span>
+      <button class="replay-btn" onclick="replay('d5')">↺ Replay</button>
+    </div>
+
+    <!-- 06: Scale Fade -->
+    <div class="demo-cell demo-6" id="d6">
+      <span class="demo-number">06 / 10</span>
+      <div class="anim-text">SCALE<br>BOUNCE</div>
+      <span class="demo-label">Scale + Fade</span>
+      <button class="replay-btn" onclick="replay('d6')">↺ Replay</button>
+    </div>
+
+    <!-- 07: Glitch -->
+    <div class="demo-cell demo-7" id="d7">
+      <span class="demo-number">07 / 10</span>
+      <div class="anim-text">GLITCH<br>REVEAL</div>
+      <span class="demo-label">Glitch Effect</span>
+      <button class="replay-btn" onclick="replay('d7')">↺ Replay</button>
+    </div>
+
+    <!-- 08: Typewriter -->
+    <div class="demo-cell demo-8" id="d8">
+      <span class="demo-number">08 / 10</span>
+      <div class="anim-text">KNIGHT WOLF</div>
+      <span class="demo-label">Typewriter + Cursor</span>
+      <button class="replay-btn" onclick="replay('d8')">↺ Replay</button>
+    </div>
+
+    <!-- 09: Shimmer Wipe -->
+    <div class="demo-cell demo-9" id="d9">
+      <span class="demo-number">09 / 10</span>
+      <div class="anim-text">SHIMMER<br>GRADIENT</div>
+      <span class="demo-label">Gradient Shimmer</span>
+      <button class="replay-btn" onclick="replay('d9')">↺ Replay</button>
+    </div>
+
+    <!-- 10: Line Stagger -->
+    <div class="demo-cell demo-10" id="d10">
+      <span class="demo-number">10 / 10</span>
+      <div class="anim-text">
+        <span class="line-wrap"><span class="line">STAGGER</span></span>
+        <span class="line-wrap"><span class="line">LINE</span></span>
+        <span class="line-wrap"><span class="line">DROP</span></span>
+      </div>
+      <span class="demo-label">Stagger Lines</span>
+      <button class="replay-btn" onclick="replay('d10')">↺ Replay</button>
+    </div>
+
+  </div>
+
+  <script>
+    // Replay: clone the cell to re-trigger CSS animations
+    function replay(id) {
+      const cell = document.getElementById(id);
+      const clone = cell.cloneNode(true);
+      clone.querySelector('.replay-btn').addEventListener('click', () => replay(id));
+      cell.replaceWith(clone);
+    }
+  </script>
+
+</body>
+</html>

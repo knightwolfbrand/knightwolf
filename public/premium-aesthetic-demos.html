@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Knight Wolf — Premium Aesthetic Demos</title>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Outfit:wght@300;400;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <style>
+    :root {
+      --bg: #050505;
+      --text: #ffffff;
+      --accent: #ffffff;
+      --muted: #555555;
+      --gold: linear-gradient(90deg, #d4af37 0%, #f9f295 50%, #d4af37 100%);
+      --silver: linear-gradient(90deg, #757575 0%, #e0e0e0 50%, #757575 100%);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .demo-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .brand-wrapper {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 30px;
+    }
+
+    .brand-name {
+      font-family: 'Libre Baskerville', serif;
+      font-size: 4rem;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      position: relative;
+      display: flex;
+    }
+
+    .letter {
+      display: inline-block;
+      opacity: 0;
+      position: relative;
+    }
+
+    /* Shimmer Effect */
+    .shimmer-text {
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.8) 50%, transparent 100%);
+      background-size: 200% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 10;
+      opacity: 0;
+    }
+
+    .nav {
+      position: absolute;
+      bottom: 50px;
+      display: flex;
+      gap: 15px;
+      padding: 20px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 50px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .nav-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--muted);
+      padding: 10px 20px;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border-radius: 20px;
+      text-transform: uppercase;
+    }
+
+    .nav-btn:hover { color: #fff; }
+    .nav-btn.active {
+      color: #fff;
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(255,255,255,0.1);
+    }
+
+    .label {
+      position: absolute;
+      top: 60px;
+      font-size: 0.7rem;
+      color: var(--muted);
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+    }
+
+    /* Glow Layer */
+    .aura {
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+      filter: blur(40px);
+      opacity: 0;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="label" id="activeLabel">Premium Aesthetic</div>
+  
+  <div class="demo-container">
+    <div class="aura" id="aura"></div>
+    <div class="brand-wrapper">
+      <div class="brand-name" id="brandName"></div>
+    </div>
+  </div>
+
+  <div class="nav" id="nav">
+    <!-- Buttons added via JS -->
+  </div>
+
+  <script>
+    const brandText = "KNIGHTWOLF";
+    const brandContainer = document.getElementById('brandName');
+    const aura = document.getElementById('aura');
+    const activeLabel = document.getElementById('activeLabel');
+
+    const themes = [
+      { id: 'silverPulse', name: 'Silver Shimmer', desc: 'Metallic shine with soft scaling' },
+      { id: 'goldenBloom', name: 'Golden Aura', desc: 'Soft warm glow and elegant reveal' },
+      { id: 'glassFocus', name: 'Glass Focus', desc: 'Cinematic focus-pull aesthetic' },
+      { id: 'velvetMist', name: 'Velvet Mist', desc: 'Deep-toned, ethereal fade' },
+      { id: 'lightSweep', name: 'Light Sweep', desc: 'Diagonal beam passing through text' }
+    ];
+
+    let currentTheme = themes[0];
+
+    // Build Nav
+    themes.forEach(theme => {
+      const btn = document.createElement('button');
+      btn.className = `nav-btn ${theme.id === currentTheme.id ? 'active' : ''}`;
+      btn.textContent = theme.name;
+      btn.onclick = () => {
+        currentTheme = theme;
+        document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+        btn.classList.add('active');
+        activeLabel.textContent = theme.name;
+        playTheme();
+      };
+      document.getElementById('nav').appendChild(btn);
+    });
+
+    function initLetters() {
+      brandContainer.innerHTML = '';
+      brandText.split('').forEach(char => {
+        const span = document.createElement('span');
+        span.className = 'letter';
+        span.textContent = char;
+        brandContainer.appendChild(span);
+      });
+    }
+
+    function playTheme() {
+      initLetters();
+      const letters = document.querySelectorAll('.letter');
+      gsap.killTweensOf([letters, aura]);
+      gsap.set(letters, { opacity: 0, scale: 1, filter: 'blur(0px)', color: '#fff', x: 0, y: 0 });
+      gsap.set(aura, { opacity: 0, scale: 0.5 });
+
+      const tl = gsap.timeline();
+
+      if (currentTheme.id === 'silverPulse') {
+        gsap.set(letters, { color: '#e0e0e0' });
+        tl.fromTo(letters,
+          { opacity: 0, scale: 1.1, filter: 'blur(20px)' },
+          { opacity: 1, scale: 1, filter: 'blur(0px)', duration: 1.5, stagger: 0.08, ease: 'power2.out' }
+        );
+        // Add shimmer wipe
+        tl.to(brandContainer, {
+          backgroundImage: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)',
+          backgroundSize: '200% 100%',
+          backgroundRepeat: 'no-repeat',
+          onUpdate: function() {
+            brandContainer.style.webkitBackgroundClip = 'text';
+            brandContainer.style.backgroundClip = 'text';
+          }
+        }, 0.5);
+        tl.fromTo(brandContainer, { backgroundPosition: '-100% 0%' }, { backgroundPosition: '100% 0%', duration: 1.5, ease: 'none' }, 0.5);
+      }
+
+      if (currentTheme.id === 'goldenBloom') {
+        gsap.set(letters, { color: '#f9f295' });
+        tl.to(aura, { opacity: 1, scale: 1.2, duration: 2, ease: 'sine.inOut' });
+        tl.fromTo(letters,
+          { opacity: 0, scale: 0.9, filter: 'blur(40px) brightness(2)' },
+          { opacity: 1, scale: 1, filter: 'blur(0px) brightness(1)', duration: 2, stagger: 0.1, ease: 'power1.inOut' },
+          0.3
+        );
+      }
+
+      if (currentTheme.id === 'glassFocus') {
+        tl.fromTo(letters,
+          { opacity: 0, scale: 1.5, filter: 'blur(60px)' },
+          { opacity: 1, scale: 1, filter: 'blur(0px)', duration: 2.5, stagger: 0.05, ease: 'expo.out' }
+        );
+        tl.to(letters, { letterSpacing: '0.3em', duration: 3, ease: 'power1.out' }, 0);
+      }
+
+      if (currentTheme.id === 'velvetMist') {
+        gsap.set(letters, { color: '#aaa' });
+        tl.fromTo(letters,
+          { opacity: 0, y: 10, filter: 'blur(15px)' },
+          { opacity: 1, y: 0, filter: 'blur(0px)', duration: 3, stagger: 0.2, ease: 'sine.inOut' }
+        );
+      }
+
+      if (currentTheme.id === 'lightSweep') {
+        tl.fromTo(letters,
+          { opacity: 0, x: -10 },
+          { opacity: 1, x: 0, duration: 1.2, stagger: 0.05, ease: 'power2.out' }
+        );
+        // Passing light beam
+        const beam = document.createElement('div');
+        beam.style.position = 'absolute';
+        beam.style.top = '0';
+        beam.style.left = '0';
+        beam.style.width = '100%';
+        beam.style.height = '100%';
+        beam.style.background = 'linear-gradient(110deg, transparent 40%, rgba(255,255,255,0.6) 50%, transparent 60%)';
+        beam.style.backgroundSize = '200% 100%';
+        beam.style.mixBlendMode = 'overlay';
+        brandContainer.appendChild(beam);
+        
+        tl.fromTo(beam, { backgroundPosition: '200% 0%' }, { backgroundPosition: '-200% 0%', duration: 1.5, ease: 'power1.inOut' }, 0.5);
+      }
+    }
+
+    playTheme();
+  </script>
+</body>
+</html>

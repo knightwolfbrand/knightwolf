@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knight Wolf — Dashboard Concepts</title>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Outfit:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        :root {
+            --bg: #050505;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --accent: #ffffff;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg);
+            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* ─── Concept Switcher ─── */
+        .switcher {
+            position: fixed;
+            bottom: 30px;
+            display: flex;
+            gap: 15px;
+            z-index: 1000;
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .switch-btn {
+            padding: 10px 20px;
+            border-radius: 25px;
+            border: none;
+            background: transparent;
+            color: rgba(255,255,255,0.5);
+            cursor: pointer;
+            font-size: 0.7rem;
+            letter-spacing: 0.1em;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+
+        .switch-btn.active {
+            background: #fff;
+            color: #000;
+        }
+
+        /* ─── Background Containers ─── */
+        .bg-container {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            transition: opacity 0.8s ease;
+            opacity: 0;
+        }
+        .bg-container.active { opacity: 1; }
+
+        /* Style 1: Liquid Mercury */
+        #bg-1 {
+            background: radial-gradient(circle at 50% 50%, #111, #000);
+        }
+        .mercury-blob {
+            position: absolute;
+            width: 60vw;
+            height: 60vw;
+            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+            filter: blur(80px);
+        }
+
+        /* Style 2: Nebula */
+        #bg-2 {
+            background: #020205;
+        }
+        .nebula {
+            position: absolute;
+            inset: 0;
+            background: 
+                radial-gradient(at 20% 30%, rgba(40, 30, 100, 0.15) 0%, transparent 50%),
+                radial-gradient(at 80% 70%, rgba(100, 30, 40, 0.1) 0%, transparent 50%);
+            mix-blend-mode: screen;
+        }
+        .grain {
+            position: absolute;
+            inset: 0;
+            background: url('https://grainy-gradients.vercel.app/noise.svg');
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        /* Style 3: Reactive Mesh */
+        #bg-3 {
+            background: #000;
+        }
+        .mesh-grid {
+            position: absolute;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        /* ─── Header Navigation ─── */
+        .header {
+            margin-top: 40px;
+            z-index: 100;
+        }
+
+        .nav-pill {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(20px);
+            padding: 10px 25px;
+            border-radius: 100px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.2, 1, 0.3, 1);
+        }
+
+        .logo-wrap {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-wrap svg {
+            width: 100%;
+            height: auto;
+            fill: #fff;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            position: relative;
+        }
+
+        .nav-link {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            color: rgba(255,255,255,0.5);
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 2;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: #fff;
+        }
+
+        /* Sliding Highlight (Style 1) */
+        .highlight {
+            position: absolute;
+            height: 32px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 20px;
+            z-index: 1;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        /* ─── Hero Content ─── */
+        .hero {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .center-box {
+            width: 400px;
+            height: 500px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.01);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.8s ease;
+        }
+
+        .style-label {
+            font-size: 0.6rem;
+            letter-spacing: 0.5em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.2);
+            position: absolute;
+            top: 40px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Concepts Header -->
+    <header class="header">
+        <div class="nav-pill" id="navPill">
+            <div class="logo-wrap">
+                <!-- Simple Wolf Icon Placeholder -->
+                <svg viewBox="0 0 24 24">
+                    <path d="M12,2L4.5,20.29L5.21,21L12,18L18.79,21L19.5,20.29L12,2Z" />
+                </svg>
+            </div>
+            <div class="nav-links">
+                <div class="highlight" id="navHighlight"></div>
+                <span class="nav-link" data-index="0">LOGIN</span>
+                <span class="nav-link" data-index="1">ABOUT US</span>
+                <span class="nav-link" data-index="2">CONTACT US</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Backgrounds -->
+    <div id="bg-1" class="bg-container active">
+        <div class="mercury-blob" id="blob-1"></div>
+        <div class="mercury-blob" id="blob-2"></div>
+    </div>
+
+    <div id="bg-2" class="bg-container">
+        <div class="nebula"></div>
+        <div class="grain"></div>
+    </div>
+
+    <div id="bg-3" class="bg-container">
+        <div class="mesh-grid" id="meshGrid"></div>
+    </div>
+
+    <main class="hero">
+        <div class="style-label" id="styleLabel">CONCEPT 01: MORPHING CATALYST</div>
+        <div class="center-box" id="centerBox"></div>
+    </main>
+
+    <!-- Switcher -->
+    <div class="switcher">
+        <button class="switch-btn active" onclick="switchStyle(1)">01: CATALYST</button>
+        <button class="switch-btn" onclick="switchStyle(2)">02: NEURAL</button>
+        <button class="switch-btn" onclick="switchStyle(3)">03: KINETIC</button>
+    </div>
+
+    <script>
+        // Background 1 Animation (Liquid Mercury)
+        gsap.to("#blob-1", {
+            x: "20vw", y: "10vh", duration: 15, repeat: -1, yoyo: true, ease: "sine.inOut"
+        });
+        gsap.to("#blob-2", {
+            x: "-10vw", y: "-20vh", duration: 20, repeat: -1, yoyo: true, ease: "sine.inOut"
+        });
+
+        // Background 3 Animation (Reactive Mesh)
+        document.addEventListener('mousemove', (e) => {
+            if (currentStyle === 3) {
+                const x = (e.clientX / window.innerWidth - 0.5) * 50;
+                const y = (e.clientY / window.innerHeight - 0.5) * 50;
+                gsap.to("#meshGrid", {
+                    x: x, y: y, duration: 2, ease: "power2.out"
+                });
+            }
+        });
+
+        // Navigation Highlight Logic
+        const navLinks = document.querySelectorAll('.nav-link');
+        const highlight = document.getElementById('navHighlight');
+
+        navLinks.forEach(link => {
+            link.addEventListener('mouseenter', (e) => {
+                const rect = e.target.getBoundingClientRect();
+                const parentRect = e.target.parentElement.getBoundingClientRect();
+                
+                highlight.style.opacity = "1";
+                gsap.to(highlight, {
+                    left: rect.left - parentRect.left - 10,
+                    width: rect.width + 20,
+                    duration: 0.4,
+                    ease: "power3.out"
+                });
+
+                if (currentStyle === 1) {
+                    gsap.to("#navPill", { scale: 1.02, duration: 0.3 });
+                }
+            });
+        });
+
+        document.getElementById('navPill').addEventListener('mouseleave', () => {
+            highlight.style.opacity = "0";
+            gsap.to("#navPill", { scale: 1, duration: 0.3 });
+        });
+
+        // Style Switcher Logic
+        let currentStyle = 1;
+        function switchStyle(num) {
+            currentStyle = num;
+            
+            // Update Buttons
+            document.querySelectorAll('.switch-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i + 1 === num);
+            });
+
+            // Update Backgrounds
+            document.querySelectorAll('.bg-container').forEach((bg, i) => {
+                bg.classList.toggle('active', i + 1 === num);
+            });
+
+            // Update Label
+            const labels = [
+                "CONCEPT 01: MORPHING CATALYST",
+                "CONCEPT 02: HOLOGRAPHIC NEURAL",
+                "CONCEPT 03: KINETIC GLASS"
+            ];
+            document.getElementById('styleLabel').innerText = labels[num-1];
+
+            // Specific Animations
+            if (num === 2) {
+                gsap.fromTo("#centerBox", 
+                    { filter: "blur(20px)", opacity: 0 }, 
+                    { filter: "blur(0px)", opacity: 1, duration: 1 }
+                );
+            } else if (num === 3) {
+                gsap.to("#centerBox", { 
+                    borderRadius: "100px", 
+                    width: "350px", 
+                    duration: 0.8,
+                    ease: "elastic.out(1, 0.8)"
+                });
+            } else {
+                gsap.to("#centerBox", { 
+                    borderRadius: "30px", 
+                    width: "400px", 
+                    duration: 0.8 
+                });
+            }
+        }
+    </script>
+</body>
+</html>
