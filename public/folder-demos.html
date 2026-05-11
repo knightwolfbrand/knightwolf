@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knight Wolf — Folder Shape Demos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0c;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --accent: #00f2ff;
+        }
+
+        body {
+            background: var(--bg);
+            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 80px 20px;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 40px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        .demo-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .box-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .box-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            color: rgba(255, 255, 255, 0.4);
+            text-transform: uppercase;
+        }
+
+        .box {
+            width: 300px;
+            height: 380px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s ease;
+        }
+
+        .box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.8;
+            transition: all 0.6s ease;
+        }
+
+        .box:hover img {
+            transform: scale(1.1);
+            opacity: 1;
+        }
+
+        /* ─── DEMO 1: CLASSIC CURVED TAB (Matched to Image) ─── */
+        .demo-1 {
+            border-radius: 30px;
+            /* Using a mask to get the smooth curve from the image */
+            mask-image: url("data:image/svg+xml,%3Csvg width='300' height='380' viewBox='0 0 300 380' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 60C0 43.4315 13.4315 30 30 30H100C115 30 120 15 135 5C145 0 155 0 165 0H270C286.569 0 300 13.4315 300 30V350C300 366.569 286.569 380 270 380H30C13.4315 380 0 366.569 0 350V60Z' fill='black'/%3E%3C/svg%3E");
+            -webkit-mask-image: url("data:image/svg+xml,%3Csvg width='300' height='380' viewBox='0 0 300 380' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 60C0 43.4315 13.4315 30 30 30H100C115 30 120 15 135 5C145 0 155 0 165 0H270C286.569 0 300 13.4315 300 30V350C300 366.569 286.569 380 270 380H30C13.4315 380 0 366.569 0 350V60Z' fill='black'/%3E%3C/svg%3E");
+            mask-size: 100% 100%;
+            -webkit-mask-size: 100% 100%;
+        }
+
+        /* ─── DEMO 2: MODERN SMOOTH DIP ─── */
+        .demo-2 {
+            border-radius: 40px;
+            clip-path: polygon(
+                0 0, 
+                40% 0, 
+                45% 15px, 
+                55% 15px, 
+                60% 0, 
+                100% 0, 
+                100% 100%, 
+                0 100%
+            );
+        }
+
+        /* ─── DEMO 3: ROUNDED NOTCH ─── */
+        .demo-3 {
+            border-radius: 40px;
+            clip-path: polygon(
+                0 0, 
+                100% 0, 
+                100% 100%, 
+                40px 100%, 
+                0 calc(100% - 40px)
+            );
+        }
+
+        /* ─── DEMO 4: DOUBLE STEP TAB ─── */
+        .demo-4 {
+            border-radius: 24px;
+            clip-path: polygon(
+                0 30px, 
+                60px 30px, 
+                80px 0, 
+                140px 0, 
+                160px 30px, 
+                100% 30px, 
+                100% 100%, 
+                0 100%
+            );
+        }
+
+        /* ─── DEMO 5: LIQUID WAVE ─── */
+        .demo-5 {
+            border-radius: 40px;
+            mask-image: url("data:image/svg+xml,%3Csvg width='300' height='380' viewBox='0 0 300 380' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 40C0 17.9086 17.9086 0 40 0H120C140 0 150 20 170 20H260C282.091 20 300 37.9086 300 60V340C300 362.091 282.091 380 260 380H40C17.9086 380 0 362.091 0 340V40Z' fill='black'/%3E%3C/svg%3E");
+            -webkit-mask-image: url("data:image/svg+xml,%3Csvg width='300' height='380' viewBox='0 0 300 380' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 40C0 17.9086 17.9086 0 40 0H120C140 0 150 20 170 20H260C282.091 20 300 37.9086 300 60V340C300 362.091 282.091 380 260 380H40C17.9086 380 0 362.091 0 340V40Z' fill='black'/%3E%3C/svg%3E");
+            mask-size: 100% 100%;
+            -webkit-mask-size: 100% 100%;
+        }
+
+        .back-link {
+            margin-top: 60px;
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            border: 1px solid var(--accent);
+            padding: 12px 30px;
+            border-radius: 100px;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            background: var(--accent);
+            color: #000;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Folder Shape Demos</h1>
+
+    <div class="demo-container">
+        
+        <div class="box-wrap">
+            <span class="box-label">01: Image Reference Match</span>
+            <div class="box demo-1">
+                <img src="/fashion_model_green_1778242393347.png" alt="Model">
+            </div>
+        </div>
+
+        <div class="box-wrap">
+            <span class="box-label">02: Modern Smooth Dip</span>
+            <div class="box demo-2">
+                <img src="/fashion_model_orange_v2_1778242361333.png" alt="Model">
+            </div>
+        </div>
+
+        <div class="box-wrap">
+            <span class="box-label">03: Rounded Corner Notch</span>
+            <div class="box demo-3">
+                <img src="/fashion_model_blue_1778242424880.png" alt="Model">
+            </div>
+        </div>
+
+        <div class="box-wrap">
+            <span class="box-label">04: Double Step Tab</span>
+            <div class="box demo-4">
+                <img src="/fashion_model_red_1778242523150.png" alt="Model">
+            </div>
+        </div>
+
+        <div class="box-wrap">
+            <span class="box-label">05: Liquid Wave</span>
+            <div class="box demo-5">
+                <img src="/fashion_model_mint_top_1778242943069.png" alt="Model">
+            </div>
+        </div>
+
+    </div>
+
+    <a href="/" class="back-link">BACK TO DASHBOARD</a>
+
+</body>
+</html>
