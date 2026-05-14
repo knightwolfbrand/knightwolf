@@ -16,8 +16,17 @@
   background-color: var(--bg-primary);
   color: var(--text-primary);
   overflow: hidden;
-  position: relative;
   transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+.globalCanvas {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  width: 100vw !important;
+  height: 100vh !important;
+  pointer-events: none;
+  z-index: 10; /* Above cards but below header */
 }
 
 .heroSectionDark {
@@ -139,15 +148,16 @@
 }
 
 /* ─── Living Gallery Grid ─── */
+/* ─── Living Gallery Grid ─── */
 .galleryGrid {
   display: grid;
-  grid-template-columns: 0.8fr 1fr 1.2fr 1fr 0.8fr; /* Narrower sides, wider center */
-  gap: 20px;
-  width: 100vw;
+  grid-template-columns: 1fr 1fr 1.6fr 1fr 1fr;
+  width: 100%;
   height: 100vh;
-  padding: 0 20px; /* Reduced from 40px */
+  gap: 15px;
+  padding: 0 15px;
   overflow: hidden;
-  position: relative;
+  place-items: stretch;
   z-index: 1;
 }
 
@@ -160,34 +170,41 @@
 .scrollColumn {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding: 100px 0;
   position: relative;
   will-change: transform;
+  gap: 12px;
+  padding: 12px 0;
 }
 
-/* ─── Gallery Cards ─── */
+/* ─── Gallery Cards (Visible Boxes) ─── */
 .galleryCard {
   width: 100%;
-  height: 300px;
-  border-radius: 20px;
+  height: 380px;
+  flex-shrink: 0;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #111111;
+  position: relative;
   overflow: hidden;
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  transition: transform 0.4s ease, background 0.5s ease, border 0.5s ease;
+  transition: border-color 0.3s ease;
+}
+
+.squareCard {
+  height: 280px;
 }
 
 .galleryCard:hover {
-  /* Removed border-color highlight for a cleaner feel */
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
-.galleryImg {
+.fullView {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
 }
 
-/* ─── Center Focus Column ─── */
+/* ─── Center Focus ─── */
 .centerFocusCol {
   display: flex;
   align-items: center;
@@ -199,42 +216,102 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   text-align: center;
-  padding-top: 50px; /* Precise adjustment for vertical balance */
+  padding-top: 120px; /* Pushed down from header */
+  z-index: 100;
 }
 
 .trendingTitle {
   font-size: 24px;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
+  font-weight: 400;
   color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
   margin: 0;
-  line-height: 1;
-  white-space: nowrap;
-  transition: color 0.5s ease;
+  line-height: 1.2;
 }
 
 .trendingLabel {
-  font-size: 13px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.5em;
+  font-size: 10px;
+  font-weight: 400;
   color: var(--text-primary);
-  opacity: 0.7;
-  margin-bottom: 30px;
-  transition: color 0.5s ease;
+  opacity: 0.5;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  margin-bottom: 15px;
 }
 
-.centerCard {
+.reducedPanoramicFrame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: visible;
+  margin: 40px 0;
+  gap: 0;
+}
+
+.reducedPanoramicFrame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: visible;
+  margin: 40px 0;
+  gap: 0;
+}
+
+.tripleView {
   width: 320px;
   height: 440px;
-  border-radius: 30px;
+  background: linear-gradient(to bottom, #E58A24 0%, #E58A24 70%, var(--bg-primary) 100%);
+  border-radius: 40px 40px 0 0;
   overflow: hidden;
-  box-shadow: 0 50px 100px rgba(0, 0, 0, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  position: relative; /* For absolute button */
+  position: relative;
+  z-index: 5;
+  border: none;
+}
+
+.sideView {
+  width: 300px;
+  height: 340px;
+  background: #E58A24;
+  border-radius: 40px;
+  border: none;
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.sideView:first-child {
+  margin-right: -80px;
+}
+
+.sideView:last-child {
+  margin-left: -80px;
+}
+
+.mainView {
+  width: 320px;
+  height: 420px;
+  background: #E58A24;
+  border-radius: 40px;
+  border: none;
+  position: relative;
+  z-index: 10;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: -20px 0 40px rgba(0,0,0,0.3), 20px 0 40px rgba(0,0,0,0.3);
+}
+
+.mainView:hover {
+  /* Hover highlight removed */
+}
+
+.sideView:hover {
+  /* Hover highlight removed */
 }
 
 .centerImg {

@@ -12,6 +12,7 @@ const STATE = {
     stickerImage: null,      // raw HTMLImageElement of chosen sticker
     stickerZone: 'front',    // 'front' | 'back' | 'left' | 'right'
     stickerScale: 0.15,      // Ultra-minimalist logo size
+    _cachedCleanSticker: null, // Caching the processed canvas to avoid "jerks" during resize
 };
 
 
@@ -225,12 +226,16 @@ function repaintStickerCanvas() {
     // 2. Draw sticker if one is selected
     if (STATE.stickerImage) {
         const cfg = MODEL_CONFIGS[STATE.modelStyle];
-        // Select coordinates based on Front or Back zone
         const uv = (STATE.stickerZone === 'front') ? cfg.uvCenter : cfg.uvBack;
         
         const stickerSize = Math.round(UV_SIZE * STATE.stickerScale);
         const aspectY = cfg.aspectY || 1.0;
-        const cleanSticker = removeBackground(STATE.stickerImage);
+
+        // --- PERFORMANCE FIX: Use cached clean sticker if available ---
+        if (!STATE._cachedCleanSticker) {
+            STATE._cachedCleanSticker = removeBackground(STATE.stickerImage);
+        }
+        const cleanSticker = STATE._cachedCleanSticker;
 
         const sx = Math.round(uv.cx * UV_SIZE);
         const sy = Math.round(uv.cy * UV_SIZE);
@@ -238,12 +243,10 @@ function repaintStickerCanvas() {
         uvCtx.save();
         uvCtx.translate(sx, sy);
 
-        // Apply orientation correction if the model has inverted UVs
         if (cfg.isFlipped) {
             uvCtx.scale(1, -1);
         }
 
-        // Draw centered on the target UV point with aspect ratio correction
         uvCtx.drawImage(
             cleanSticker, 
             -stickerSize / 2, 
@@ -389,11 +392,13 @@ Object.entries(STICKER_SRCS).forEach(([key, src]) => {
 function applySticker(key) {
     if (!stickerImages[key]) { console.warn('Sticker image not loaded yet:', key); return; }
     STATE.stickerImage = stickerImages[key];
+    STATE._cachedCleanSticker = null; // Reset cache for new image
     repaintStickerCanvas();
 }
 
 function applyCustomSticker(imgEl) {
     STATE.stickerImage = imgEl;
+    STATE._cachedCleanSticker = null; // Reset cache for new image
     repaintStickerCanvas();
 }
 
