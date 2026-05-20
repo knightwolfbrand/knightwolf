@@ -24,11 +24,17 @@ export default function DashboardHome() {
   // ─── UV CANVAS STICKER SYSTEM (same as configurator) ─────────────────────
   // Paint sticker directly onto the shirt's UV texture — real printed-on-fabric look
   const UV_CONFIG = {
-    oversized: { cx: 0.30, cy: 0.38, aspectY: 1.2, isFlipped: true,  scale: 0.30 },
-    regular:   { cx: 0.28, cy: 0.35, aspectY: 1.2, isFlipped: false, scale: 0.30 },
+    oversized: {
+      front: { cx: 0.30, cy: 0.38, aspectY: 1.78, isFlipped: true,  scale: 0.23 },
+      back:  { cx: 0.74, cy: 0.36, aspectY: 1.78, isFlipped: true,  scale: 0.23 }
+    },
+    regular: {
+      front: { cx: 0.28, cy: 0.35, aspectY: 1.78, isFlipped: false, scale: 0.23 },
+      back:  { cx: 0.75, cy: 0.36, aspectY: 1.78, isFlipped: false, scale: 0.23 }
+    }
   };
 
-  function removeBackground(img) {
+  function removeBackground(img, isThorLogo = false) {
     const c = document.createElement('canvas');
     c.width = img.naturalWidth || img.width;
     c.height = img.naturalHeight || img.height;
@@ -37,53 +43,92 @@ export default function DashboardHome() {
     const W = c.width, H = c.height;
     const imgData = ctx.getImageData(0, 0, W, H);
     const data = imgData.data;
-    const visited = new Uint8Array(W * H);
-    const queue = [];
-    const bgR = data[0], bgG = data[1], bgB = data[2];
-    const TOL = 55;
-    [[0,0],[W-1,0],[0,H-1],[W-1,H-1]].forEach(([x,y]) => {
-      const idx = y * W + x;
-      if (!visited[idx]) { visited[idx] = 1; queue.push(x, y); }
-    });
-    let head = 0;
-    while (head < queue.length) {
-      const x = queue[head++], y = queue[head++];
-      const pos = (y * W + x) * 4;
-      const diff = Math.abs(data[pos]-bgR) + Math.abs(data[pos+1]-bgG) + Math.abs(data[pos+2]-bgB);
-      if (diff < TOL) {
-        data[pos + 3] = 0;
-        for (const [nx, ny] of [[x+1,y],[x-1,y],[x,y+1],[x,y-1]]) {
-          if (nx >= 0 && nx < W && ny >= 0 && ny < H) {
-            const nIdx = ny * W + nx;
-            if (!visited[nIdx]) { visited[nIdx] = 1; queue.push(nx, ny); }
+
+    if (isThorLogo) {
+      // Precise laser-cut circular crop to preserve inner grunge details
+      const centerX = W / 2;
+      const centerY = H / 2;
+      const radius = Math.min(W, H) * 0.425;
+
+      for (let y = 0; y < H; y++) {
+        for (let x = 0; x < W; x++) {
+          const dx = x - centerX;
+          const dy = y - centerY;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const pos = (y * W + x) * 4;
+
+          if (dist > radius) {
+            data[pos + 3] = 0;
+          }
+        }
+      }
+    } else {
+      // Normal flood-fill for character prints
+      const visited = new Uint8Array(W * H);
+      const queue = [];
+      const bgR = data[0], bgG = data[1], bgB = data[2];
+      const TOL = 55;
+      [[0,0],[W-1,0],[0,H-1],[W-1,H-1]].forEach(([x,y]) => {
+        const idx = y * W + x;
+        if (!visited[idx]) { visited[idx] = 1; queue.push(x, y); }
+      });
+      let head = 0;
+      while (head < queue.length) {
+        const x = queue[head++], y = queue[head++];
+        const pos = (y * W + x) * 4;
+        const diff = Math.abs(data[pos]-bgR) + Math.abs(data[pos+1]-bgG) + Math.abs(data[pos+2]-bgB);
+        if (diff < TOL) {
+          data[pos + 3] = 0;
+          for (const [nx, ny] of [[x+1,y],[x-1,y],[x,y+1],[x,y-1]]) {
+            if (nx >= 0 && nx < W && ny >= 0 && ny < H) {
+              const nIdx = ny * W + nx;
+              if (!visited[nIdx]) { visited[nIdx] = 1; queue.push(nx, ny); }
+            }
           }
         }
       }
     }
+
     ctx.putImageData(imgData, 0, 0);
     return c;
   }
 
-  function buildUVTexture(shirtColor, stickerImg, uvCfg) {
+  function buildUVTextureWithBoth(shirtColor, frontImg, frontCfg, backImg, backCfg) {
     const UV_SIZE = 2048;
     const canvas = document.createElement('canvas');
     canvas.width = canvas.height = UV_SIZE;
     const ctx = canvas.getContext('2d');
+
     // 1. Fill base shirt color
     ctx.fillStyle = shirtColor;
     ctx.fillRect(0, 0, UV_SIZE, UV_SIZE);
-    // 2. Paint sticker if provided
-    if (stickerImg && uvCfg) {
-      const clean = removeBackground(stickerImg);
-      const stickerSize = Math.round(UV_SIZE * uvCfg.scale);
-      const sx = Math.round(uvCfg.cx * UV_SIZE);
-      const sy = Math.round(uvCfg.cy * UV_SIZE);
+
+    // 2. Paint front sticker
+    if (frontImg && frontCfg) {
+      const cleanFront = removeBackground(frontImg, true);
+      const sizeFront = Math.round(UV_SIZE * frontCfg.scale);
+      const fx = Math.round(frontCfg.cx * UV_SIZE);
+      const fy = Math.round(frontCfg.cy * UV_SIZE);
       ctx.save();
-      ctx.translate(sx, sy);
-      if (uvCfg.isFlipped) ctx.scale(1, -1);
-      ctx.drawImage(clean, -stickerSize / 2, -(stickerSize * uvCfg.aspectY) / 2, stickerSize, stickerSize * uvCfg.aspectY);
+      ctx.translate(fx, fy);
+      if (frontCfg.isFlipped) ctx.scale(1, -1);
+      ctx.drawImage(cleanFront, -sizeFront / 2, -(sizeFront * frontCfg.aspectY) / 2, sizeFront, sizeFront * frontCfg.aspectY);
       ctx.restore();
     }
+
+    // 3. Paint back sticker
+    if (backImg && backCfg) {
+      const cleanBack = removeBackground(backImg, false);
+      const sizeBack = Math.round(UV_SIZE * backCfg.scale);
+      const bx = Math.round(backCfg.cx * UV_SIZE);
+      const by = Math.round(backCfg.cy * UV_SIZE);
+      ctx.save();
+      ctx.translate(bx, by);
+      if (backCfg.isFlipped) ctx.scale(1, -1);
+      ctx.drawImage(cleanBack, -sizeBack / 2, -(sizeBack * backCfg.aspectY) / 2, sizeBack, sizeBack * backCfg.aspectY);
+      ctx.restore();
+    }
+
     const tex = new THREE.CanvasTexture(canvas);
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.flipY = false;
@@ -130,7 +175,8 @@ export default function DashboardHome() {
     const defaultPos  = isOversized ? [0, -7.5, 0] : [0, -4.5, 0];
     const finalPos = position || defaultPos;
     const finalRot = rotation || [0, 0, 0];
-    const uvCfg = isOversized ? UV_CONFIG.oversized : UV_CONFIG.regular;
+    const uvFront = isOversized ? UV_CONFIG.oversized.front : UV_CONFIG.regular.front;
+    const uvBack = isOversized ? UV_CONFIG.oversized.back : UV_CONFIG.regular.back;
 
     // Build UV texture (with sticker painted in)
     React.useEffect(() => {
@@ -147,13 +193,31 @@ export default function DashboardHome() {
         t.flipY = false;
         setUvTex(t);
       } else {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = () => {
-          const t = buildUVTexture(color, img, uvCfg);
-          setUvTex(t);
+        let frontLoaded = null;
+        let backLoaded = null;
+
+        const tryDraw = () => {
+          if (frontLoaded && backLoaded) {
+            const t = buildUVTextureWithBoth(color, frontLoaded, uvFront, backLoaded, uvBack);
+            setUvTex(t);
+          }
         };
-        img.src = '/stickers/user_sticker.png';
+
+        const imgFront = new Image();
+        imgFront.crossOrigin = 'anonymous';
+        imgFront.onload = () => {
+          frontLoaded = imgFront;
+          tryDraw();
+        };
+        imgFront.src = '/stickers/thor_logo_sticker.png';
+
+        const imgBack = new Image();
+        imgBack.crossOrigin = 'anonymous';
+        imgBack.onload = () => {
+          backLoaded = imgBack;
+          tryDraw();
+        };
+        imgBack.src = '/stickers/thor_sticker.png';
       }
     }, [scene, color, showSticker]);
 
@@ -235,10 +299,6 @@ export default function DashboardHome() {
   return (
     <div ref={containerRef} className={`${isDark ? styles.heroSectionDark : styles.heroSection} ${libreBaskerville.className}`}>
       
-      {/* ─── Cinematic Vignettes ─── */}
-      <div className={styles.vignetteTop} />
-      <div className={styles.vignetteBottom} />
-
       {/* ─── Unified Command Center (Header) ─── */}
       <div className={styles.headerWrapper}>
         <nav className={styles.commandCenter}>
@@ -289,9 +349,9 @@ export default function DashboardHome() {
         {/* Left Side: Two Scrolling Columns */}
         <ScrollingColumn 
           items={[
-            { bgColor: '#111', img: '/box/PHOTO-2026-05-11-13-18-47.png' },
-            { bgColor: '#111', img: '/box/PHOTO-2026-05-11-13-20-11.png' },
-            { bgColor: '#111', img: '/box/PHOTO-2026-05-11-13-20-50.png' }
+            { bgColor: '#141414', img: '/box/PHOTO-2026-05-11-13-18-47.png' },
+            { bgColor: '#141414', img: '/box/PHOTO-2026-05-11-13-20-11.png' },
+            { bgColor: '#141414', img: '/box/PHOTO-2026-05-11-13-20-50.png' }
           ]} 
           direction="up" 
           speed={30} 
@@ -299,9 +359,9 @@ export default function DashboardHome() {
         />
         <ScrollingColumn 
           items={[
-            { bgColor: '#111', img: '/box/PHOTO-2026-05-11-13-22-08.png' },
-            { bgColor: '#111', img: '/box/knightwolf_hd_poster.png' },
-            { bgColor: '#111', img: '/box/ad_poster.jpg' }
+            { bgColor: '#141414', img: '/box/PHOTO-2026-05-11-13-22-08.png' },
+            { bgColor: '#141414', img: '/box/knightwolf_hd_poster.png' },
+            { bgColor: '#141414', img: '/box/ad_poster.jpg' }
           ]} 
           direction="down" 
           speed={25} 
@@ -311,10 +371,8 @@ export default function DashboardHome() {
 
         {/* Center Focus — Reduced Panoramic Frame */}
         <div className={styles.centerFocusCol}>
+
           <div className={styles.centerContent}>
-            <h2 className={styles.trendingTitle}>Wear to Hurt</h2>
-            <span className={styles.trendingLabel}>Trending Collections</span>
-            
             <div className={styles.reducedPanoramicFrame}>
               <View className={styles.tripleView}>
                 <Suspense fallback={null}>
@@ -340,9 +398,9 @@ export default function DashboardHome() {
         {/* Right Side: Two Scrolling Columns */}
         <ScrollingColumn 
           items={[
-            { bgColor: '#111', img: '/box/knight_wolf_editorial_v2.png' },
-            { bgColor: '#111', img: '/box/PHOTO-2026-05-11-13-34-40.png' },
-            { bgColor: '#111', img: '/box/PHOTO-2026-05-11-13-22-22.png' }
+            { bgColor: '#141414', img: '/box/knight_wolf_editorial_v2.png' },
+            { bgColor: '#141414', img: '/box/PHOTO-2026-05-11-13-34-40.png' },
+            { bgColor: '#141414', img: '/box/PHOTO-2026-05-11-13-22-22.png' }
           ]} 
           direction="up" 
           speed={28} 
@@ -351,9 +409,9 @@ export default function DashboardHome() {
         />
         <ScrollingColumn 
           items={[
-            { bgColor: '#111', img: '/box/ad_poster.jpg' },
-            { bgColor: '#111', img: '/box/knightwolf_hd_poster.png' },
-            { bgColor: '#111', img: '/box/PHOTO-2026-05-11-13-20-50.png' }
+            { bgColor: '#141414', img: '/box/ad_poster.jpg' },
+            { bgColor: '#141414', img: '/box/knightwolf_hd_poster.png' },
+            { bgColor: '#141414', img: '/box/PHOTO-2026-05-11-13-20-50.png' }
           ]} 
           direction="down" 
           speed={35} 
@@ -380,7 +438,7 @@ export default function DashboardHome() {
 
       {/* ─── Global Bottom CTA ─── */}
       <button className={styles.centerCta}>
-        Explore More <span className={styles.ctaArrow}>→</span>
+        EXPLORE COLLECTIONS
       </button>
     </div>
   )

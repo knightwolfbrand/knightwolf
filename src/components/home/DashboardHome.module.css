@@ -1,22 +1,82 @@
-/* ─── Core Layout ─── */
+/* ========================================================
+   KNIGHT WOLF BRAND — PREMIUM BENTO GALLERY REDESIGN (v2)
+   ======================================================== */
+
 .heroSection {
-  --bg-primary: #fafafb; /* Subtle off-white for a softer vignette */
+  --bg-primary: #ffffff;
   --mid-tone: #ffffff;
-  --accent-end: #f0f2f5;
-  --text-primary: #000000;
-  --header-bg: #ffffff;
-  --card-bg: rgba(0, 0, 0, 0.02);
-  --card-border: rgba(0, 0, 0, 0.05);
+  --accent-end: #ffffff;
+  --text-primary: #1a1a1a;
+  --header-bg: transparent;
+  --card-bg: #ffffff;
+  --card-border: rgba(0, 0, 0, 0.08);
+  --accent-color: #C8A96E;
   --vignette-color: #ffffff;
-  --accent-color: #000000;
-  --central-glow: rgba(0, 0, 0, 0.01);
+  --vignette-color-rgb: 255, 255, 255;
+  --vignette-top-height: 120px; /* Reduced by half in light theme */
+  --vignette-bottom-height: 100px; /* Reduced by half in light theme */
+  --btn-bg: #1a1a1a;
+  --btn-color: #ffffff;
   
   width: 100vw;
   height: 100vh;
   background-color: var(--bg-primary);
   color: var(--text-primary);
   overflow: hidden;
+  position: relative;
   transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+.heroSectionDark {
+  --bg-primary: #000000;
+  --mid-tone: #000000;
+  --accent-end: #000000;
+  --text-primary: #f0ede8;
+  --header-bg: transparent;
+  --card-bg: #000000; /* Pure black card background */
+  --card-border: rgba(255, 255, 255, 0.08);
+  --accent-color: #C8A96E;
+  --vignette-color: #000000;
+  --vignette-color-rgb: 0, 0, 0;
+  --vignette-top-height: 240px; /* Cinematic height in dark theme */
+  --vignette-bottom-height: 220px; /* Cinematic height in dark theme */
+  --btn-bg: #ffffff;
+  --btn-color: #1a1a1a;
+
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  overflow: hidden;
+  position: relative;
+  transition: background 0.5s ease, color 0.5s ease;
+}
+
+/* ─── Cinematic Smooth Pseudo Vignettes (Rule 5) ─── */
+.heroSection::before,
+.heroSectionDark::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: var(--vignette-top-height);
+  background: linear-gradient(to bottom, var(--vignette-color) 0%, var(--vignette-color) 35%, rgba(var(--vignette-color-rgb), 0.85) 65%, transparent 100%);
+  pointer-events: none;
+  z-index: 50; /* Above the scrolling grid columns */
+}
+
+.heroSection::after,
+.heroSectionDark::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: var(--vignette-bottom-height);
+  background: linear-gradient(to top, var(--vignette-color) 0%, rgba(var(--vignette-color-rgb), 0.8) 40%, transparent 100%);
+  pointer-events: none;
+  z-index: 50; /* Above the scrolling grid columns */
 }
 
 .globalCanvas {
@@ -26,103 +86,94 @@
   width: 100vw !important;
   height: 100vh !important;
   pointer-events: none;
-  z-index: 10; /* Above cards but below header */
+  z-index: 10;
 }
 
-.heroSectionDark {
-  --bg-primary: #000000;
-  --mid-tone: #000000;
-  --accent-end: #000000;
-  --text-primary: #ffffff;
-  --header-bg: #000000;
-  --card-bg: rgba(255, 255, 255, 0.02);
-  --card-border: rgba(255, 255, 255, 0.05);
-  --vignette-color: #000000;
-  --accent-color: #ffffff;
-  --central-glow: rgba(100, 120, 150, 0.1);
-
-  width: 100vw;
-  height: 100vh;
-  background-color: var(--bg-primary);
-  /* Central Glow effect */
-  background-image: radial-gradient(circle at center, var(--central-glow) 0%, transparent 70%);
-  color: var(--text-primary);
-  overflow: hidden;
-  position: relative;
-  transition: background 0.5s ease, color 0.5s ease;
-}
-
-/* ─── Header Container (Full Width Strip) ─── */
+/* ─── Header Container (Full Width Transparent Overlay) ─── */
 .headerWrapper {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  padding: 0;
   z-index: 100;
-  background: linear-gradient(to bottom, var(--header-bg) 0%, var(--mid-tone) 50%, transparent 100%);
-  height: 140px; /* Reduced from 180px */
-  transition: all 0.5s ease;
+  background: transparent;
+  height: 140px;
   pointer-events: none;
 }
 
+/* Header horizontal baseline centering (Rule 4) */
 .commandCenter {
   width: 100%;
   height: 80px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 0 60px;
+  justify-content: space-between;
+  padding: 0 32px;
   position: relative;
-  top: 20px; /* Moved further down for better breathing room */
+  top: 0;
   pointer-events: auto;
 }
 
 .navBrand {
-  position: absolute;
-  left: 60px;
+  display: flex;
+  align-items: center;
 }
 
 .navLogo {
-  height: 52px;
+  height: 48px;
   width: auto;
   transition: filter 0.5s ease;
 }
 
-.heroSection:not(.heroSectionDark) .navLogo {
-  filter: invert(1) brightness(0); /* Ensure it turns pure black */
+/* Invert logo in light theme for pure black visibility */
+.heroSection .navLogo {
+  filter: invert(1);
 }
 
+.heroSectionDark .navLogo {
+  filter: none;
+}
+
+/* True-center nav links menu independent of logo width */
 .navMenu {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
-  gap: 5px;
+  align-items: center;
+  gap: 32px;
 }
 
 .navItem {
+  font-family: 'Space Grotesk', sans-serif;
   background: none;
   border: none;
   color: var(--text-primary);
-  padding: 10px 24px;
-  font-size: 11px;
-  font-weight: 700;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 400;
   text-transform: uppercase;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.12em;
   cursor: pointer;
-  position: relative;
-  opacity: 0.9; /* Increased for better visibility */
+  opacity: 0.8;
   transition: all 0.3s ease;
 }
 
-.navItemActive {
+.navItem:hover {
+  color: #ffffff;
   opacity: 1;
 }
 
+.navItemActive {
+  color: var(--accent-color);
+  opacity: 1;
+}
+
+/* Theme toggle aligned right horizontally centering */
 .headerToggle {
-  position: absolute;
-  right: 60px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #fff;
+  color: var(--text-primary);
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -141,21 +192,17 @@
 
 .headerToggle:hover {
   background: rgba(255, 255, 255, 0.15);
+  border-color: var(--accent-color);
 }
 
-.headerToggleLight:hover {
-  background: rgba(0, 0, 0, 0.1);
-}
-
-/* ─── Living Gallery Grid ─── */
-/* ─── Living Gallery Grid ─── */
+/* ─── Living Gallery Grid (Rule 1 & Rule 6) ─── */
 .galleryGrid {
   display: grid;
   grid-template-columns: 1fr 1fr 1.6fr 1fr 1fr;
   width: 100%;
   height: 100vh;
-  gap: 15px;
-  padding: 0 15px;
+  gap: 16px;
+  padding: 0 16px;
   overflow: hidden;
   place-items: stretch;
   z-index: 1;
@@ -172,29 +219,30 @@
   flex-direction: column;
   position: relative;
   will-change: transform;
-  gap: 12px;
-  padding: 12px 0;
+  gap: 16px;
+  padding: 16px 0;
 }
 
-/* ─── Gallery Cards (Visible Boxes) ─── */
+/* ─── Gallery Cards (Rule 7) ─── */
 .galleryCard {
   width: 100%;
   height: 380px;
   flex-shrink: 0;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: #111111;
+  border-radius: 0; /* Zero rounded corners for clean fashion look */
+  border: 1px solid var(--card-border);
+  background-color: var(--card-bg);
   position: relative;
   overflow: hidden;
   transition: border-color 0.3s ease;
 }
 
+/* Column 2 and 4 card heights increased slightly (Rule 3) */
 .squareCard {
-  height: 280px;
+  height: 350px; /* Increased from 280px by 70px */
 }
 
 .galleryCard:hover {
-  border-color: rgba(255, 255, 255, 0.25);
+  border-color: var(--accent-color); /* Subtle gold border on hover */
 }
 
 .fullView {
@@ -204,114 +252,83 @@
   height: 100%;
 }
 
-/* ─── Center Focus ─── */
+/* ─── Center Column Layout (No hardcoded widths or margins!) ─── */
 .centerFocusCol {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
   z-index: 10;
+  width: 100%;
+  height: 100%;
 }
 
+/* Editorial Overlaid Headline (Rule 8) */
+.centerHeadline {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 100;
+  text-align: center;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  padding: 0 20px;
+}
+
+.headlineTop {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 92px;
+  font-weight: 300;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  line-height: 1.0;
+  margin: 0;
+  text-shadow: 0 2px 40px rgba(0, 0, 0, 0.6);
+}
+
+.headlineSub {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 38px;
+  font-weight: 300;
+  letter-spacing: 0.18em;
+  color: var(--accent-color);
+  margin: 0;
+  text-shadow: 0 2px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* Stretches to fill the center column dynamically (Rule 1) */
 .centerContent {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  text-align: center;
-  padding-top: 120px; /* Pushed down from header */
-  z-index: 100;
-}
-
-.trendingTitle {
-  font-size: 24px;
-  font-weight: 400;
-  color: var(--text-primary);
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  margin: 0;
-  line-height: 1.2;
-}
-
-.trendingLabel {
-  font-size: 10px;
-  font-weight: 400;
-  color: var(--text-primary);
-  opacity: 0.5;
-  text-transform: uppercase;
-  letter-spacing: 0.3em;
-  margin-bottom: 15px;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
 }
 
 .reducedPanoramicFrame {
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
-  overflow: visible;
-  margin: 40px 0;
-  gap: 0;
+  width: 100%;
+  height: 100%;
 }
 
-.reducedPanoramicFrame {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: visible;
-  margin: 40px 0;
-  gap: 0;
-}
-
+/* Stretches to fit the column width natively (Rule 1) */
 .tripleView {
-  width: 320px;
-  height: 440px;
-  background: linear-gradient(to bottom, #E58A24 0%, #E58A24 70%, var(--bg-primary) 100%);
-  border-radius: 40px 40px 0 0;
+  width: 100%;
+  height: 560px; /* Generous vertical canvas frame */
+  background: linear-gradient(to bottom, var(--card-bg) 0%, var(--card-bg) 70%, var(--bg-primary) 100%);
+  border-radius: 0;
   overflow: hidden;
   position: relative;
   z-index: 5;
   border: none;
-}
-
-.sideView {
-  width: 300px;
-  height: 340px;
-  background: #E58A24;
-  border-radius: 40px;
-  border: none;
-  position: relative;
-  z-index: 1;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.sideView:first-child {
-  margin-right: -80px;
-}
-
-.sideView:last-child {
-  margin-left: -80px;
-}
-
-.mainView {
-  width: 320px;
-  height: 420px;
-  background: #E58A24;
-  border-radius: 40px;
-  border: none;
-  position: relative;
-  z-index: 10;
-  overflow: hidden;
-  flex-shrink: 0;
-  box-shadow: -20px 0 40px rgba(0,0,0,0.3), 20px 0 40px rgba(0,0,0,0.3);
-}
-
-.mainView:hover {
-  /* Hover highlight removed */
-}
-
-.sideView:hover {
-  /* Hover highlight removed */
 }
 
 .centerImg {
@@ -320,66 +337,39 @@
   object-fit: cover;
 }
 
+/* ─── Explore More Button (Rule 2) ─── */
 .centerCta {
-  position: fixed; /* Fixed to viewport */
+  font-family: 'Space Grotesk', sans-serif;
+  position: fixed;
   bottom: 40px;
   left: 50%;
   transform: translateX(-50%);
-  background: #ffffff;
-  color: #000000;
+  background: var(--btn-bg);
+  color: var(--btn-color);
   border: none;
-  padding: 14px 36px;
-  border-radius: 100px;
-  font-size: 11px;
-  font-weight: 800;
+  height: 56px; /* Increased from 44px */
+  padding: 0 48px;
+  border-radius: 0; /* Premium sharp fashion edge */
+  font-size: 13px;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.15em;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  z-index: 200; /* Over everything including vignettes */
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-.heroSection:not(.heroSectionDark) .centerCta {
-  background: #000000;
-  color: #ffffff;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  z-index: 200;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
 }
 
 .centerCta:hover {
   opacity: 0.9;
-  transform: translateX(-50%) translateY(-2px); /* Subtle lift on hover */
+  transform: translateX(-50%) translateY(-2px);
+  box-shadow: 0 12px 35px rgba(200, 169, 110, 0.25);
 }
 
-.ctaArrow {
-  transition: transform 0.3s ease;
-}
-
-.centerCta:hover .ctaArrow {
-  transform: translateX(5px);
-}
-
-/* ─── Cinematic Vignettes ─── */
-.vignetteTop {
-  display: none; /* Merged into headerWrapper */
-}
-
-.vignetteBottom {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 200px; /* Reduced from 300px */
-  background: linear-gradient(to top, var(--vignette-color) 0%, var(--mid-tone) 30%, transparent 100%);
-  z-index: 5;
-  pointer-events: none;
-  transition: background 0.5s ease;
-}
-
-/* Responsive */
+/* Responsive Grid columns fraction structure (Rule 6) */
 @media (max-width: 1024px) {
   .galleryGrid {
     grid-template-columns: repeat(3, 1fr);
@@ -387,5 +377,30 @@
   .scrollColumnWrap:nth-child(1),
   .scrollColumnWrap:nth-child(5) {
     display: none;
+  }
+  .headlineTop {
+    font-size: 64px;
+  }
+  .headlineSub {
+    font-size: 28px;
+  }
+}
+
+@media (max-width: 600px) {
+  .galleryGrid {
+    grid-template-columns: 1fr;
+  }
+  .scrollColumnWrap:nth-child(2),
+  .scrollColumnWrap:nth-child(4) {
+    display: none;
+  }
+  .navMenu {
+    display: none; /* simple mobile override */
+  }
+  .headlineTop {
+    font-size: 48px;
+  }
+  .headlineSub {
+    font-size: 20px;
   }
 }
