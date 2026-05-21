@@ -248,7 +248,7 @@ export default function DashboardHome() {
     const SleeveLabel = () => {
       const logoTex = useTexture('/KnightWolf_Logo_White.svg');
       // Align perfectly to the oversized T-shirt's right sleeve hem slant
-      const pos = [0.955, 1.26, 0.03];
+      const pos = [0.31, -1.48, 0.05];
       const rot = [0.1, 1.45, -0.32];
 
       return (
