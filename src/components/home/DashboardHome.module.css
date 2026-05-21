@@ -346,7 +346,7 @@
 
 .backgroundTextContainer {
   position: absolute;
-  top: 38%; /* Positioned so the T-shirt sits in the lower center, overlapping it */
+  top: 27%; /* Moved up to clear space for the lowered T-shirt model */
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 1; /* Sits completely behind the WebGL Canvas (z-index: 5) */
@@ -374,7 +374,7 @@
 
 .massiveBgText {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 160px; /* Massive desktop size */
+  font-size: 4.2vw; /* Dynamically sized to guarantee elegant margin gaps on both sides */
   font-weight: 900;
   line-height: 0.8;
   letter-spacing: -0.02em; /* Tight condensed letter spacing */

@@ -459,11 +459,11 @@ export default function DashboardHome() {
 
                   {/* Single Hero T-shirt — Oversized, scaled larger and positioned lower to overlap backdrop */}
                   <RotatingGroup delay={0} speed={0.005} mode="spin">
-                    <ModelPreview color="#f5f5f5" modelPath="/models/oversized_tshirt.glb" showSticker={true} scale={9.8} position={[0, -9.6, 0]} rotation={[0, 0, 0]} />
+                    <ModelPreview color="#f5f5f5" modelPath="/models/oversized_tshirt.glb" showSticker={true} scale={9.8} position={[0, -10.5, 0]} rotation={[0, 0, 0]} />
                   </RotatingGroup>
 
                   {/* Shared shadows aligned with the lowered floor */}
-                  <ContactShadows position={[0, -8.7, 0]} opacity={0.5} scale={20} blur={3} far={4} />
+                  <ContactShadows position={[0, -9.6, 0]} opacity={0.5} scale={20} blur={3} far={4} />
                 </Suspense>
               </View>
             </div>
