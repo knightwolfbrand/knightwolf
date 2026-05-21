@@ -275,7 +275,7 @@ export default function DashboardHome() {
           }}
         >
           {[...items, ...items].map((item, idx) => (
-            <div key={idx} className={`${styles.galleryCard} ${cardClassName}`} style={{ backgroundColor: item.bgColor }}>
+            <div key={idx} className={`${styles.galleryCard} ${cardClassName}`}>
               {item.img && (
                 <img src={item.img} alt="Gallery item" className={styles.centerImg} />
               )}
