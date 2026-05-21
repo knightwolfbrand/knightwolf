@@ -168,6 +168,7 @@ export default function DashboardHome() {
   // --- 3D Model Component ---
   const ModelPreview = ({ color = '#f5f5f5', modelPath = '/models/shirt_baked.glb', scale = 8.2, showSticker = false, position = null, rotation = null }) => {
     const { scene } = useGLTF(modelPath);
+    const logoTex = useTexture('/KnightWolf_Logo_White.svg');
     const [uvTex, setUvTex] = React.useState(null);
     
     const isOversized = modelPath.includes('oversized');
