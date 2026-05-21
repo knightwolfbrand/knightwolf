@@ -353,12 +353,17 @@
 
 .massiveBgText {
   font-family: 'Space Grotesk', 'Outfit', 'Inter', sans-serif;
-  font-size: 3.9vw; /* Increased from 3.2vw for a bolder, more high-impact presence */
+  font-size: 11vw; /* Massive presence, vertically stretched and horizontally shrunked */
   font-weight: 900;
-  line-height: 0.8;
-  letter-spacing: -0.05em;
+  line-height: 0.7;
+  letter-spacing: -0.06em; /* Tight letter spacing for clean vertical stripes look */
   text-transform: uppercase;
   margin: 0;
+  
+  /* SABAR-style ultra-tall vertical stretch & horizontal compression */
+  display: inline-block;
+  transform: scale(0.32, 3.2);
+  transform-origin: center center;
   
   /* High-fashion textured charcoal white text fill */
   background: var(--brand-huge-text);
@@ -438,7 +443,8 @@
     font-size: 28px;
   }
   .massiveBgText {
-    font-size: 6.5vw; /* Increased for a bolder 3-column tablet presence */
+    font-size: 18vw; /* Fluid scale for wider tablet columns */
+    transform: scale(0.35, 2.5); /* Squeezed and tall for tablet format */
   }
   .sleeveSmallHeader {
     font-size: 1.1vw;
@@ -463,7 +469,8 @@
     font-size: 20px;
   }
   .massiveBgText {
-    font-size: 14vw; /* Increased from 12vw for high-fashion mobile presence */
+    font-size: 32vw; /* Generous vertical scale for mobile screens */
+    transform: scale(0.32, 2.2); /* Optimized mobile proportions */
   }
   .sleeveSmallHeader {
     font-size: 2.8vw;
