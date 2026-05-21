@@ -3,7 +3,7 @@
 import React, { useState, Suspense, useMemo, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { Libre_Baskerville } from 'next/font/google'
-import { Canvas, useFrame, createPortal } from '@react-three/fiber'
+import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls, useGLTF, Environment, ContactShadows, Float, View, Preload, useTexture } from '@react-three/drei'
 import * as THREE from 'three'
 import styles from './DashboardHome.module.css'
@@ -226,9 +226,10 @@ export default function DashboardHome() {
       return clone;
     }, [scene]);
 
-    // Apply UV texture to material
+    // Apply UV texture and physically attach sleeve label to right sleeve mesh
     React.useEffect(() => {
       if (!uvTex) return;
+      
       clonedScene.traverse((child) => {
         if (child.isMesh) {
           child.material = new THREE.MeshPhysicalMaterial({
@@ -240,73 +241,71 @@ export default function DashboardHome() {
             sheenColor: new THREE.Color(0xffffff),
           });
           child.material.needsUpdate = true;
+
+          // Physically parent the sleeve label directly to the right sleeve mesh (Object_3)
+          if (isOversized && showSticker && (child.name.includes('Object_3') || child.name === 'Object_3')) {
+            // Remove any old tag to prevent duplicate meshes on rerenders
+            const oldLabel = child.getObjectByName('SleeveLabelTag');
+            if (oldLabel) {
+              child.remove(oldLabel);
+            }
+
+            // Create tag group physically parented to Object_3
+            const labelGroup = new THREE.Group();
+            labelGroup.name = 'SleeveLabelTag';
+            
+            // Perfect local positioning relative to Object_3's geometry
+            // Hem edge is at x = 0.324, Y goes front/back, Z goes down the arm
+            labelGroup.position.set(0.315, 0.005, 1.46);
+            labelGroup.rotation.set(0.1, 0.0, -0.35); // Angle perfectly with hem slant
+
+            // 1. Black folded woven fabric tag (with realistic soft thickness)
+            const labelGeo = new THREE.BoxGeometry(0.06, 0.006, 0.05);
+            const labelMat = new THREE.MeshPhysicalMaterial({
+              color: 0x080808,
+              roughness: 0.95,
+              metalness: 0.05,
+              sheen: 0.5,
+              sheenColor: new THREE.Color(0x333333),
+              clearcoat: 0.05
+            });
+            const labelMesh = new THREE.Mesh(labelGeo, labelMat);
+            labelMesh.castShadow = true;
+            labelMesh.receiveShadow = true;
+            labelGroup.add(labelMesh);
+
+            // 2. White Knight Wolf Logo on the outer folded side
+            const logoGeo = new THREE.PlaneGeometry(0.045, 0.04);
+            const logoMat = new THREE.MeshBasicMaterial({
+              map: logoTex,
+              transparent: true,
+              opacity: 0.96,
+              depthWrite: false,
+              side: THREE.DoubleSide
+            });
+            
+            // Place logo slightly above the fabric to prevent z-fighting
+            const logoMesh = new THREE.Mesh(logoGeo, logoMat);
+            logoMesh.position.set(0.0, 0.0031, 0.0);
+            logoMesh.rotation.set(-Math.PI / 2, 0, 0); // Face upwards relative to the tag
+            labelGroup.add(logoMesh);
+
+            // 3. White Knight Wolf Logo on the inner folded side (double-sided realism)
+            const logoMeshInner = new THREE.Mesh(logoGeo, logoMat);
+            logoMeshInner.position.set(0.0, -0.0031, 0.0);
+            logoMeshInner.rotation.set(Math.PI / 2, 0, Math.PI); // Face downwards
+            labelGroup.add(logoMeshInner);
+
+            // Physically add label group directly into Object_3's child hierarchy
+            child.add(labelGroup);
+          }
         }
       });
-    }, [uvTex, clonedScene]);
-
-
-    const [sleeveMesh, setSleeveMesh] = React.useState(null);
-
-    React.useEffect(() => {
-      const mesh = clonedScene.getObjectByName("Object_3");
-      if (mesh) {
-        setSleeveMesh(mesh);
-      }
-    }, [clonedScene]);
-
-    // Tiny black folded fabric sleeve label with custom logo overlay
-    // Attached directly as a child of the sleeve mesh (inheriting all parent rotations/translations)
-    const SleeveLabel = () => {
-      const logoTex = useTexture('/KnightWolf_Logo_White.svg');
-      // Placed perfectly in Object_3's local coordinate system (Z-up local space)
-      const pos = [0.32, 0.0, 1.05];
-      const rot = [0, 1.57, 0.32];
-
-      return (
-        <group position={pos} rotation={rot}>
-          {/* Black sleeve label fabric tag */}
-          <mesh castShadow receiveShadow>
-            <boxGeometry args={[0.06, 0.065, 0.005]} />
-            <meshPhysicalMaterial 
-              color="#090909" 
-              roughness={0.9} 
-              metalness={0.1}
-              clearcoat={0.1}
-            />
-          </mesh>
-          
-          {/* Tiny white Knight Wolf logo printed on the tag */}
-          <mesh position={[0, 0, 0.0031]}>
-            <planeGeometry args={[0.04, 0.045]} />
-            <meshBasicMaterial 
-              map={logoTex} 
-              transparent 
-              opacity={0.98} 
-              depthWrite={false}
-            />
-          </mesh>
-
-          {/* Back side of the tag */}
-          <mesh position={[0, 0, -0.0031]} rotation={[0, Math.PI, 0]}>
-            <planeGeometry args={[0.04, 0.045]} />
-            <meshBasicMaterial 
-              map={logoTex} 
-              transparent 
-              opacity={0.98} 
-              depthWrite={false}
-            />
-          </mesh>
-        </group>
-      );
-    };
+    }, [uvTex, clonedScene, logoTex, isOversized, showSticker]);
 
     return (
       <group position={finalPos} scale={finalScale} rotation={finalRot}>
         <primitive object={clonedScene} />
-        {isOversized && showSticker && sleeveMesh && createPortal(
-          <SleeveLabel />,
-          sleeveMesh
-        )}
       </group>
     );
   };
