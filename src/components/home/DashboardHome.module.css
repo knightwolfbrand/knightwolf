@@ -194,7 +194,7 @@
 
 .headerToggle:hover {
   background: rgba(255, 255, 255, 0.15);
-  border-color: var(--accent-color);
+  border-color: var(--text-primary);
 }
 
 /* ─── Living Gallery Grid (Rule 1 & Rule 6) ─── */
@@ -243,9 +243,6 @@
   height: 350px; /* Increased from 280px by 70px */
 }
 
-.galleryCard:hover {
-  border-color: var(--accent-color); /* Subtle gold border on hover */
-}
 
 .fullView {
   position: absolute;
