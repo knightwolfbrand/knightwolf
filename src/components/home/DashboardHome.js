@@ -440,8 +440,7 @@ export default function DashboardHome() {
               {/* Background Editorial Poster Typography Layer */}
               <div className={styles.backgroundTextContainer}>
                 <span className={styles.sleeveSmallHeader}>CRAFTED STREETWEAR</span>
-                <h1 className={styles.massiveBgText}>WEAR TO</h1>
-                <h1 className={styles.massiveBgText}>HUNT</h1>
+                <h1 className={styles.massiveBgText}>NEW DROP</h1>
               </div>
 
               {/* Bottom Left Corner Detail tag */}
