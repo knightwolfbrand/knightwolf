@@ -434,6 +434,12 @@ export default function DashboardHome() {
 
           <div className={styles.centerContent}>
             <div className={styles.reducedPanoramicFrame}>
+              {/* Background Editorial Typography Layer */}
+              <div className={styles.backgroundTextContainer}>
+                <span className={styles.sleeveSmallHeader}>CRAFTED STREETWEAR</span>
+                <h1 className={styles.massiveBgText}>NEW LAUNCH</h1>
+              </div>
+
               <View className={styles.tripleView}>
                 <Suspense fallback={null}>
                   {/* Shared lighting */}
@@ -444,11 +450,11 @@ export default function DashboardHome() {
 
                   {/* Single Hero T-shirt — Oversized */}
                   <RotatingGroup delay={0} speed={0.005} mode="spin">
-                    <ModelPreview color="#f5f5f5" modelPath="/models/oversized_tshirt.glb" showSticker={true} scale={8.18} position={[0, -8.0, 0]} rotation={[0, 0, 0]} />
+                    <ModelPreview color="#f5f5f5" modelPath="/models/oversized_tshirt.glb" showSticker={true} scale={8.18} position={[0, -8.8, 0]} rotation={[0, 0, 0]} />
                   </RotatingGroup>
 
                   {/* Shared shadows */}
-                  <ContactShadows position={[0, -7, 0]} opacity={0.5} scale={20} blur={3} far={4} />
+                  <ContactShadows position={[0, -8.0, 0]} opacity={0.5} scale={20} blur={3} far={4} />
                 </Suspense>
               </View>
             </div>
