@@ -244,15 +244,48 @@ export default function DashboardHome() {
       });
     }, [uvTex, clonedScene]);
 
+
+    const [sleeveCoords, setSleeveCoords] = React.useState(null);
+
+    React.useEffect(() => {
+      let foundPos = null;
+      clonedScene.traverse((child) => {
+        if (child.isMesh && (child.name.includes('Object_3') || child.name === 'Object_3')) {
+          const geom = child.geometry;
+          const posAttr = geom.attributes.position;
+          
+          // Find the vertex with the highest X value (outermost edge of right sleeve)
+          let maxX = -Infinity;
+          let targetVert = new THREE.Vector3();
+          
+          for (let i = 0; i < posAttr.count; i++) {
+            const x = posAttr.getX(i);
+            if (x > maxX) {
+              maxX = x;
+              targetVert.set(posAttr.getX(i), posAttr.getY(i), posAttr.getZ(i));
+            }
+          }
+          
+          // Convert this local vertex to clonedScene root space (parent space)
+          child.updateMatrixWorld(true);
+          targetVert.applyMatrix4(child.matrixWorld);
+          foundPos = [targetVert.x, targetVert.y, targetVert.z];
+        }
+      });
+      
+      if (foundPos) {
+        // Position perfectly on the edge, wrapping around the sleeve hem
+        setSleeveCoords([foundPos[0] + 0.005, foundPos[1] - 0.04, foundPos[2] + 0.025]);
+      }
+    }, [clonedScene]);
+
     // Tiny black folded fabric sleeve label with custom logo overlay
-    const SleeveLabel = () => {
+    const SleeveLabel = ({ position }) => {
       const logoTex = useTexture('/KnightWolf_Logo_White.svg');
-      // Align perfectly to the oversized T-shirt's right sleeve hem slant
-      const pos = [0.31, -1.48, 0.05];
       const rot = [0.1, 1.45, -0.32];
 
       return (
-        <group position={pos} rotation={rot}>
+        <group position={position} rotation={rot}>
           {/* Black sleeve label fabric tag */}
           <mesh castShadow receiveShadow>
             <boxGeometry args={[0.06, 0.065, 0.005]} />
@@ -292,7 +325,7 @@ export default function DashboardHome() {
     return (
       <group position={finalPos} scale={finalScale} rotation={finalRot}>
         <primitive object={clonedScene} />
-        {isOversized && showSticker && <SleeveLabel />}
+        {isOversized && showSticker && sleeveCoords && <SleeveLabel position={sleeveCoords} />}
       </group>
     );
   };
