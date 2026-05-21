@@ -3,7 +3,7 @@
 import React, { useState, Suspense, useMemo, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { Libre_Baskerville } from 'next/font/google'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Canvas, useFrame, createPortal } from '@react-three/fiber'
 import { OrbitControls, useGLTF, Environment, ContactShadows, Float, View, Preload, useTexture } from '@react-three/drei'
 import * as THREE from 'three'
 import styles from './DashboardHome.module.css'
@@ -245,47 +245,25 @@ export default function DashboardHome() {
     }, [uvTex, clonedScene]);
 
 
-    const [sleeveCoords, setSleeveCoords] = React.useState(null);
+    const [sleeveMesh, setSleeveMesh] = React.useState(null);
 
     React.useEffect(() => {
-      let foundPos = null;
-      clonedScene.traverse((child) => {
-        if (child.isMesh && (child.name.includes('Object_3') || child.name === 'Object_3')) {
-          const geom = child.geometry;
-          const posAttr = geom.attributes.position;
-          
-          // Find the vertex with the highest X value (outermost edge of right sleeve)
-          let maxX = -Infinity;
-          let targetVert = new THREE.Vector3();
-          
-          for (let i = 0; i < posAttr.count; i++) {
-            const x = posAttr.getX(i);
-            if (x > maxX) {
-              maxX = x;
-              targetVert.set(posAttr.getX(i), posAttr.getY(i), posAttr.getZ(i));
-            }
-          }
-          
-          // Convert this local vertex to clonedScene root space (parent space)
-          child.updateMatrixWorld(true);
-          targetVert.applyMatrix4(child.matrixWorld);
-          foundPos = [targetVert.x, targetVert.y, targetVert.z];
-        }
-      });
-      
-      if (foundPos) {
-        // Position perfectly on the edge, wrapping around the sleeve hem
-        setSleeveCoords([foundPos[0] + 0.005, foundPos[1] - 0.04, foundPos[2] + 0.025]);
+      const mesh = clonedScene.getObjectByName("Object_3");
+      if (mesh) {
+        setSleeveMesh(mesh);
       }
     }, [clonedScene]);
 
     // Tiny black folded fabric sleeve label with custom logo overlay
-    const SleeveLabel = ({ position }) => {
+    // Attached directly as a child of the sleeve mesh (inheriting all parent rotations/translations)
+    const SleeveLabel = () => {
       const logoTex = useTexture('/KnightWolf_Logo_White.svg');
-      const rot = [0.1, 1.45, -0.32];
+      // Placed perfectly in Object_3's local coordinate system (Z-up local space)
+      const pos = [0.32, 0.0, 1.05];
+      const rot = [0, 1.57, 0.32];
 
       return (
-        <group position={position} rotation={rot}>
+        <group position={pos} rotation={rot}>
           {/* Black sleeve label fabric tag */}
           <mesh castShadow receiveShadow>
             <boxGeometry args={[0.06, 0.065, 0.005]} />
@@ -325,7 +303,10 @@ export default function DashboardHome() {
     return (
       <group position={finalPos} scale={finalScale} rotation={finalRot}>
         <primitive object={clonedScene} />
-        {isOversized && showSticker && sleeveCoords && <SleeveLabel position={sleeveCoords} />}
+        {isOversized && showSticker && sleeveMesh && createPortal(
+          <SleeveLabel />,
+          sleeveMesh
+        )}
       </group>
     );
   };
