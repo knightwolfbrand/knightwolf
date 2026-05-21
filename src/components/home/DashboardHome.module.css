@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700&display=swap');
+
 @property --vignette-color {
   syntax: '<color>';
   inherits: true;
@@ -20,6 +22,7 @@
   --btn-bg: #1a1a1a;
   --btn-color: #ffffff;
   --brand-huge-text: linear-gradient(135deg, #1f2937 0%, #4b5563 40%, #d1d5db 100%);
+  --hero-bg: #0D2B1A; /* Majestic Dark Forest Green for Light Theme backdrop */
   
   width: 100vw;
   height: 100vh;
@@ -46,6 +49,7 @@
   --btn-bg: #ffffff;
   --btn-color: #1a1a1a;
   --brand-huge-text: linear-gradient(135deg, #f3f4f6 0%, #4b5563 60%, #111827 100%);
+  --hero-bg: #C4400A; /* Explosive Deep Blood Orange for Dark Theme backdrop */
 
   width: 100vw;
   height: 100vh;
@@ -262,6 +266,9 @@
   z-index: 10;
   width: 100%;
   height: 100%;
+  background-color: var(--hero-bg); /* Dynamic high-fashion poster backdrop */
+  overflow: hidden;
+  transition: background-color 0.5s ease;
 }
 
 /* Editorial Overlaid Headline (Rule 8) */
@@ -319,62 +326,91 @@
   justify-content: center;
   width: 100%;
   height: 100%;
-  position: relative; /* Position relative to host the background typography Layer */
-  overflow: hidden; /* Guarantee 100% containment within the black gap */
+  position: relative; /* Position relative to host absolute layers */
+  overflow: hidden; /* Guarantee 100% containment of the poster elements */
+}
+
+/* Gritty tactile noise/grain overlay layer for authentic vintage poster feel */
+.noiseOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10; /* Sits on top of background and text to add gritty texture */
+  pointer-events: none;
+  opacity: 0.045;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 250 250' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
 .backgroundTextContainer {
   position: absolute;
-  top: 43%; /* Lowered to align perfectly with the T-shirt visual core */
+  top: 38%; /* Positioned so the T-shirt sits in the lower center, overlapping it */
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 1; /* Sits completely behind the WebGL Canvas */
+  z-index: 1; /* Sits completely behind the WebGL Canvas (z-index: 5) */
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
   width: 100%;
-  pointer-events: none; /* User can click and drag the 3D shirt through the text */
+  pointer-events: none;
   user-select: none;
 }
 
 .sleeveSmallHeader {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: clamp(9px, 0.6vw, 11px); /* Fluid typography tailored to column width */
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.45em;
-  color: var(--text-primary);
-  opacity: 0.4;
+  color: #FFFFFF;
+  opacity: 0.6;
   text-transform: uppercase;
-  margin-bottom: 2px;
-  transition: color 0.5s ease;
+  margin-bottom: 8px;
+  transition: all 0.5s ease;
 }
 
 .massiveBgText {
-  font-family: 'Space Grotesk', 'Outfit', 'Inter', sans-serif;
-  font-size: 9.5vw; /* Perfectly balanced for the expanded horizontal scale */
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 160px; /* Massive desktop size */
   font-weight: 900;
-  line-height: 0.7;
-  letter-spacing: -0.06em; /* Tight letter spacing for clean vertical stripes look */
+  line-height: 0.8;
+  letter-spacing: -0.02em; /* Tight condensed letter spacing */
   text-transform: uppercase;
   margin: 0;
-  
-  /* Stretched vertically and expanded horizontally per feedback */
-  display: inline-block;
-  transform: scale(0.44, 2.3);
-  transform-origin: center center;
-  
-  /* High-fashion textured charcoal white text fill */
-  background: var(--brand-huge-text);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-  
-  opacity: 0.95;
+  color: #FFFFFF; /* Crisp solid white poster energy */
   transition: all 0.5s ease;
   white-space: nowrap;
+}
+
+/* Bottom corner details per reference poster */
+.bottomDetailLeft {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: #FFFFFF;
+  opacity: 0.6;
+  z-index: 3;
+  pointer-events: none;
+  text-transform: uppercase;
+}
+
+.bottomWatermarkRight {
+  position: absolute;
+  bottom: -20px;
+  right: -20px;
+  width: 140px;
+  height: auto;
+  opacity: 0.15; /* Watermark brand tag style */
+  z-index: 1;
+  pointer-events: none;
+  user-select: none;
 }
 
 /* Stretches to fit the column width natively (Rule 1) */
@@ -443,11 +479,10 @@
     font-size: 28px;
   }
   .massiveBgText {
-    font-size: 15vw; /* Fluid scale for wider tablet columns */
-    transform: scale(0.46, 1.8); /* Squeezed and tall for tablet format */
+    font-size: 120px; /* Tablet responsive scaling */
   }
   .sleeveSmallHeader {
-    font-size: 1.1vw;
+    font-size: 10px;
   }
 }
 
@@ -469,11 +504,10 @@
     font-size: 20px;
   }
   .massiveBgText {
-    font-size: 26vw; /* Generous vertical scale for mobile screens */
-    transform: scale(0.45, 1.6); /* Optimized mobile proportions */
+    font-size: 100px; /* Exact mobile poster scale */
   }
   .sleeveSmallHeader {
-    font-size: 2.8vw;
+    font-size: 9px;
     letter-spacing: 0.3em;
   }
 }

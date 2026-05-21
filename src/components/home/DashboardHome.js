@@ -434,11 +434,21 @@ export default function DashboardHome() {
 
           <div className={styles.centerContent}>
             <div className={styles.reducedPanoramicFrame}>
-              {/* Background Editorial Typography Layer */}
+              {/* Gritty Vintage tactile noise overlay layer */}
+              <div className={styles.noiseOverlay} />
+
+              {/* Background Editorial Poster Typography Layer */}
               <div className={styles.backgroundTextContainer}>
                 <span className={styles.sleeveSmallHeader}>CRAFTED STREETWEAR</span>
-                <h1 className={styles.massiveBgText}>NEW LAUNCH</h1>
+                <h1 className={styles.massiveBgText}>WEAR TO</h1>
+                <h1 className={styles.massiveBgText}>HUNT</h1>
               </div>
+
+              {/* Bottom Left Corner Detail tag */}
+              <div className={styles.bottomDetailLeft}>KNIGHTWOLF | SS26</div>
+
+              {/* Bottom Right Corner Watermark Brand Logo */}
+              <img src="/KnightWolf_Logo_White.svg" alt="Watermark" className={styles.bottomWatermarkRight} />
 
               <View className={styles.tripleView}>
                 <Suspense fallback={null}>
@@ -448,13 +458,13 @@ export default function DashboardHome() {
                   <directionalLight position={[-8, 3, 6]}  intensity={0.7} />
                   <directionalLight position={[0, 6, -12]} intensity={0.6} />
 
-                  {/* Single Hero T-shirt — Oversized */}
+                  {/* Single Hero T-shirt — Oversized, scaled larger and positioned lower to overlap backdrop */}
                   <RotatingGroup delay={0} speed={0.005} mode="spin">
-                    <ModelPreview color="#f5f5f5" modelPath="/models/oversized_tshirt.glb" showSticker={true} scale={8.18} position={[0, -8.8, 0]} rotation={[0, 0, 0]} />
+                    <ModelPreview color="#f5f5f5" modelPath="/models/oversized_tshirt.glb" showSticker={true} scale={9.8} position={[0, -9.6, 0]} rotation={[0, 0, 0]} />
                   </RotatingGroup>
 
-                  {/* Shared shadows */}
-                  <ContactShadows position={[0, -8.0, 0]} opacity={0.5} scale={20} blur={3} far={4} />
+                  {/* Shared shadows aligned with the lowered floor */}
+                  <ContactShadows position={[0, -8.7, 0]} opacity={0.5} scale={20} blur={3} far={4} />
                 </Suspense>
               </View>
             </div>
