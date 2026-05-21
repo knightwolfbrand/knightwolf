@@ -320,11 +320,12 @@
   width: 100%;
   height: 100%;
   position: relative; /* Position relative to host the background typography Layer */
+  overflow: hidden; /* Guarantee 100% containment within the black gap */
 }
 
 .backgroundTextContainer {
   position: absolute;
-  top: 45%; /* Perfectly centered behind the lowered T-shirt model */
+  top: 43%; /* Lowered to align perfectly with the T-shirt visual core */
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 1; /* Sits completely behind the WebGL Canvas */
@@ -340,7 +341,7 @@
 
 .sleeveSmallHeader {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 11px;
+  font-size: clamp(9px, 0.6vw, 11px); /* Fluid typography tailored to column width */
   font-weight: 700;
   letter-spacing: 0.45em;
   color: var(--text-primary);
@@ -352,7 +353,7 @@
 
 .massiveBgText {
   font-family: 'Space Grotesk', 'Outfit', 'Inter', sans-serif;
-  font-size: 9.5vw; /* Extremely bold, responsive condensed fashion backdrop */
+  font-size: 3.2vw; /* Perfectly scaled to sit 100% within the center column black gap */
   font-weight: 900;
   line-height: 0.8;
   letter-spacing: -0.05em;
@@ -429,6 +430,12 @@
   .headlineSub {
     font-size: 28px;
   }
+  .massiveBgText {
+    font-size: 5.5vw; /* Adjusted for wider 3-column layout */
+  }
+  .sleeveSmallHeader {
+    font-size: 1.1vw;
+  }
 }
 
 @media (max-width: 600px) {
@@ -447,5 +454,12 @@
   }
   .headlineSub {
     font-size: 20px;
+  }
+  .massiveBgText {
+    font-size: 12vw; /* Scaled up for full viewport width mobile layout */
+  }
+  .sleeveSmallHeader {
+    font-size: 2.8vw;
+    letter-spacing: 0.3em;
   }
 }
