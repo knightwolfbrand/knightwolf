@@ -457,13 +457,13 @@ export default function DashboardHome() {
                   <directionalLight position={[-8, 3, 6]}  intensity={0.7} />
                   <directionalLight position={[0, 6, -12]} intensity={0.6} />
 
-                  {/* Single Hero T-shirt — Reduced by 20% to scale 8.0 per request */}
+                  {/* Single Hero T-shirt — Reduced to scale 6.5 per feedback */}
                   <RotatingGroup delay={0} speed={0.005} mode="spin">
-                    <ModelPreview color="#f5f5f5" modelPath="/models/oversized_tshirt.glb" showSticker={true} scale={8.0} position={[0, -8.8, 0]} rotation={[0, 0, 0]} />
+                    <ModelPreview color="#f5f5f5" modelPath="/models/oversized_tshirt.glb" showSticker={true} scale={6.5} position={[0, -7.5, 0]} rotation={[0, 0, 0]} />
                   </RotatingGroup>
 
                   {/* Shared shadows aligned with the new T-shirt floor */}
-                  <ContactShadows position={[0, -8.0, 0]} opacity={0.5} scale={20} blur={3} far={4} />
+                  <ContactShadows position={[0, -6.8, 0]} opacity={0.5} scale={20} blur={3} far={4} />
                 </Suspense>
               </View>
             </div>
