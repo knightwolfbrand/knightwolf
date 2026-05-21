@@ -244,9 +244,55 @@ export default function DashboardHome() {
       });
     }, [uvTex, clonedScene]);
 
+    // Tiny black folded fabric sleeve label with custom logo overlay
+    const SleeveLabel = () => {
+      const logoTex = useTexture('/KnightWolf_Logo_White.svg');
+      // Align perfectly to the oversized T-shirt's right sleeve hem slant
+      const pos = [0.955, 0.14, 0.03];
+      const rot = [0.1, 1.45, -0.32];
+
+      return (
+        <group position={pos} rotation={rot}>
+          {/* Black sleeve label fabric tag */}
+          <mesh castShadow receiveShadow>
+            <boxGeometry args={[0.06, 0.065, 0.005]} />
+            <meshPhysicalMaterial 
+              color="#090909" 
+              roughness={0.9} 
+              metalness={0.1}
+              clearcoat={0.1}
+            />
+          </mesh>
+          
+          {/* Tiny white Knight Wolf logo printed on the tag */}
+          <mesh position={[0, 0, 0.0031]}>
+            <planeGeometry args={[0.04, 0.045]} />
+            <meshBasicMaterial 
+              map={logoTex} 
+              transparent 
+              opacity={0.98} 
+              depthWrite={false}
+            />
+          </mesh>
+
+          {/* Back side of the tag */}
+          <mesh position={[0, 0, -0.0031]} rotation={[0, Math.PI, 0]}>
+            <planeGeometry args={[0.04, 0.045]} />
+            <meshBasicMaterial 
+              map={logoTex} 
+              transparent 
+              opacity={0.98} 
+              depthWrite={false}
+            />
+          </mesh>
+        </group>
+      );
+    };
+
     return (
       <group position={finalPos} scale={finalScale} rotation={finalRot}>
         <primitive object={clonedScene} />
+        {isOversized && showSticker && <SleeveLabel />}
       </group>
     );
   };
