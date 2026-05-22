@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700&family=Outfit:wght@100;800&display=swap');
 
 @property --vignette-color {
   syntax: '<color>';
@@ -15,10 +15,10 @@
   --card-bg: #ffffff;
   --card-border: rgba(0, 0, 0, 0.08);
   --accent-color: #C8A96E;
-  --vignette-color: #ffffff;
-  --vignette-color-rgb: 255, 255, 255;
-  --vignette-top-height: 120px; /* Reduced by half in light theme */
-  --vignette-bottom-height: 100px; /* Reduced by half in light theme */
+  --vignette-color: #000000; /* Pure solid black for cinematic edge fading */
+  --vignette-color-rgb: 0, 0, 0;
+  --vignette-top-height: 110px; /* Calibrated to frame the headers and logos beautifully */
+  --vignette-bottom-height: 100px; /* Calibrated to frame the bottom baseline details */
   --btn-bg: #1a1a1a;
   --btn-color: #ffffff;
   --brand-huge-text: linear-gradient(135deg, #1f2937 0%, #4b5563 40%, #d1d5db 100%);
@@ -44,8 +44,8 @@
   --accent-color: #C8A96E;
   --vignette-color: #000000;
   --vignette-color-rgb: 0, 0, 0;
-  --vignette-top-height: 120px; /* Reduced to show more cards */
-  --vignette-bottom-height: 100px; /* Reduced to show more cards */
+  --vignette-top-height: 110px; /* Calibrated to frame the headers and logos beautifully */
+  --vignette-bottom-height: 100px; /* Calibrated to frame the bottom baseline details */
   --btn-bg: #ffffff;
   --btn-color: #1a1a1a;
   --brand-huge-text: linear-gradient(135deg, #f3f4f6 0%, #4b5563 60%, #111827 100%);
@@ -69,7 +69,15 @@
   left: 0;
   width: 100%;
   height: var(--vignette-top-height);
-  background: linear-gradient(to bottom, var(--vignette-color) 0%, var(--vignette-color) 35%, color-mix(in srgb, var(--vignette-color) 85%, transparent) 65%, transparent 100%);
+  background: linear-gradient(
+    to bottom,
+    var(--vignette-color) 0%,
+    color-mix(in srgb, var(--vignette-color) 99%, transparent) 40%,
+    color-mix(in srgb, var(--vignette-color) 95%, transparent) 70%,
+    color-mix(in srgb, var(--vignette-color) 82%, transparent) 85%,
+    color-mix(in srgb, var(--vignette-color) 50%, transparent) 94%,
+    transparent 100%
+  );
   pointer-events: none;
   z-index: 50; /* Above the scrolling grid columns */
 }
@@ -82,7 +90,15 @@
   left: 0;
   width: 100%;
   height: var(--vignette-bottom-height);
-  background: linear-gradient(to top, var(--vignette-color) 0%, color-mix(in srgb, var(--vignette-color) 80%, transparent) 40%, transparent 100%);
+  background: linear-gradient(
+    to top,
+    var(--vignette-color) 0%,
+    color-mix(in srgb, var(--vignette-color) 99%, transparent) 40%,
+    color-mix(in srgb, var(--vignette-color) 95%, transparent) 70%,
+    color-mix(in srgb, var(--vignette-color) 82%, transparent) 85%,
+    color-mix(in srgb, var(--vignette-color) 50%, transparent) 94%,
+    transparent 100%
+  );
   pointer-events: none;
   z-index: 50; /* Above the scrolling grid columns */
 }
@@ -133,9 +149,9 @@
   transition: filter 0.5s ease;
 }
 
-/* Invert logo in light theme for pure black visibility */
+/* Keep logo white in both themes since vignette is always dark */
 .heroSection .navLogo {
-  filter: invert(1);
+  filter: none;
 }
 
 .heroSectionDark .navLogo {
@@ -156,7 +172,7 @@
   font-family: 'Space Grotesk', sans-serif;
   background: none;
   border: none;
-  color: var(--text-primary);
+  color: #ffffff; /* Always white for readability against dark vignette */
   padding: 10px 16px;
   font-size: 13px;
   font-weight: 400;
@@ -179,9 +195,9 @@
 
 /* Theme toggle aligned right horizontally centering */
 .headerToggle {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.08); /* Always white-translucent for readability */
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff; /* Always white icon for readability */
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -190,12 +206,6 @@
   justify-content: center;
   cursor: pointer;
   transition: all 0.3s ease;
-}
-
-.headerToggleLight {
-  background: rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  color: #000;
 }
 
 .headerToggle:hover {
@@ -328,6 +338,8 @@
   height: 100%;
   position: relative; /* Position relative to host absolute layers */
   overflow: hidden; /* Guarantee 100% containment of the poster elements */
+  container-type: size; /* Query both width and height for perfect viewport containment */
+  container-name: panoramic;
 }
 
 /* Gritty tactile noise/grain overlay layer for authentic vintage poster feel */
@@ -346,25 +358,26 @@
 
 .backgroundTextContainer {
   position: absolute;
-  top: 27%; /* Moved up to clear space for the lowered T-shirt model */
-  left: 50%;
-  transform: translate(-50%, -50%);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%; /* Spans full height of the poster card to allow perfect flex centering */
   z-index: 1; /* Sits completely behind the WebGL Canvas (z-index: 5) */
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  width: 100%;
   pointer-events: none;
   user-select: none;
+  transform: translateY(-8%); /* Shift background typography up to clear the lower 3D shirt waistband */
 }
 
 .sleeveSmallHeader {
   font-family: 'Inter', sans-serif;
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 700;
-  letter-spacing: 0.45em;
+  letter-spacing: 0.5em;
   color: #FFFFFF;
   opacity: 0.6;
   text-transform: uppercase;
@@ -372,17 +385,42 @@
   transition: all 0.5s ease;
 }
 
+.newStreetwearSubtitle {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800; /* Styled bold weight */
+  font-size: min(2.8cqw, 3.0cqh); /* Calibrated size to align with LAUNCH width */
+  letter-spacing: 0.6em; /* Custom wide tracking to match LAUNCH width */
+  text-indent: 0.6em; /* Offsets the letter-spacing on the last character for perfect centering */
+  color: #FFFFFF;
+  text-transform: uppercase;
+  margin-bottom: 20px; /* Moved up more above the launch text */
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.7), 0 0 30px rgba(255, 255, 255, 0.3); /* Stronger Tokyo Cyber Glow styling */
+  opacity: 0.95;
+  white-space: nowrap;
+  transform: scale(1.0, 1.05);
+  transform-origin: center center;
+}
+
 .massiveBgText {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 4.2vw; /* Dynamically sized to guarantee elegant margin gaps on both sides */
-  font-weight: 900;
-  line-height: 0.8;
-  letter-spacing: -0.02em; /* Tight condensed letter spacing */
+  font-family: 'Condenso Demo', sans-serif;
+  font-size: min(47.0cqw, 49.0cqh); /* Enormous sizing for high-fashion backdrop presence */
+  font-weight: normal; /* Use natural font weight to prevent faux bolding/bleeding */
+  line-height: 0.9;
+  letter-spacing: 0.08em; /* Added spacing to make characters beautifully readable */
   text-transform: uppercase;
   margin: 0;
-  color: #FFFFFF; /* Crisp solid white poster energy */
+  color: #FFFFFF;
+  display: inline-block;
+  transform: scale(1.0, 1.4); /* Elegant vertical presence without horizontal squeezing */
+  transform-origin: center center;
   transition: all 0.5s ease;
   white-space: nowrap;
+}
+
+.newText {
+  font-size: 9.8cqw; /* Calibrated for perfect containment and hierarchical contrast */
+  letter-spacing: 0.38em; /* Extended spacing for upper header text */
+  transform: scale(1.2, 1.65); /* Increased vertical height and horizontal width per feedback */
 }
 
 /* Bottom corner details per reference poster */
@@ -399,6 +437,32 @@
   z-index: 3;
   pointer-events: none;
   text-transform: uppercase;
+  line-height: 1.4;
+}
+
+.bottomDetailRight {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: #FFFFFF;
+  opacity: 0.6;
+  z-index: 3;
+  pointer-events: none;
+  text-transform: uppercase;
+  text-align: right;
+  line-height: 1.4;
+}
+
+.shopNowBadge {
+  margin-top: 16px;
+  font-weight: 400;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  opacity: 0.8;
 }
 
 .bottomWatermarkRight {
@@ -481,7 +545,15 @@
     font-size: 28px;
   }
   .massiveBgText {
-    font-size: 120px; /* Tablet responsive scaling */
+    /* Font size is driven responsively by container queries (cqw) */
+    transform: scale(1.0, 1.4); /* Preserves balanced scale ratio on tablet */
+  }
+  .newText {
+    /* Font size is driven responsively by container queries (cqw) */
+    transform: scale(1.2, 1.5); /* Taller bold presence on tablet */
+  }
+  .backgroundTextContainer {
+    gap: 20cqw; /* Container-relative gap on tablet for tight visual lockup */
   }
   .sleeveSmallHeader {
     font-size: 10px;
@@ -506,7 +578,15 @@
     font-size: 20px;
   }
   .massiveBgText {
-    font-size: 100px; /* Exact mobile poster scale */
+    /* Font size is driven responsively by container queries (cqw) */
+    transform: scale(1.0, 1.4); /* Preserves balanced scale ratio on mobile */
+  }
+  .newText {
+    /* Font size is driven responsively by container queries (cqw) */
+    transform: scale(1.15, 1.35); /* Taller bold presence on mobile */
+  }
+  .backgroundTextContainer {
+    gap: 25cqw; /* Container-relative gap on mobile for tight visual lockup */
   }
   .sleeveSmallHeader {
     font-size: 9px;

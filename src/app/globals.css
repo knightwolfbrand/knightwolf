@@ -2,7 +2,14 @@
    KNIGHT WOLF BRAND — GLOBAL DESIGN SYSTEM
    ================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Outfit:wght@300;600;800&family=Space+Mono:wght@400;700&family=Permanent+Marker&family=Libre+Baskerville:wght@400;700&family=Cormorant+Garamond:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700;900&family=Outfit:wght@100;200;300;500;600;800&family=Space+Mono:wght@400;700&family=Permanent+Marker&family=Libre+Baskerville:wght@400;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Space+Grotesk:wght@300;400;500;600;700&family=Playfair+Display:wght@700&family=Syne:wght@700;800&family=Archivo:wght@700&family=JetBrains+Mono:wght@400;700&family=Montserrat:wght@300;400;700;800;900&family=Rubik+Glitch&family=Share+Tech+Mono&family=Cinzel:wght@300&family=Plus+Jakarta+Sans:wght@600&family=UnifrakturMaguntia&family=BioRhyme:wght@900&family=Arvo:wght@700&family=Archivo+Black&family=Lexend&family=Roboto+Mono&display=swap');
+
+@font-face {
+  font-family: 'Condenso Demo';
+  src: url('/fonts/CondensoDemo.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
 
 :root {
   --color-bg-primary: #1a1a1a;

@@ -14,346 +14,318 @@ const libreBaskerville = Libre_Baskerville({
   display: 'swap',
 })
 
-export default function DashboardHome() {
-  const [isDark, setIsDark] = useState(true);
+// ─── UV CANVAS STICKER SYSTEM ──────────────────────────────────────────────
+// Paint sticker directly onto the shirt's UV texture — real printed-on-fabric look
+const UV_CONFIG = {
+  oversized: {
+    front: { cx: 0.30, cy: 0.38, aspectY: 1.78, isFlipped: true,  scale: 0.23 },
+    back:  { cx: 0.74, cy: 0.36, aspectY: 1.78, isFlipped: true,  scale: 0.23 }
+  },
+  regular: {
+    front: { cx: 0.28, cy: 0.35, aspectY: 1.78, isFlipped: false, scale: 0.23 },
+    back:  { cx: 0.75, cy: 0.36, aspectY: 1.78, isFlipped: false, scale: 0.23 }
+  }
+};
+
+function removeBackground(img, isThorLogo = false) {
+  const c = document.createElement('canvas');
+  c.width = img.naturalWidth || img.width;
+  c.height = img.naturalHeight || img.height;
+  const ctx = c.getContext('2d');
+  ctx.drawImage(img, 0, 0);
+  const W = c.width, H = c.height;
+  const imgData = ctx.getImageData(0, 0, W, H);
+  const data = imgData.data;
+
+  if (isThorLogo) {
+    // Precise laser-cut circular crop to preserve inner grunge details
+    const centerX = W / 2;
+    const centerY = H / 2;
+    const radius = Math.min(W, H) * 0.425;
+
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        const dx = x - centerX;
+        const dy = y - centerY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const pos = (y * W + x) * 4;
+
+        if (dist > radius) {
+          data[pos + 3] = 0;
+        }
+      }
+    }
+  } else {
+    // Normal flood-fill for character prints
+    const visited = new Uint8Array(W * H);
+    const queue = [];
+    const bgR = data[0], bgG = data[1], bgB = data[2];
+    const TOL = 55;
+    [[0,0],[W-1,0],[0,H-1],[W-1,H-1]].forEach(([x,y]) => {
+      const idx = y * W + x;
+      if (!visited[idx]) { visited[idx] = 1; queue.push(x, y); }
+    });
+    let head = 0;
+    while (head < queue.length) {
+      const x = queue[head++], y = queue[head++];
+      const pos = (y * W + x) * 4;
+      const diff = Math.abs(data[pos]-bgR) + Math.abs(data[pos+1]-bgG) + Math.abs(data[pos+2]-bgB);
+      if (diff < TOL) {
+        data[pos + 3] = 0;
+        for (const [nx, ny] of [[x+1,y],[x-1,y],[x,y+1],[x,y-1]]) {
+          if (nx >= 0 && nx < W && ny >= 0 && ny < H) {
+            const nIdx = ny * W + nx;
+            if (!visited[nIdx]) { visited[nIdx] = 1; queue.push(nx, ny); }
+          }
+        }
+      }
+    }
+  }
+
+  ctx.putImageData(imgData, 0, 0);
+  return c;
+}
+
+function buildUVTextureWithBoth(shirtColor, frontImg, frontCfg, backImg, backCfg) {
+  const UV_SIZE = 2048;
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = UV_SIZE;
+  const ctx = canvas.getContext('2d');
+
+  // 1. Fill base shirt color
+  ctx.fillStyle = shirtColor;
+  ctx.fillRect(0, 0, UV_SIZE, UV_SIZE);
+
+  // 2. Paint front sticker
+  if (frontImg && frontCfg) {
+    const cleanFront = removeBackground(frontImg, true);
+    const sizeFront = Math.round(UV_SIZE * frontCfg.scale);
+    const fx = Math.round(frontCfg.cx * UV_SIZE);
+    const fy = Math.round(frontCfg.cy * UV_SIZE);
+    ctx.save();
+    ctx.translate(fx, fy);
+    if (frontCfg.isFlipped) ctx.scale(1, -1);
+    ctx.drawImage(cleanFront, -sizeFront / 2, -(sizeFront * frontCfg.aspectY) / 2, sizeFront, sizeFront * frontCfg.aspectY);
+    ctx.restore();
+  }
+
+  // 3. Paint back sticker
+  if (backImg && backCfg) {
+    const cleanBack = removeBackground(backImg, false);
+    const sizeBack = Math.round(UV_SIZE * backCfg.scale);
+    const bx = Math.round(backCfg.cx * UV_SIZE);
+    const by = Math.round(backCfg.cy * UV_SIZE);
+    ctx.save();
+    ctx.translate(bx, by);
+    if (backCfg.isFlipped) ctx.scale(1, -1);
+    ctx.drawImage(cleanBack, -sizeBack / 2, -(sizeBack * backCfg.aspectY) / 2, sizeBack, sizeBack * backCfg.aspectY);
+    ctx.restore();
+  }
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.flipY = false;
+  tex.anisotropy = 16;
+  tex.minFilter = THREE.LinearMipmapLinearFilter;
+  tex.magFilter = THREE.LinearFilter;
+  return tex;
+}
+
+// --- Rotating Group with delay and mode ---
+const RotatingGroup = ({ delay = 0, speed = 0.004, mode = 'spin', children }) => {
+  const groupRef = useRef()
+  const startTime = useRef(null)
+  const active = useRef(false)
+
+  useFrame((state) => {
+    if (!groupRef.current) return
+    if (startTime.current === null) startTime.current = state.clock.elapsedTime
+    const elapsed = state.clock.elapsedTime - startTime.current
+    if (elapsed >= delay) active.current = true
+
+    if (active.current) {
+      const t = elapsed - delay
+      if (mode === 'spin') {
+        // Continuous 360° full rotation
+        groupRef.current.rotation.y += speed
+      } else if (mode === 'swing') {
+        // ±180° back and forth using sine wave
+        groupRef.current.rotation.y = Math.sin(t * speed) * Math.PI
+      }
+    }
+  })
+
+  return <group ref={groupRef}>{children}</group>
+}
+
+// --- 3D Model Component ---
+const ModelPreview = ({ color = '#f5f5f5', modelPath = '/models/shirt_baked.glb', scale = 8.2, showSticker = false, position = null, rotation = null }) => {
+  const { scene } = useGLTF(modelPath);
+  const logoTex = useTexture('/KnightWolf_Logo_White.svg');
+  const [uvTex, setUvTex] = React.useState(null);
+  
+  const isOversized = modelPath.includes('oversized');
+  const finalScale = isOversized ? scale * 0.8 : scale;
+  const defaultPos  = isOversized ? [0, -7.5, 0] : [0, -4.5, 0];
+  const finalPos = position || defaultPos;
+  const finalRot = rotation || [0, 0, 0];
+  const uvFront = isOversized ? UV_CONFIG.oversized.front : UV_CONFIG.regular.front;
+  const uvBack = isOversized ? UV_CONFIG.oversized.back : UV_CONFIG.regular.back;
+
+  const [stickersLoaded, setStickersLoaded] = React.useState(false);
+  const frontImgRef = React.useRef(null);
+  const backImgRef = React.useRef(null);
+
+  // Preload sticker images once on mount to prevent dynamic color swap lag/race conditions
+  React.useEffect(() => {
+    if (!showSticker) return;
+
+    let loadedCount = 0;
+    const checkAllLoaded = () => {
+      loadedCount++;
+      if (loadedCount === 2) {
+        setStickersLoaded(true);
+      }
+    };
+
+    const imgFront = new Image();
+    imgFront.crossOrigin = 'anonymous';
+    imgFront.onload = () => {
+      frontImgRef.current = imgFront;
+      checkAllLoaded();
+    };
+    imgFront.src = '/stickers/thor_logo_sticker.png';
+
+    const imgBack = new Image();
+    imgBack.crossOrigin = 'anonymous';
+    imgBack.onload = () => {
+      backImgRef.current = imgBack;
+      checkAllLoaded();
+    };
+    imgBack.src = '/stickers/thor_sticker.png';
+  }, [showSticker]);
+
+  // Build or Redraw the UV texture whenever color changes
+  React.useEffect(() => {
+    if (!showSticker) {
+      // Plain solid color canvas
+      const UV_SIZE = 512;
+      const c = document.createElement('canvas');
+      c.width = c.height = UV_SIZE;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = color;
+      ctx.fillRect(0, 0, UV_SIZE, UV_SIZE);
+      const t = new THREE.CanvasTexture(c);
+      t.colorSpace = THREE.SRGBColorSpace;
+      t.flipY = false;
+      setUvTex(t);
+    } else if (stickersLoaded && frontImgRef.current && backImgRef.current) {
+      // Instant synchronous redrawing of canvas on color change (no async/network delay!)
+      const t = buildUVTextureWithBoth(color, frontImgRef.current, uvFront, backImgRef.current, uvBack);
+      setUvTex(t);
+    }
+  }, [color, showSticker, stickersLoaded, uvFront, uvBack]);
+
+  const clonedScene = useMemo(() => {
+    const clone = scene.clone();
+    return clone;
+  }, [scene]);
+
+  // Apply UV texture and physically attach sleeve label to right sleeve mesh
+  React.useEffect(() => {
+    if (!uvTex) return;
+    
+    clonedScene.traverse((child) => {
+      if (child.isMesh) {
+        // Retrieve original mesh material to preserve baked normal/AO detailing (creases, seams, ribs)
+        const originalMesh = scene.getObjectByName(child.name);
+        const originalMat = originalMesh?.material;
+
+        child.material = new THREE.MeshStandardMaterial({
+          map: uvTex,
+          normalMap: originalMat?.normalMap || null,
+          normalScale: originalMat?.normalScale || new THREE.Vector2(1, 1),
+          aoMap: originalMat?.aoMap || null,
+          aoMapIntensity: originalMat?.aoMapIntensity !== undefined ? originalMat?.aoMapIntensity : 1.0,
+          roughness: 1.0,
+          metalness: 0.0,
+        });
+        child.material.needsUpdate = true;
+
+        // Physically parent the sleeve label directly to the right sleeve mesh (Object_3)
+        if (isOversized && showSticker && (child.name.includes('Object_3') || child.name === 'Object_3')) {
+          // Remove any old tag to prevent duplicate meshes on rerenders
+          const oldLabel = child.getObjectByName('SleeveLabelTag');
+          if (oldLabel) {
+            child.remove(oldLabel);
+          }
+        }
+      }
+    });
+  }, [uvTex, clonedScene, logoTex, isOversized, showSticker]);
+
+  return (
+    <group position={finalPos} scale={finalScale} rotation={finalRot}>
+      <primitive object={clonedScene} />
+    </group>
+  );
+};
+
+const cardBgs = [
+  "#E58A24", // Orange
+  "#9AB67D", // Greenish-Yellow
+  "#D4A73F", // Mustard Yellow
+  "#B83E3E", // Deep Red
+  "#1A1A1A"  // Dark Grey/Black
+];
+
+// Internal component for scrolling columns
+const ScrollingColumn = ({ items, direction = 'up', speed = 40, isEmpty = false, cardClassName = '' }) => {
+  return (
+    <div className={styles.scrollColumnWrap}>
+      <motion.div 
+        className={styles.scrollColumn}
+        animate={{ 
+          y: direction === 'up' ? ['0%', '-50%'] : ['-50%', '0%'] 
+        }}
+        transition={{ 
+          duration: speed, 
+          repeat: Infinity, 
+          ease: "linear" 
+        }}
+      >
+        {[...items, ...items].map((item, idx) => (
+          <div key={idx} className={`${styles.galleryCard} ${cardClassName}`}>
+            {item.img && (
+              <img src={item.img} alt="Gallery item" className={styles.centerImg} />
+            )}
+            {!isEmpty && !item.img && (
+              <View className={styles.fullView}>
+                <Suspense fallback={null}>
+                  <ambientLight intensity={0.8} />
+                  <pointLight position={[10, 10, 10]} intensity={2.5} />
+                  <ModelPreview color="#ffffff" modelPath={item.path} />
+                  <ContactShadows position={[0, -7.5, 0]} opacity={0.4} scale={10} blur={2.5} far={2} />
+                </Suspense>
+              </View>
+            )}
+          </div>
+        ))}
+      </motion.div>
+    </div>
+  );
+};
+
+export default function DashboardHome({ customStyleConfig = null, forceTheme = null }) {
+  const [localIsDark, setLocalIsDark] = useState(false);
+  const isDark = forceTheme !== null ? forceTheme : localIsDark;
   const [activeTab, setActiveTab] = useState('about');
   const containerRef = useRef(null);
 
-  const toggleTheme = () => setIsDark(!isDark);
-
-  // ─── UV CANVAS STICKER SYSTEM (same as configurator) ─────────────────────
-  // Paint sticker directly onto the shirt's UV texture — real printed-on-fabric look
-  const UV_CONFIG = {
-    oversized: {
-      front: { cx: 0.30, cy: 0.38, aspectY: 1.78, isFlipped: true,  scale: 0.23 },
-      back:  { cx: 0.74, cy: 0.36, aspectY: 1.78, isFlipped: true,  scale: 0.23 }
-    },
-    regular: {
-      front: { cx: 0.28, cy: 0.35, aspectY: 1.78, isFlipped: false, scale: 0.23 },
-      back:  { cx: 0.75, cy: 0.36, aspectY: 1.78, isFlipped: false, scale: 0.23 }
+  const toggleTheme = () => {
+    if (forceTheme === null) {
+      setLocalIsDark(!localIsDark);
     }
-  };
-
-  function removeBackground(img, isThorLogo = false) {
-    const c = document.createElement('canvas');
-    c.width = img.naturalWidth || img.width;
-    c.height = img.naturalHeight || img.height;
-    const ctx = c.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-    const W = c.width, H = c.height;
-    const imgData = ctx.getImageData(0, 0, W, H);
-    const data = imgData.data;
-
-    if (isThorLogo) {
-      // Precise laser-cut circular crop to preserve inner grunge details
-      const centerX = W / 2;
-      const centerY = H / 2;
-      const radius = Math.min(W, H) * 0.425;
-
-      for (let y = 0; y < H; y++) {
-        for (let x = 0; x < W; x++) {
-          const dx = x - centerX;
-          const dy = y - centerY;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          const pos = (y * W + x) * 4;
-
-          if (dist > radius) {
-            data[pos + 3] = 0;
-          }
-        }
-      }
-    } else {
-      // Normal flood-fill for character prints
-      const visited = new Uint8Array(W * H);
-      const queue = [];
-      const bgR = data[0], bgG = data[1], bgB = data[2];
-      const TOL = 55;
-      [[0,0],[W-1,0],[0,H-1],[W-1,H-1]].forEach(([x,y]) => {
-        const idx = y * W + x;
-        if (!visited[idx]) { visited[idx] = 1; queue.push(x, y); }
-      });
-      let head = 0;
-      while (head < queue.length) {
-        const x = queue[head++], y = queue[head++];
-        const pos = (y * W + x) * 4;
-        const diff = Math.abs(data[pos]-bgR) + Math.abs(data[pos+1]-bgG) + Math.abs(data[pos+2]-bgB);
-        if (diff < TOL) {
-          data[pos + 3] = 0;
-          for (const [nx, ny] of [[x+1,y],[x-1,y],[x,y+1],[x,y-1]]) {
-            if (nx >= 0 && nx < W && ny >= 0 && ny < H) {
-              const nIdx = ny * W + nx;
-              if (!visited[nIdx]) { visited[nIdx] = 1; queue.push(nx, ny); }
-            }
-          }
-        }
-      }
-    }
-
-    ctx.putImageData(imgData, 0, 0);
-    return c;
-  }
-
-  function buildUVTextureWithBoth(shirtColor, frontImg, frontCfg, backImg, backCfg) {
-    const UV_SIZE = 2048;
-    const canvas = document.createElement('canvas');
-    canvas.width = canvas.height = UV_SIZE;
-    const ctx = canvas.getContext('2d');
-
-    // 1. Fill base shirt color
-    ctx.fillStyle = shirtColor;
-    ctx.fillRect(0, 0, UV_SIZE, UV_SIZE);
-
-    // 2. Paint front sticker
-    if (frontImg && frontCfg) {
-      const cleanFront = removeBackground(frontImg, true);
-      const sizeFront = Math.round(UV_SIZE * frontCfg.scale);
-      const fx = Math.round(frontCfg.cx * UV_SIZE);
-      const fy = Math.round(frontCfg.cy * UV_SIZE);
-      ctx.save();
-      ctx.translate(fx, fy);
-      if (frontCfg.isFlipped) ctx.scale(1, -1);
-      ctx.drawImage(cleanFront, -sizeFront / 2, -(sizeFront * frontCfg.aspectY) / 2, sizeFront, sizeFront * frontCfg.aspectY);
-      ctx.restore();
-    }
-
-    // 3. Paint back sticker
-    if (backImg && backCfg) {
-      const cleanBack = removeBackground(backImg, false);
-      const sizeBack = Math.round(UV_SIZE * backCfg.scale);
-      const bx = Math.round(backCfg.cx * UV_SIZE);
-      const by = Math.round(backCfg.cy * UV_SIZE);
-      ctx.save();
-      ctx.translate(bx, by);
-      if (backCfg.isFlipped) ctx.scale(1, -1);
-      ctx.drawImage(cleanBack, -sizeBack / 2, -(sizeBack * backCfg.aspectY) / 2, sizeBack, sizeBack * backCfg.aspectY);
-      ctx.restore();
-    }
-
-    const tex = new THREE.CanvasTexture(canvas);
-    tex.colorSpace = THREE.SRGBColorSpace;
-    tex.flipY = false;
-    tex.anisotropy = 16;
-    tex.minFilter = THREE.LinearMipmapLinearFilter;
-    tex.magFilter = THREE.LinearFilter;
-    return tex;
-  }
-
-  // --- Rotating Group with delay and mode ---
-  const RotatingGroup = ({ delay = 0, speed = 0.004, mode = 'spin', children }) => {
-    const groupRef = useRef()
-    const startTime = useRef(null)
-    const active = useRef(false)
-
-    useFrame((state) => {
-      if (!groupRef.current) return
-      if (startTime.current === null) startTime.current = state.clock.elapsedTime
-      const elapsed = state.clock.elapsedTime - startTime.current
-      if (elapsed >= delay) active.current = true
-
-      if (active.current) {
-        const t = elapsed - delay
-        if (mode === 'spin') {
-          // Continuous 360° full rotation
-          groupRef.current.rotation.y += speed
-        } else if (mode === 'swing') {
-          // ±180° back and forth using sine wave
-          groupRef.current.rotation.y = Math.sin(t * speed) * Math.PI
-        }
-      }
-    })
-
-    return <group ref={groupRef}>{children}</group>
-  }
-
-  // --- 3D Model Component ---
-  const ModelPreview = ({ color = '#f5f5f5', modelPath = '/models/shirt_baked.glb', scale = 8.2, showSticker = false, position = null, rotation = null }) => {
-    const { scene } = useGLTF(modelPath);
-    const logoTex = useTexture('/KnightWolf_Logo_White.svg');
-    const [uvTex, setUvTex] = React.useState(null);
-    
-    const isOversized = modelPath.includes('oversized');
-    const finalScale = isOversized ? scale * 0.8 : scale;
-    const defaultPos  = isOversized ? [0, -7.5, 0] : [0, -4.5, 0];
-    const finalPos = position || defaultPos;
-    const finalRot = rotation || [0, 0, 0];
-    const uvFront = isOversized ? UV_CONFIG.oversized.front : UV_CONFIG.regular.front;
-    const uvBack = isOversized ? UV_CONFIG.oversized.back : UV_CONFIG.regular.back;
-
-    // Build UV texture (with sticker painted in)
-    React.useEffect(() => {
-      if (!showSticker) {
-        // plain color only
-        const UV_SIZE = 512;
-        const c = document.createElement('canvas');
-        c.width = c.height = UV_SIZE;
-        const ctx = c.getContext('2d');
-        ctx.fillStyle = color;
-        ctx.fillRect(0, 0, UV_SIZE, UV_SIZE);
-        const t = new THREE.CanvasTexture(c);
-        t.colorSpace = THREE.SRGBColorSpace;
-        t.flipY = false;
-        setUvTex(t);
-      } else {
-        let frontLoaded = null;
-        let backLoaded = null;
-
-        const tryDraw = () => {
-          if (frontLoaded && backLoaded) {
-            const t = buildUVTextureWithBoth(color, frontLoaded, uvFront, backLoaded, uvBack);
-            setUvTex(t);
-          }
-        };
-
-        const imgFront = new Image();
-        imgFront.crossOrigin = 'anonymous';
-        imgFront.onload = () => {
-          frontLoaded = imgFront;
-          tryDraw();
-        };
-        imgFront.src = '/stickers/thor_logo_sticker.png';
-
-        const imgBack = new Image();
-        imgBack.crossOrigin = 'anonymous';
-        imgBack.onload = () => {
-          backLoaded = imgBack;
-          tryDraw();
-        };
-        imgBack.src = '/stickers/thor_sticker.png';
-      }
-    }, [scene, color, showSticker]);
-
-    const clonedScene = useMemo(() => {
-      const clone = scene.clone();
-      return clone;
-    }, [scene]);
-
-    // Apply UV texture and physically attach sleeve label to right sleeve mesh
-    React.useEffect(() => {
-      if (!uvTex) return;
-      
-      clonedScene.traverse((child) => {
-        if (child.isMesh) {
-          child.material = new THREE.MeshPhysicalMaterial({
-            map: uvTex,
-            roughness: 0.95,
-            metalness: 0.0,
-            sheen: 0.8,
-            sheenRoughness: 0.9,
-            sheenColor: new THREE.Color(0xffffff),
-          });
-          child.material.needsUpdate = true;
-
-          // Physically parent the sleeve label directly to the right sleeve mesh (Object_3)
-          if (isOversized && showSticker && (child.name.includes('Object_3') || child.name === 'Object_3')) {
-            // Remove any old tag to prevent duplicate meshes on rerenders
-            const oldLabel = child.getObjectByName('SleeveLabelTag');
-            if (oldLabel) {
-              child.remove(oldLabel);
-            }
-
-            // Create tag group physically parented to Object_3
-            const labelGroup = new THREE.Group();
-            labelGroup.name = 'SleeveLabelTag';
-            
-            // Perfect local positioning relative to Object_3's geometry
-            // Hem edge is at x = 0.324, Y goes front/back, Z goes down the arm
-            labelGroup.position.set(0.315, 0.005, 1.46);
-            labelGroup.rotation.set(0.1, 0.0, -0.35); // Angle perfectly with hem slant
-
-            // 1. Black folded woven fabric tag (with realistic soft thickness)
-            const labelGeo = new THREE.BoxGeometry(0.06, 0.006, 0.05);
-            const labelMat = new THREE.MeshPhysicalMaterial({
-              color: 0x080808,
-              roughness: 0.95,
-              metalness: 0.05,
-              sheen: 0.5,
-              sheenColor: new THREE.Color(0x333333),
-              clearcoat: 0.05
-            });
-            const labelMesh = new THREE.Mesh(labelGeo, labelMat);
-            labelMesh.castShadow = true;
-            labelMesh.receiveShadow = true;
-            labelGroup.add(labelMesh);
-
-            // 2. White Knight Wolf Logo on the outer folded side
-            const logoGeo = new THREE.PlaneGeometry(0.045, 0.04);
-            const logoMat = new THREE.MeshBasicMaterial({
-              map: logoTex,
-              transparent: true,
-              opacity: 0.96,
-              depthWrite: false,
-              side: THREE.DoubleSide
-            });
-            
-            // Place logo slightly above the fabric to prevent z-fighting
-            const logoMesh = new THREE.Mesh(logoGeo, logoMat);
-            logoMesh.position.set(0.0, 0.0031, 0.0);
-            logoMesh.rotation.set(-Math.PI / 2, 0, 0); // Face upwards relative to the tag
-            labelGroup.add(logoMesh);
-
-            // 3. White Knight Wolf Logo on the inner folded side (double-sided realism)
-            const logoMeshInner = new THREE.Mesh(logoGeo, logoMat);
-            logoMeshInner.position.set(0.0, -0.0031, 0.0);
-            logoMeshInner.rotation.set(Math.PI / 2, 0, Math.PI); // Face downwards
-            labelGroup.add(logoMeshInner);
-
-            // Physically add label group directly into Object_3's child hierarchy
-            child.add(labelGroup);
-          }
-        }
-      });
-    }, [uvTex, clonedScene, logoTex, isOversized, showSticker]);
-
-    return (
-      <group position={finalPos} scale={finalScale} rotation={finalRot}>
-        <primitive object={clonedScene} />
-      </group>
-    );
-  };
-
-  const cardBgs = [
-    "#E58A24", // Orange
-    "#9AB67D", // Greenish-Yellow
-    "#D4A73F", // Mustard Yellow
-    "#B83E3E", // Deep Red
-    "#1A1A1A"  // Dark Grey/Black
-  ];
-
-  // Internal component for scrolling columns
-  const ScrollingColumn = ({ items, direction = 'up', speed = 40, isEmpty = false, cardClassName = '' }) => {
-    return (
-      <div className={styles.scrollColumnWrap}>
-        <motion.div 
-          className={styles.scrollColumn}
-          animate={{ 
-            y: direction === 'up' ? ['0%', '-50%'] : ['-50%', '0%'] 
-          }}
-          transition={{ 
-            duration: speed, 
-            repeat: Infinity, 
-            ease: "linear" 
-          }}
-        >
-          {[...items, ...items].map((item, idx) => (
-            <div key={idx} className={`${styles.galleryCard} ${cardClassName}`}>
-              {item.img && (
-                <img src={item.img} alt="Gallery item" className={styles.centerImg} />
-              )}
-              {!isEmpty && !item.img && (
-                <View className={styles.fullView}>
-                  <Suspense fallback={null}>
-                    <ambientLight intensity={0.8} />
-                    <pointLight position={[10, 10, 10]} intensity={2.5} />
-                    <ModelPreview color="#ffffff" modelPath={item.path} />
-                    <ContactShadows position={[0, -7.5, 0]} opacity={0.4} scale={10} blur={2.5} far={2} />
-                  </Suspense>
-                </View>
-              )}
-            </div>
-          ))}
-        </motion.div>
-      </div>
-    );
   };
 
   return (
@@ -386,7 +358,7 @@ export default function DashboardHome() {
           </div>
 
           <button 
-            className={`${styles.headerToggle} ${!isDark ? styles.headerToggleLight : ''}`} 
+            className={styles.headerToggle} 
             onClick={toggleTheme} 
             aria-label="Toggle Theme"
           >
@@ -410,7 +382,7 @@ export default function DashboardHome() {
         <ScrollingColumn 
           items={[
             { bgColor: '#141414', img: '/box/PHOTO-2026-05-11-13-18-47.png' },
-            { bgColor: '#141414', img: '/box/PHOTO-2026-05-11-13-20-11.png' },
+            { bgColor: '#141414', img: '/box/new_launch_poster.png' },
             { bgColor: '#141414', img: '/box/PHOTO-2026-05-11-13-20-50.png' }
           ]} 
           direction="up" 
@@ -438,16 +410,33 @@ export default function DashboardHome() {
               <div className={styles.noiseOverlay} />
 
               {/* Background Editorial Poster Typography Layer */}
-              <div className={styles.backgroundTextContainer}>
-                <span className={styles.sleeveSmallHeader}>CRAFTED STREETWEAR</span>
-                <h1 className={styles.massiveBgText}>NEW DROP</h1>
+              <div 
+                className={styles.backgroundTextContainer}
+                style={customStyleConfig ? customStyleConfig.containerStyle : undefined}
+              >
+                {(!customStyleConfig || customStyleConfig.textContent === 'LAUNCH') && (
+                  <div className={styles.newStreetwearSubtitle}>NEW STREETWEAR</div>
+                )}
+                <h1 
+                  className={styles.massiveBgText}
+                  style={customStyleConfig ? customStyleConfig.massiveStyle : undefined}
+                >
+                  {customStyleConfig ? (customStyleConfig.textContent || `${customStyleConfig.newTextContent || 'NEW'} ${customStyleConfig.launchTextContent || 'LAUNCH'}`) : "LAUNCH"}
+                </h1>
               </div>
 
-              {/* Bottom Left Corner Detail tag */}
-              <div className={styles.bottomDetailLeft}>KNIGHTWOLF | SS26</div>
+              {/* Bottom details matching the fashion poster mockup */}
+              <div className={styles.bottomDetailLeft}>
+                <div>BRAND NEW FASHION LINE</div>
+                <div>SHOP NOW</div>
+              </div>
 
-              {/* Bottom Right Corner Watermark Brand Logo */}
-              <img src="/KnightWolf_Logo_White.svg" alt="Watermark" className={styles.bottomWatermarkRight} />
+              <div className={styles.bottomDetailRight}>
+                <div>RELEASE: 8 DEC 2025</div>
+                <div>READY GREATSITE COM</div>
+              </div>
+
+
 
               <View className={styles.tripleView}>
                 <Suspense fallback={null}>
@@ -459,7 +448,14 @@ export default function DashboardHome() {
 
                   {/* Single Hero T-shirt — Reduced to scale 6.5 per feedback */}
                   <RotatingGroup delay={0} speed={0.005} mode="spin">
-                    <ModelPreview color="#f5f5f5" modelPath="/models/oversized_tshirt.glb" showSticker={true} scale={6.5} position={[0, -7.5, 0]} rotation={[0, 0, 0]} />
+                    <ModelPreview 
+                      color={customStyleConfig?.shirtColor || (isDark ? '#f5f5f5' : '#050505')} 
+                      modelPath="/models/oversized_tshirt.glb" 
+                      showSticker={true} 
+                      scale={6.5} 
+                      position={[0, -7.5, 0]} 
+                      rotation={[0, 0, 0]} 
+                    />
                   </RotatingGroup>
 
                   {/* Shared shadows aligned with the new T-shirt floor */}
