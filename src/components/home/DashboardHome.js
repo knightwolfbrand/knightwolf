@@ -406,6 +406,12 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
 
           <div className={styles.centerContent}>
             <div className={styles.reducedPanoramicFrame}>
+              {/* Crimson Smooth Studio Background */}
+              <div 
+                className={styles.bgLayerStatic} 
+                style={{ backgroundImage: 'url(/images/bg_red_smooth.png)' }} 
+              />
+
               {/* Gritty Vintage tactile noise overlay layer */}
               <div className={styles.noiseOverlay} />
 
@@ -414,9 +420,8 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
                 className={styles.backgroundTextContainer}
                 style={customStyleConfig ? customStyleConfig.containerStyle : undefined}
               >
-                {(!customStyleConfig || customStyleConfig.textContent === 'LAUNCH') && (
-                  <div className={styles.newStreetwearSubtitle}>NEW STREETWEAR</div>
-                )}
+
+                <div className={styles.newStreetwearSubtitle}>New StreetWear</div>
                 <h1 
                   className={styles.massiveBgText}
                   style={customStyleConfig ? customStyleConfig.massiveStyle : undefined}
@@ -425,35 +430,39 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
                 </h1>
               </div>
 
-              {/* Bottom details matching the fashion poster mockup */}
-              <div className={styles.bottomDetailLeft}>
-                <div>BRAND NEW FASHION LINE</div>
-                <div>SHOP NOW</div>
-              </div>
-
-              <div className={styles.bottomDetailRight}>
-                <div>RELEASE: 8 DEC 2025</div>
-                <div>READY GREATSITE COM</div>
-              </div>
-
-
-
               <View className={styles.tripleView}>
                 <Suspense fallback={null}>
-                  {/* Shared lighting */}
-                  <ambientLight intensity={1.2} />
-                  <directionalLight position={[4, 8, 10]} intensity={1.6} castShadow />
-                  <directionalLight position={[-8, 3, 6]}  intensity={0.7} />
-                  <directionalLight position={[0, 6, -12]} intensity={0.6} />
+                  {/* Crimson Smooth adaptive lighting */}
+                  <ambientLight 
+                    intensity={0.9} 
+                    color="#ffe5e5" 
+                  />
+                  <directionalLight 
+                    position={[4, 8, 10]} 
+                    intensity={1.8} 
+                    color="#ff7777" 
+                    castShadow 
+                  />
+                  <directionalLight 
+                    position={[-8, 3, 6]}  
+                    intensity={0.8} 
+                    color="#ffffff" 
+                    castShadow={false}
+                  />
+                  <directionalLight 
+                    position={[0, 6, -12]} 
+                    intensity={0.5} 
+                    color="#ff9999" 
+                  />
 
-                  {/* Single Hero T-shirt — Reduced to scale 6.5 per feedback */}
+                  {/* Single Hero T-shirt — Adjusted scale to 5.7 per user feedback */}
                   <RotatingGroup delay={0} speed={0.005} mode="spin">
                     <ModelPreview 
                       color={customStyleConfig?.shirtColor || (isDark ? '#f5f5f5' : '#050505')} 
                       modelPath="/models/oversized_tshirt.glb" 
                       showSticker={true} 
-                      scale={6.5} 
-                      position={[0, -7.5, 0]} 
+                      scale={5.7} 
+                      position={[0, -6.5, 0]} 
                       rotation={[0, 0, 0]} 
                     />
                   </RotatingGroup>
