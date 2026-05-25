@@ -1,11 +1,13 @@
 'use client'
  
-import React, { useState, Suspense, useMemo, useRef } from 'react'
+import React, { useState, Suspense, useMemo, useRef, useEffect } from 'react'
+import gsap from 'gsap'
 import { motion } from 'framer-motion'
 import { Libre_Baskerville } from 'next/font/google'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls, useGLTF, Environment, ContactShadows, Float, View, Preload, useTexture } from '@react-three/drei'
 import * as THREE from 'three'
+import { Info, Phone, User } from 'lucide-react'
 import styles from './DashboardHome.module.css'
 
 const libreBaskerville = Libre_Baskerville({ 
@@ -132,25 +134,40 @@ function buildUVTextureWithBoth(shirtColor, frontImg, frontCfg, backImg, backCfg
 }
 
 // --- Rotating Group with delay and mode ---
-const RotatingGroup = ({ delay = 0, speed = 0.004, mode = 'spin', children }) => {
+const RotatingGroup = ({ delay = 0, speed = 0.004, speedRef, isIntroRef, animStateRef, mode = 'spin', children }) => {
   const groupRef = useRef()
   const startTime = useRef(null)
   const active = useRef(false)
 
   useFrame((state) => {
     if (!groupRef.current) return
+
+    // Position Y animation from GSAP animStateRef
+    if (animStateRef && animStateRef.current) {
+      groupRef.current.position.y = animStateRef.current.y;
+    }
+
+    if (isIntroRef && isIntroRef.current) {
+      // Rotation Y animation from GSAP animStateRef during intro
+      if (animStateRef && animStateRef.current) {
+        groupRef.current.rotation.y = animStateRef.current.rotationY;
+      }
+      return // Skip useFrame default rotation when GSAP is animating the spin
+    }
+
     if (startTime.current === null) startTime.current = state.clock.elapsedTime
     const elapsed = state.clock.elapsedTime - startTime.current
     if (elapsed >= delay) active.current = true
 
     if (active.current) {
       const t = elapsed - delay
+      const currentSpeed = speedRef ? speedRef.current : speed
       if (mode === 'spin') {
         // Continuous 360° full rotation
-        groupRef.current.rotation.y += speed
+        groupRef.current.rotation.y += currentSpeed
       } else if (mode === 'swing') {
         // ±180° back and forth using sine wave
-        groupRef.current.rotation.y = Math.sin(t * speed) * Math.PI
+        groupRef.current.rotation.y = Math.sin(t * currentSpeed) * Math.PI
       }
     }
   })
@@ -271,6 +288,114 @@ const ModelPreview = ({ color = '#f5f5f5', modelPath = '/models/shirt_baked.glb'
   );
 };
 
+// ─── 3D ATMOSPHERIC CLOUD SYSTEM ───────────────────────────────────────────
+const CloudEffect = () => {
+  const [cloudTex, setCloudTex] = React.useState(null);
+  const cloudRef1 = useRef();
+  const cloudRef2 = useRef();
+  const cloudRef3 = useRef();
+
+  React.useEffect(() => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth || img.width;
+      canvas.height = img.naturalHeight || img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imgData.data;
+
+      // Convert black background to transparent alpha & make the clouds bright white
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i+1];
+        const b = data[i+2];
+        const v = Math.max(r, g, b);
+        
+        // High opacity for dense, solid cloud appearance
+        const alpha = Math.min(255, v * 2.2);
+        data[i + 3] = alpha;
+
+        // Bright white color with original grayscale contours for depth
+        const factor = 1.35;
+        data[i] = Math.min(255, r * factor);
+        data[i+1] = Math.min(255, g * factor);
+        data[i+2] = Math.min(255, b * factor);
+      }
+
+      ctx.putImageData(imgData, 0, 0);
+
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.wrapS = THREE.ClampToEdgeWrapping;
+      tex.wrapT = THREE.ClampToEdgeWrapping;
+      tex.minFilter = THREE.LinearFilter;
+      tex.needsUpdate = true; // CRITICAL: Upload canvas texture to the GPU!
+      setCloudTex(tex);
+    };
+    img.src = '/images/smoke.png';
+  }, []);
+
+  useFrame((state) => {
+    const t = state.clock.getElapsedTime();
+    
+    // Slow, organic swirling strictly centered under the T-shirt
+    if (cloudRef1.current) {
+      cloudRef1.current.rotation.z = t * 0.012;
+      cloudRef1.current.position.y = -7.0 + Math.sin(t * 0.25) * 0.03;
+    }
+    if (cloudRef2.current) {
+      cloudRef2.current.rotation.z = -t * 0.01 + 0.8;
+      cloudRef2.current.position.y = -7.1 + Math.cos(t * 0.2) * 0.04;
+    }
+    if (cloudRef3.current) {
+      cloudRef3.current.rotation.z = t * 0.008 + 1.8;
+      cloudRef3.current.position.y = -7.2 + Math.sin(t * 0.3) * 0.03;
+    }
+  });
+
+  if (!cloudTex) return null;
+
+  return (
+    <group>
+      {/* Layer 1: Background central cloud puff directly under the shirt hem */}
+      <mesh ref={cloudRef1} position={[0, -7.0, -0.4]} scale={[4.5, 2.2, 1]}>
+        <planeGeometry />
+        <meshBasicMaterial
+          map={cloudTex}
+          transparent={true}
+          opacity={0.95}
+          depthWrite={false}
+        />
+      </mesh>
+
+      {/* Layer 2: Midground left-shifted cloud puff */}
+      <mesh ref={cloudRef2} position={[-0.3, -7.1, -0.2]} scale={[3.8, 1.8, 1]}>
+        <planeGeometry />
+        <meshBasicMaterial
+          map={cloudTex}
+          transparent={true}
+          opacity={0.92}
+          depthWrite={false}
+        />
+      </mesh>
+
+      {/* Layer 3: Foreground right-shifted cloud puff */}
+      <mesh ref={cloudRef3} position={[0.3, -7.2, 0.4]} scale={[3.8, 1.8, 1]}>
+        <planeGeometry />
+        <meshBasicMaterial
+          map={cloudTex}
+          transparent={true}
+          opacity={0.9}
+          depthWrite={false}
+        />
+      </mesh>
+    </group>
+  );
+};
+
 const cardBgs = [
   "#E58A24", // Orange
   "#9AB67D", // Greenish-Yellow
@@ -280,24 +405,43 @@ const cardBgs = [
 ];
 
 // Internal component for scrolling columns
-const ScrollingColumn = ({ items, direction = 'up', speed = 40, isEmpty = false, cardClassName = '' }) => {
+const ScrollingColumn = ({ items, direction = 'up', speed = 40, isEmpty = false, cardClassName = '', wrapRef, scrollTweenRef }) => {
+  const innerRef = useRef(null);
+
+  useEffect(() => {
+    if (!innerRef.current) return;
+
+    const fromVal = direction === 'up' ? 0 : -50;
+    const toVal = direction === 'up' ? -50 : 0;
+
+    gsap.set(innerRef.current, { yPercent: fromVal });
+
+    const tween = gsap.to(innerRef.current, {
+      yPercent: toVal,
+      duration: speed,
+      repeat: -1,
+      ease: 'none'
+    });
+
+    if (scrollTweenRef) {
+      scrollTweenRef.current = tween;
+    }
+
+    return () => {
+      tween.kill();
+    };
+  }, [direction, speed, scrollTweenRef]);
+
   return (
-    <div className={styles.scrollColumnWrap}>
-      <motion.div 
+    <div className={styles.scrollColumnWrap} ref={wrapRef}>
+      <div 
         className={styles.scrollColumn}
-        animate={{ 
-          y: direction === 'up' ? ['0%', '-50%'] : ['-50%', '0%'] 
-        }}
-        transition={{ 
-          duration: speed, 
-          repeat: Infinity, 
-          ease: "linear" 
-        }}
+        ref={innerRef}
       >
         {[...items, ...items].map((item, idx) => (
           <div key={idx} className={`${styles.galleryCard} ${cardClassName}`}>
             {item.img && (
-              <img src={item.img} alt="Gallery item" className={styles.centerImg} />
+              <img src={item.img} alt="Gallery item" className={styles.centerImg} draggable="false" />
             )}
             {!isEmpty && !item.img && (
               <View className={styles.fullView}>
@@ -311,7 +455,7 @@ const ScrollingColumn = ({ items, direction = 'up', speed = 40, isEmpty = false,
             )}
           </div>
         ))}
-      </motion.div>
+      </div>
     </div>
   );
 };
@@ -322,6 +466,190 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
   const [activeTab, setActiveTab] = useState('about');
   const containerRef = useRef(null);
 
+  // Refs for cinematic intro animation
+  const col1Ref = useRef(null);
+  const col2Ref = useRef(null);
+  const col4Ref = useRef(null);
+  const col5Ref = useRef(null);
+  const centerFocusRef = useRef(null);
+  const vignetteTopRef = useRef(null);
+  const vignetteBottomRef = useRef(null);
+  const topNavRef = useRef(null);
+  const exploreButtonRef = useRef(null);
+  const canvasRef = useRef(null);
+  const shirtPosRef = useRef(null);
+  const textSubRef = useRef(null);
+  const textMassiveRef = useRef(null);
+
+  // Refs for column scroll tweens to control speed / timeScale dynamically
+  const col1ScrollRef = useRef(null);
+  const col2ScrollRef = useRef(null);
+  const col4ScrollRef = useRef(null);
+  const col5ScrollRef = useRef(null);
+
+  // Ref for T-shirt rotation speed (starts at 0.12, decelerates to 0.005)
+  const shirtSpeedRef = useRef(0.005);
+  
+  // Flag to check if we are currently playing the cinematic intro spin
+  const isIntroSpinning = useRef(true);
+
+  // plain JS object reference for GSAP to animate safely before ThreeJS models have finished loading
+  const shirtAnimState = useRef({
+    y: -12,
+    rotationY: Math.PI * 6
+  });
+
+  // Set all intro elements to invisible immediately on mount
+  useEffect(() => {
+    const cols = [col1Ref.current, col2Ref.current, col4Ref.current, col5Ref.current].filter(Boolean);
+    gsap.set(cols, { opacity: 0, filter: 'grayscale(1) contrast(1.08) brightness(0.92)' });
+    gsap.set(centerFocusRef.current, { opacity: 0 });
+    gsap.set(topNavRef.current, { opacity: 0, y: -14 });
+    gsap.set(exploreButtonRef.current, { opacity: 0, y: 14 });
+    gsap.set(canvasRef.current, { opacity: 0 });
+    gsap.set([textSubRef.current, textMassiveRef.current], { opacity: 0 });
+    shirtSpeedRef.current = 0.005;
+    isIntroSpinning.current = true;
+    shirtAnimState.current = { y: -12, rotationY: Math.PI * 6 };
+  }, []);
+
+  // Cinematic intro sequence — fires once when splash completes
+  useEffect(() => {
+    const handler = () => {
+      const cols = [col1Ref.current, col2Ref.current, col4Ref.current, col5Ref.current].filter(Boolean);
+      const colTweens = [col1ScrollRef.current, col2ScrollRef.current, col4ScrollRef.current, col5ScrollRef.current].filter(Boolean);
+      
+      const tl = gsap.timeline();
+
+      // Phase 1: Center Card alone first fading in + text pure fade-in
+      tl.to(centerFocusRef.current, {
+        opacity: 1,
+        duration: 0.8,
+        ease: 'power2.out'
+      }, 0);
+
+      tl.to([textSubRef.current, textMassiveRef.current], {
+        opacity: 1,
+        duration: 0.8,
+        stagger: 0.15,
+        ease: 'power2.out'
+      }, 0.1);
+
+      // Phase 2: Side rolling cards (columns) fastly load (fade in) at 0.8s
+      tl.to(cols, {
+        opacity: 1,
+        duration: 0.4,
+        ease: 'power2.out'
+      }, 0.8);
+
+      tl.call(() => {
+        colTweens.forEach(t => t.timeScale(14)); // Start rapid scrolling
+      }, [], 0.8);
+
+      // Decelerate columns from 14x speed down to 1x over 2.0s starting at 1.2s
+      colTweens.forEach(t => {
+        tl.to(t, {
+          timeScale: 1,
+          duration: 2.0,
+          ease: 'power2.out'
+        }, 1.2);
+      });
+
+      // Phase 3: T-shirt fades in, slides up and rolls (starts at 1.0s, right after columns show)
+      tl.to(canvasRef.current, {
+        opacity: 1,
+        duration: 0.4,
+        ease: 'power2.out'
+      }, 1.0);
+
+      tl.call(() => {
+        isIntroSpinning.current = true;
+      }, [], 1.0);
+
+      // Slide shirt animState position and rotation up (duration reduced to 1.3s for speed and snappiness)
+      tl.to(shirtAnimState.current, {
+        y: 0,
+        rotationY: 0,
+        duration: 1.3,
+        ease: 'power3.out'
+      }, 1.0);
+
+      // Decelerate standard speed ref to match target rotation
+      tl.to(shirtSpeedRef, {
+        current: 0.005,
+        duration: 1.3,
+        ease: 'power2.out',
+        onComplete: () => {
+          isIntroSpinning.current = false; // Hand over back to frame loop rotation
+        }
+      }, 1.0);
+
+      // Phase 4: Once T-shirt settles in its position (at 2.3s), slide in Vignettes
+      tl.to(vignetteTopRef.current, {
+        height: '32vh',
+        duration: 1.0,
+        ease: 'power3.out'
+      }, 2.3);
+      tl.to(vignetteBottomRef.current, {
+        height: '32vh',
+        duration: 1.0,
+        ease: 'power3.out'
+      }, 2.3);
+
+      // Phase 5: Color Sweep starts at 2.3s (when shirt reaches position)
+      // One column turns to color, and as the next column turns color, the previous turns grayscale
+      const colDuration = 0.5;
+      const startCascadeTime = 2.3;
+
+      // Col 1 turns color
+      tl.to(col1Ref.current, { filter: 'grayscale(0) contrast(1) brightness(1)', duration: colDuration, ease: 'power2.inOut' }, startCascadeTime);
+
+      // Col 2 turns color, Col 1 returns to grayscale
+      tl.to(col1Ref.current, { filter: 'grayscale(1) contrast(1.08) brightness(0.92)', duration: colDuration, ease: 'power2.inOut' }, startCascadeTime + colDuration);
+      tl.to(col2Ref.current, { filter: 'grayscale(0) contrast(1) brightness(1)', duration: colDuration, ease: 'power2.inOut' }, startCascadeTime + colDuration);
+
+      // Col 4 turns color, Col 2 returns to grayscale
+      tl.to(col2Ref.current, { filter: 'grayscale(1) contrast(1.08) brightness(0.92)', duration: colDuration, ease: 'power2.inOut' }, startCascadeTime + colDuration * 2);
+      tl.to(col4Ref.current, { filter: 'grayscale(0) contrast(1) brightness(1)', duration: colDuration, ease: 'power2.inOut' }, startCascadeTime + colDuration * 2);
+
+      // Col 5 turns color, Col 4 returns to grayscale
+      tl.to(col4Ref.current, { filter: 'grayscale(1) contrast(1.08) brightness(0.92)', duration: colDuration, ease: 'power2.inOut' }, startCascadeTime + colDuration * 3);
+      tl.to(col5Ref.current, { filter: 'grayscale(0) contrast(1) brightness(1)', duration: colDuration, ease: 'power2.inOut' }, startCascadeTime + colDuration * 3);
+
+      // Col 5 returns to grayscale, completing the loop
+      tl.to(col5Ref.current, { filter: 'grayscale(1) contrast(1.08) brightness(0.92)', duration: colDuration, ease: 'power2.inOut' }, startCascadeTime + colDuration * 4);
+
+      // Phase 6: Once sweep is complete (4.3s), turn all columns to colors and reveal top nav & bottom CTA
+      tl.to(cols, {
+        filter: 'grayscale(0) contrast(1) brightness(1)',
+        duration: 0.85,
+        ease: 'power2.inOut'
+      }, 4.3);
+
+      // Clear inline filters when transition completely finishes so normal hover styles work
+      tl.call(() => {
+        cols.forEach(col => gsap.set(col, { clearProps: 'filter' }));
+      }, [], 5.2);
+
+      tl.to(topNavRef.current, {
+        opacity: 1,
+        y: 0,
+        duration: 0.8,
+        ease: 'power2.out'
+      }, 4.3);
+
+      tl.to(exploreButtonRef.current, {
+        opacity: 1,
+        y: 0,
+        duration: 0.8,
+        ease: 'power2.out'
+      }, 4.5);
+    };
+
+    window.addEventListener('splashComplete', handler);
+    return () => window.removeEventListener('splashComplete', handler);
+  }, []);
+
   const toggleTheme = () => {
     if (forceTheme === null) {
       setLocalIsDark(!localIsDark);
@@ -330,51 +658,42 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
 
   return (
     <div ref={containerRef} className={`${isDark ? styles.heroSectionDark : styles.heroSection} ${libreBaskerville.className}`}>
-      
-      {/* ─── Unified Command Center (Header) ─── */}
-      <div className={styles.headerWrapper}>
-        <nav className={styles.commandCenter}>
-          <div className={styles.navBrand}>
-            <img 
-              src="/KnightWolf_Logo_White.svg" 
-              alt="Knight Wolf Logo" 
-              className={styles.navLogo} 
-            />
-          </div>
-          
-          <div className={styles.navMenu}>
-            {['About Us', 'Contact', 'Login'].map((item) => {
-              const id = item.toLowerCase().replace(' ', '');
-              return (
-                <button 
-                  key={id}
-                  className={`${styles.navItem} ${activeTab === id ? styles.navItemActive : ''}`}
-                  onClick={() => setActiveTab(id)}
-                >
-                  {item}
-                </button>
-              );
-            })}
+
+      {/* Cinematic Vignette Divs — animated in by GSAP on splashComplete */}
+      <div ref={vignetteTopRef} className={styles.vignetteTop} />
+      <div ref={vignetteBottomRef} className={styles.vignetteBottom} />
+
+      {/* ─── Top Center Navigation Bar (Floating above Vignettes) ─── */}
+      <div ref={topNavRef} className={styles.topNavContainer}>
+        {/* Capsule containing logo and tabs */}
+        <div className={styles.topNavTabs}>
+          <div className={styles.topNavLogoWrapper}>
+            <img src="/KnightWolf_Logo_White.svg" alt="Knight Wolf" className={styles.topNavLogoImg} />
           </div>
 
-          <button 
-            className={styles.headerToggle} 
-            onClick={toggleTheme} 
-            aria-label="Toggle Theme"
-          >
-            {isDark ? (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="5" />
-                <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-              </svg>
-            ) : (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-              </svg>
-            )}
-          </button>
-        </nav>
+          {/* About Tab (Active, Solid Contrast) */}
+          <div className={styles.topNavTabActive}>
+            <Info size={20} style={{ marginRight: '4px' }} />
+            <span>About</span>
+          </div>
+
+          {/* Contact Tab (Inactive, Phone Icon only) */}
+          <div className={styles.topNavTabInactive}>
+            <Phone size={20} />
+          </div>
+
+          {/* Login Tab (Inactive, User Icon only) */}
+          <div className={styles.topNavTabInactive}>
+            <User size={20} />
+          </div>
+        </div>
       </div>
+
+      {/* ─── Bottom White Explore Button (Floating above Vignettes) ─── */}
+      <button ref={exploreButtonRef} className={styles.bottomExploreButton}>
+        Explore Collections
+      </button>
+
 
       {/* ─── Living Gallery Grid ─── */}
       <main className={styles.galleryGrid}>
@@ -388,6 +707,8 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
           direction="up" 
           speed={30} 
           isEmpty={false}
+          wrapRef={col1Ref}
+          scrollTweenRef={col1ScrollRef}
         />
         <ScrollingColumn 
           items={[
@@ -399,30 +720,29 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
           speed={25} 
           isEmpty={false}
           cardClassName={styles.squareCard}
+          wrapRef={col2Ref}
+          scrollTweenRef={col2ScrollRef}
         />
 
         {/* Center Focus — Reduced Panoramic Frame */}
-        <div className={styles.centerFocusCol}>
+        <div ref={centerFocusRef} className={styles.centerFocusCol}>
 
           <div className={styles.centerContent}>
             <div className={styles.reducedPanoramicFrame}>
-              {/* Crimson Smooth Studio Background */}
-              <div 
-                className={styles.bgLayerStatic} 
-                style={{ backgroundImage: 'url(/images/bg_red_smooth.png)' }} 
-              />
+              {/* Comic style red background with halftone dots */}
+              <div className={styles.comicRedBackground} />
 
-              {/* Gritty Vintage tactile noise overlay layer */}
-              <div className={styles.noiseOverlay} />
-
-              {/* Background Editorial Poster Typography Layer */}
+               {/* Gritty Vintage tactile noise overlay layer */}
+               <div className={styles.noiseOverlay} />
+ 
+               {/* Background Editorial Poster Typography Layer */}
               <div 
                 className={styles.backgroundTextContainer}
                 style={customStyleConfig ? customStyleConfig.containerStyle : undefined}
               >
-
-                <div className={styles.newStreetwearSubtitle}>New StreetWear</div>
+                <div ref={textSubRef} className={styles.newStreetwearSubtitle}>NEW STREETWEAR</div>
                 <h1 
+                  ref={textMassiveRef}
                   className={styles.massiveBgText}
                   style={customStyleConfig ? customStyleConfig.massiveStyle : undefined}
                 >
@@ -456,9 +776,9 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
                   />
 
                   {/* Single Hero T-shirt — Adjusted scale to 5.7 per user feedback */}
-                  <RotatingGroup delay={0} speed={0.005} mode="spin">
+                  <RotatingGroup delay={0} speedRef={shirtSpeedRef} isIntroRef={isIntroSpinning} animStateRef={shirtAnimState} mode="spin">
                     <ModelPreview 
-                      color={customStyleConfig?.shirtColor || (isDark ? '#f5f5f5' : '#050505')} 
+                      color={customStyleConfig?.shirtColor || '#ffffff'} 
                       modelPath="/models/oversized_tshirt.glb" 
                       showSticker={true} 
                       scale={5.7} 
@@ -467,10 +787,22 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
                     />
                   </RotatingGroup>
 
+                  {/* Volumetric cloud system strictly under the T-shirt hem */}
+                  <CloudEffect />
+
                   {/* Shared shadows aligned with the new T-shirt floor */}
                   <ContactShadows position={[0, -6.8, 0]} opacity={0.5} scale={20} blur={3} far={4} />
+
+                  {/* Enable horizontal rotation only, locking vertical axis */}
+                  <OrbitControls 
+                    enableZoom={false} 
+                    enablePan={false} 
+                    minPolarAngle={Math.PI / 2} 
+                    maxPolarAngle={Math.PI / 2} 
+                  />
                 </Suspense>
               </View>
+
             </div>
           </div>
         </div>
@@ -486,6 +818,8 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
           speed={28} 
           isEmpty={false}
           cardClassName={styles.squareCard}
+          wrapRef={col4Ref}
+          scrollTweenRef={col4ScrollRef}
         />
         <ScrollingColumn 
           items={[
@@ -496,30 +830,30 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
           direction="down" 
           speed={35} 
           isEmpty={false}
+          wrapRef={col5Ref}
+          scrollTweenRef={col5ScrollRef}
         />
       </main>
 
       {/* ─── Global 3D Canvas Context ─── */}
-      <Canvas 
-        className={styles.globalCanvas} 
-        eventSource={containerRef}
-        gl={{ 
-          antialias: true, 
-          powerPreference: 'high-performance',
-          toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 1.0,
-          outputColorSpace: THREE.SRGBColorSpace,
-        }}
-        shadows
-      >
-        <View.Port />
-        <Preload all />
-      </Canvas>
+      <div ref={canvasRef} className={styles.globalCanvas}>
+        <Canvas 
+          eventSource={containerRef}
+          gl={{ 
+            antialias: true, 
+            powerPreference: 'high-performance',
+            toneMapping: THREE.ACESFilmicToneMapping,
+            toneMappingExposure: 1.0,
+            outputColorSpace: THREE.SRGBColorSpace,
+          }}
+          shadows
+        >
+          <View.Port />
+          <Preload all />
+        </Canvas>
+      </div>
 
-      {/* ─── Global Bottom CTA ─── */}
-      <button className={styles.centerCta}>
-        EXPLORE COLLECTIONS
-      </button>
+
     </div>
   )
 }

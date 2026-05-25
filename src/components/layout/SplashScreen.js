@@ -27,6 +27,7 @@ export default function SplashScreen({ onComplete }) {
     const tl = transitions.finalSplash(refs)
 
     tl.eventCallback('onComplete', () => {
+      window.dispatchEvent(new CustomEvent('splashComplete'))
       if (onComplete) onComplete()
     })
 

@@ -60,7 +60,43 @@
   transition: background-color 0.5s ease, color 0.5s ease, --vignette-color 0.5s ease;
 }
 
-/* Cinematic Smooth Pseudo Vignettes removed per request */
+/* Vignettes — real divs so GSAP can animate them in cinematically */
+.vignetteTop {
+  position: absolute;
+  top: 0;
+  left: 0; right: 0;
+  height: 0; /* GSAP animates to 32vh on intro */
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.98) 0%,
+    rgba(0, 0, 0, 0.85) 15%,
+    rgba(0, 0, 0, 0.60) 35%,
+    rgba(0, 0, 0, 0.30) 60%,
+    rgba(0, 0, 0, 0.10) 80%,
+    rgba(0, 0, 0, 0.00) 100%
+  );
+  z-index: 50;
+  pointer-events: none;
+}
+
+.vignetteBottom {
+  position: absolute;
+  bottom: 0;
+  left: 0; right: 0;
+  height: 0; /* GSAP animates to 32vh on intro */
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.98) 0%,
+    rgba(0, 0, 0, 0.85) 15%,
+    rgba(0, 0, 0, 0.60) 35%,
+    rgba(0, 0, 0, 0.30) 60%,
+    rgba(0, 0, 0, 0.10) 80%,
+    rgba(0, 0, 0, 0.00) 100%
+  );
+  z-index: 50;
+  pointer-events: none;
+}
+
 
 .globalCanvas {
   position: fixed !important;
@@ -70,6 +106,7 @@
   height: 100vh !important;
   pointer-events: none;
   z-index: 10;
+  opacity: 0; /* Hidden initially, faded in cinematically by GSAP */
 }
 
 /* ─── Header Container (Full Width Transparent Overlay) ─── */
@@ -193,10 +230,13 @@
   margin-left: 0;
 }
 
+
 .scrollColumnWrap {
   height: 100%;
   overflow: hidden;
   position: relative;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .scrollColumn {
@@ -206,6 +246,8 @@
   will-change: transform;
   gap: 0;
   padding: 0;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 /* ─── Gallery Cards (Rule 7) ─── */
@@ -338,7 +380,7 @@
   text-align: center;
   pointer-events: none;
   user-select: none;
-  transform: translateY(-18%); /* Shift background typography up further */
+  transform: translateY(-20%); /* Shift down slightly from -28% to balance typography */
 }
 
 .sleeveSmallHeader {
@@ -354,35 +396,35 @@
 }
 
 .newStreetwearSubtitle {
-  font-family: 'Outfit', sans-serif;
-  font-weight: 900; /* Ultra-bold high visibility weight */
-  font-size: min(4.5cqw, 4.8cqh); /* Substantially increased size for perfect visibility */
-  letter-spacing: 0.4em; /* Premium streetwear tracking */
-  text-indent: 0.4em; /* Offsets the letter-spacing on the last character for perfect centering */
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: min(4.1cqw, 4.3cqh);
+  letter-spacing: 0.62em;
+  text-indent: 0.31em;
   color: #FFFFFF;
   text-transform: uppercase;
-  margin-bottom: 20px; /* Elegant gap above massive background text */
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 0 15px rgba(255, 255, 255, 0.6); /* Clear drop shadow + glow so it stands out sharply */
-  opacity: 1.0; /* Full opacity */
+  margin-bottom: 35px;
+  text-shadow: none;
+  opacity: 1.0;
   white-space: nowrap;
-  transform: scale(1.05, 1.1); /* Stronger visual structure */
-  transform-origin: center center;
 }
 
 .massiveBgText {
   font-family: 'Condenso Demo', sans-serif;
-  font-size: min(43.0cqw, 45.0cqh); /* Restored large scale for Condenso Demo */
-  font-weight: normal; /* Use natural weight of the font */
+  font-size: min(43.0cqw, 45.0cqh);
+  font-weight: normal;
   line-height: 0.9;
-  letter-spacing: 0.06em; /* Elegant condensed tracking */
+  letter-spacing: 0.08em;
+  text-indent: 0.04em;
   text-transform: uppercase;
   margin: 0;
   color: #FFFFFF;
   display: inline-block;
-  transform: scale(0.85, 1.2); /* Reduced vertical height stretch for cleaner proportion */
+  transform: scale(0.92, 1.2);
   transform-origin: center center;
   transition: all 0.5s ease;
   white-space: nowrap;
+  text-shadow: none;
 }
 
 .newText {
@@ -464,14 +506,63 @@
   background-repeat: no-repeat;
 }
 
-.bgLayerStatic {
+.comicRedBackground {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  background-size: 100% 100%; /* Stretches gradient room to borders uncropped, zooming it out */
-  background-position: center;
-  background-repeat: no-repeat;
+  background-color: #d80000;
+  background-image: 
+    /* 1. Halftone Dots Base */
+    radial-gradient(circle, rgba(120, 0, 0, 0.4) 20%, transparent 25%),
+    radial-gradient(circle, rgba(120, 0, 0, 0.4) 20%, transparent 25%),
+    /* 2. Comic Sunburst Rays */
+    repeating-conic-gradient(
+      from 0deg at 50% 50%,
+      rgba(255, 30, 30, 0.6) 0deg 6deg,
+      transparent 6deg 12deg
+    ),
+    /* 3. Glowing Center fading to darker edges */
+    radial-gradient(circle at 50% 50%, #ff4d4d 0%, transparent 80%);
+  background-size: 16px 16px, 16px 16px, 100% 100%, 100% 100%;
+  background-position: 0 0, 8px 8px, center, center;
+  z-index: 0;
+}
+
+/* ── Auto-Moving Pastel Gradient Background ── */
+.bgLayerAnimatedGradient {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* Large canvas gives blobs room to visibly drift */
+  background-size: 400% 400%;
+  background-image:
+    /* Lime green — top-left */
+    radial-gradient(ellipse at 15% 15%, #b8f570 0%, transparent 45%),
+    /* Soft sky blue — left edge */
+    radial-gradient(ellipse at 5% 50%, #a0d8f8 0%, transparent 40%),
+    /* Lavender / light purple — top-right */
+    radial-gradient(ellipse at 85% 10%, #d8b4fe 0%, transparent 45%),
+    /* Warm golden yellow — centre */
+    radial-gradient(ellipse at 50% 55%, #fde047 0%, transparent 40%),
+    /* Coral / orange — bottom-right */
+    radial-gradient(ellipse at 88% 75%, #fb923c 0%, transparent 42%),
+    /* Baby pink — bottom-left */
+    radial-gradient(ellipse at 18% 85%, #f9a8d4 0%, transparent 45%),
+    /* Off-white base so unblended areas stay light */
+    linear-gradient(160deg, #f0f9ff 0%, #fef9f0 50%, #fff0f8 100%);
+  animation: gradientDrift 14s ease-in-out infinite alternate;
+  z-index: 0;
+}
+
+@keyframes gradientDrift {
+  0%   { background-position: 0%   0%;   }
+  20%  { background-position: 60%  20%;  }
+  40%  { background-position: 100% 50%;  }
+  60%  { background-position: 40%  80%;  }
+  80%  { background-position: 80%  30%;  }
+  100% { background-position: 20%  100%; }
 }
 
 /* Premium Switcher floating inside the central panoramic frame */
@@ -480,7 +571,7 @@
   top: 96px; /* Moved down from 24px to prevent overlapping with the navigation bar */
   left: 50%;
   transform: translateX(-50%);
-  z-index: 30; /* Elevated z-index to sit on top of 3D Canvas (z-index: 5) and be clickable */
+  z-index: 100; /* Elevated z-index above vignette (z-index: 50) */
   display: flex;
   align-items: center;
   gap: 6px;
@@ -557,6 +648,10 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+  user-drag: none;
 }
 
 /* ─── Explore More Button (Rule 2) ─── */
@@ -582,13 +677,147 @@
   justify-content: center;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   z-index: 200;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
 }
 
 .centerCta:hover {
   opacity: 0.9;
   transform: translateX(-50%) translateY(-2px);
-  box-shadow: 0 12px 35px rgba(200, 169, 110, 0.25);
+}
+
+/* ─── Bottom Glass Navigation Bar ─── */
+.bottomGlassNav {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: calc(100% - 24px);
+  max-width: 430px; /* Fits perfectly inside the red card */
+  height: 52px;
+  pointer-events: none; /* Clicks pass through empty gaps */
+  overflow: visible;
+}
+
+/* ─── Bottom White Explore Button ─── */
+.bottomExploreButton {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100; /* Elevated z-index above vignette (z-index: 50) */
+  background: #FFFFFF; /* Pure white filled button per user request */
+  color: #000000; /* Streetwear high-contrast bold black text */
+  border: none;
+  border-radius: 0; /* Bold architectural sharp corners per user request */
+  padding: 14px 32px;
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  pointer-events: auto; /* Clickable */
+  white-space: nowrap;
+}
+
+.bottomExploreButton:hover {
+  background: rgba(255, 255, 255, 0.92);
+  transform: translateX(-50%) translateY(-2px) scale(1.02);
+}
+
+/* ─── Top Center Navigation Bar ─── */
+.topNavContainer {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100; /* Elevated z-index above vignette (z-index: 50) */
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  pointer-events: none; /* Let clicks pass through empty space */
+}
+
+.topNavLogoWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.topNavLogoWrapper:hover {
+  transform: scale(1.04);
+}
+
+.topNavLogoImg {
+  height: 32px;
+  width: auto;
+  filter: brightness(0); /* Make logo black on white menu background */
+}
+
+.topNavTabs {
+  display: flex;
+  align-items: center;
+  gap: 12px; /* Creates space between the logo, about tab, and icons */
+  background: #ffffff; /* Solid white background, removing glassmorphism */
+  border: 1px solid #e5e5e5;
+  border-radius: 26px;
+  padding: 6px;
+  pointer-events: auto; /* Enable clicks */
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.topNavTabActive {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #111111; /* Solid dark/black active tab background */
+  border: 1px solid #111111;
+  border-radius: 22px;
+  padding: 8px 16px;
+  color: #ffffff;
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.topNavTabActive:hover {
+  background: #222222;
+  border-color: #222222;
+}
+
+.topNavTabInactive {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  height: 36px;
+  border-radius: 18px;
+  color: #666666; /* Dark grey for visibility on white background */
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.topNavTabInactive:hover {
+  color: #111111;
+  background: rgba(0, 0, 0, 0.06);
+}
+.exploreShortText {
+  display: none;
+}
+
+.exploreFullText {
+  display: inline;
 }
 
 /* Responsive Grid columns fraction structure (Rule 6) */
@@ -653,5 +882,15 @@
   .sleeveSmallHeader {
     font-size: 9px;
     letter-spacing: 0.3em;
+  }
+}
+
+/* Responsive Explore button text switch */
+@media (max-width: 480px) {
+  .exploreFullText {
+    display: none;
+  }
+  .exploreShortText {
+    display: inline;
   }
 }

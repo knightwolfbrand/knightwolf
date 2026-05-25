@@ -34,11 +34,8 @@ export default function RootLayout({ children }) {
           />
         )}
 
-        {/* Main app content */}
-        <main style={{
-          opacity: splashDone ? 1 : 0,
-          transition: 'opacity 0.5s ease',
-        }}>
+        {/* Main app content — DashboardHome controls its own cinematic reveal */}
+        <main style={{ opacity: 1 }}>
           {children}
         </main>
       </body>

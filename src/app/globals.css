@@ -35,7 +35,7 @@
 }
 
 body {
-  background-color: var(--color-bg-primary);
+  background-color: #0a0a0f !important;
   color: var(--color-text-primary);
   font-family: var(--font-body);
   line-height: 1.5;

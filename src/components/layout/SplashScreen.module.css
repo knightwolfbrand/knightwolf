@@ -89,7 +89,7 @@
 
 .logoSvg {
   display: block;
-  width: 120px;
+  width: 88px;
   height: auto;
 }
 
@@ -101,7 +101,7 @@
   justify-content: center;
   gap: 0;
   font-family: 'Libre Baskerville', serif;
-  font-size: clamp(1rem, 2.8vw, 1.8rem);
+  font-size: clamp(0.75rem, 2vw, 1.3rem);
   font-weight: 700;
   color: #ffffff;
   letter-spacing: 0.2em;
