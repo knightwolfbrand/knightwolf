@@ -46,7 +46,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0;
+  gap: 0px;
   text-align: center;
   pointer-events: none;
   user-select: none;
@@ -55,7 +55,6 @@
 /* ── Logo SVG Container ── */
 .logoWrap {
   position: relative;
-  margin-bottom: -10px;
   will-change: filter, transform;
   overflow: visible;
   display: flex;
@@ -117,7 +116,6 @@
   position: relative;
   overflow: hidden;
   padding: 10px 20px;
-  margin-top: -10px;
 }
 
 /* (textShine removed — clean implementation) */

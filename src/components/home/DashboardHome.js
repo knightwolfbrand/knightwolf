@@ -1,31 +1,32 @@
 'use client'
- 
+
 import React, { useState, Suspense, useMemo, useRef, useEffect } from 'react'
 import gsap from 'gsap'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Libre_Baskerville } from 'next/font/google'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls, useGLTF, Environment, ContactShadows, Float, View, Preload, useTexture } from '@react-three/drei'
 import * as THREE from 'three'
-import { Info, Phone, User } from 'lucide-react'
+import { Compass, User, Home, Mail } from 'lucide-react'
 import styles from './DashboardHome.module.css'
 
-const libreBaskerville = Libre_Baskerville({ 
+const libreBaskerville = Libre_Baskerville({
   weight: ['400', '700'],
   subsets: ['latin'],
   display: 'swap',
+  variable: '--font-libre-baskerville',
 })
 
 // ─── UV CANVAS STICKER SYSTEM ──────────────────────────────────────────────
 // Paint sticker directly onto the shirt's UV texture — real printed-on-fabric look
 const UV_CONFIG = {
   oversized: {
-    front: { cx: 0.30, cy: 0.38, aspectY: 1.78, isFlipped: true,  scale: 0.23 },
-    back:  { cx: 0.74, cy: 0.36, aspectY: 1.78, isFlipped: true,  scale: 0.23 }
+    front: { cx: 0.30, cy: 0.38, aspectY: 1.78, isFlipped: true, scale: 0.23 },
+    back: { cx: 0.74, cy: 0.36, aspectY: 1.78, isFlipped: true, scale: 0.23 }
   },
   regular: {
     front: { cx: 0.28, cy: 0.35, aspectY: 1.78, isFlipped: false, scale: 0.23 },
-    back:  { cx: 0.75, cy: 0.36, aspectY: 1.78, isFlipped: false, scale: 0.23 }
+    back: { cx: 0.75, cy: 0.36, aspectY: 1.78, isFlipped: false, scale: 0.23 }
   }
 };
 
@@ -63,7 +64,7 @@ function removeBackground(img, isThorLogo = false) {
     const queue = [];
     const bgR = data[0], bgG = data[1], bgB = data[2];
     const TOL = 55;
-    [[0,0],[W-1,0],[0,H-1],[W-1,H-1]].forEach(([x,y]) => {
+    [[0, 0], [W - 1, 0], [0, H - 1], [W - 1, H - 1]].forEach(([x, y]) => {
       const idx = y * W + x;
       if (!visited[idx]) { visited[idx] = 1; queue.push(x, y); }
     });
@@ -71,10 +72,10 @@ function removeBackground(img, isThorLogo = false) {
     while (head < queue.length) {
       const x = queue[head++], y = queue[head++];
       const pos = (y * W + x) * 4;
-      const diff = Math.abs(data[pos]-bgR) + Math.abs(data[pos+1]-bgG) + Math.abs(data[pos+2]-bgB);
+      const diff = Math.abs(data[pos] - bgR) + Math.abs(data[pos + 1] - bgG) + Math.abs(data[pos + 2] - bgB);
       if (diff < TOL) {
         data[pos + 3] = 0;
-        for (const [nx, ny] of [[x+1,y],[x-1,y],[x,y+1],[x,y-1]]) {
+        for (const [nx, ny] of [[x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]]) {
           if (nx >= 0 && nx < W && ny >= 0 && ny < H) {
             const nIdx = ny * W + nx;
             if (!visited[nIdx]) { visited[nIdx] = 1; queue.push(nx, ny); }
@@ -133,57 +134,98 @@ function buildUVTextureWithBoth(shirtColor, frontImg, frontCfg, backImg, backCfg
   return tex;
 }
 
+// --- Shirt Carousel Variants ---
+const SHIRT_CAROUSEL = [
+  { color: '#FFFFFF', showSticker: true, label: 'White' },
+  { color: '#F5F0CC', showSticker: true, label: 'Pale Yellow' },
+  { color: '#1A1A1A', showSticker: true, label: 'Gray Black' },
+];
+
 // --- Rotating Group with delay and mode ---
-const RotatingGroup = ({ delay = 0, speed = 0.004, speedRef, isIntroRef, animStateRef, mode = 'spin', children }) => {
-  const groupRef = useRef()
+const RotatingGroup = React.forwardRef(({ delay = 0, speed = 0.004, speedRef, isIntroRef, animStateRef, isDraggingRef, hoverPauseRef, targetRotationYRef, mode = 'spin', children }, ref) => {
+  const localRef = useRef()
+  const groupRef = ref || localRef
   const startTime = useRef(null)
   const active = useRef(false)
 
   useFrame((state) => {
     if (!groupRef.current) return
 
-    // Position Y animation from GSAP animStateRef
+    // Position Y + X and Scale animations from GSAP animStateRef
     if (animStateRef && animStateRef.current) {
       groupRef.current.position.y = animStateRef.current.y;
+      groupRef.current.position.x = animStateRef.current.x ?? 0;
+
+      const sX = animStateRef.current.sX ?? 1;
+      const sY = animStateRef.current.sY ?? 1;
+      const sZ = animStateRef.current.sZ ?? 1;
+
+      groupRef.current.scale.set(sX, sY, sZ);
     }
 
     if (isIntroRef && isIntroRef.current) {
       // Rotation Y animation from GSAP animStateRef during intro
       if (animStateRef && animStateRef.current) {
         groupRef.current.rotation.y = animStateRef.current.rotationY;
+        if (targetRotationYRef) {
+          targetRotationYRef.current = animStateRef.current.rotationY;
+        }
       }
       return // Skip useFrame default rotation when GSAP is animating the spin
     }
 
-    if (startTime.current === null) startTime.current = state.clock.elapsedTime
-    const elapsed = state.clock.elapsedTime - startTime.current
-    if (elapsed >= delay) active.current = true
+    const isDragging = isDraggingRef && isDraggingRef.current;
+    const isHovering = hoverPauseRef && hoverPauseRef.current;
 
-    if (active.current) {
-      const t = elapsed - delay
-      const currentSpeed = speedRef ? speedRef.current : speed
-      if (mode === 'spin') {
-        // Continuous 360° full rotation
-        groupRef.current.rotation.y += currentSpeed
-      } else if (mode === 'swing') {
-        // ±180° back and forth using sine wave
-        groupRef.current.rotation.y = Math.sin(t * currentSpeed) * Math.PI
+    // Target tracking for auto-rotation — paused when hovering or dragging
+    // User requested front view only, so speed is set to 0.0 when not dragging
+    if (!isDragging && !isHovering) {
+      if (startTime.current === null) startTime.current = state.clock.elapsedTime
+      const elapsed = state.clock.elapsedTime - startTime.current
+      if (elapsed >= delay) active.current = true
+
+      if (active.current) {
+        const t = elapsed - delay
+        const currentSpeed = 0.0 // front view only
+        if (mode === 'spin') {
+          if (targetRotationYRef) {
+            targetRotationYRef.current = 0.0;
+          } else {
+            groupRef.current.rotation.y = 0.0;
+            return;
+          }
+        } else if (mode === 'swing') {
+          const targetSwing = Math.sin(t * currentSpeed) * Math.PI;
+          if (targetRotationYRef) {
+            targetRotationYRef.current = targetSwing;
+          } else {
+            groupRef.current.rotation.y = targetSwing;
+            return;
+          }
+        }
       }
+    }
+
+    // Always smoothly interpolate (lerp) the actual mesh rotation to follow the target (auto or drag)
+    if (targetRotationYRef && targetRotationYRef.current !== undefined) {
+      // 0.05 (5%) creates an incredibly soft, heavy, floating premium feel
+      groupRef.current.rotation.y += (targetRotationYRef.current - groupRef.current.rotation.y) * 0.05;
     }
   })
 
   return <group ref={groupRef}>{children}</group>
-}
+})
+RotatingGroup.displayName = 'RotatingGroup';
 
 // --- 3D Model Component ---
 const ModelPreview = ({ color = '#f5f5f5', modelPath = '/models/shirt_baked.glb', scale = 8.2, showSticker = false, position = null, rotation = null }) => {
   const { scene } = useGLTF(modelPath);
   const logoTex = useTexture('/KnightWolf_Logo_White.svg');
   const [uvTex, setUvTex] = React.useState(null);
-  
+
   const isOversized = modelPath.includes('oversized');
   const finalScale = isOversized ? scale * 0.8 : scale;
-  const defaultPos  = isOversized ? [0, -7.5, 0] : [0, -4.5, 0];
+  const defaultPos = isOversized ? [0, -7.5, 0] : [0, -4.5, 0];
   const finalPos = position || defaultPos;
   const finalRot = rotation || [0, 0, 0];
   const uvFront = isOversized ? UV_CONFIG.oversized.front : UV_CONFIG.regular.front;
@@ -251,7 +293,7 @@ const ModelPreview = ({ color = '#f5f5f5', modelPath = '/models/shirt_baked.glb'
   // Apply UV texture and physically attach sleeve label to right sleeve mesh
   React.useEffect(() => {
     if (!uvTex) return;
-    
+
     clonedScene.traverse((child) => {
       if (child.isMesh) {
         // Retrieve original mesh material to preserve baked normal/AO detailing (creases, seams, ribs)
@@ -267,6 +309,7 @@ const ModelPreview = ({ color = '#f5f5f5', modelPath = '/models/shirt_baked.glb'
           roughness: 1.0,
           metalness: 0.0,
         });
+
         child.material.needsUpdate = true;
 
         // Physically parent the sleeve label directly to the right sleeve mesh (Object_3)
@@ -310,10 +353,10 @@ const CloudEffect = () => {
       // Convert black background to transparent alpha & make the clouds bright white
       for (let i = 0; i < data.length; i += 4) {
         const r = data[i];
-        const g = data[i+1];
-        const b = data[i+2];
+        const g = data[i + 1];
+        const b = data[i + 2];
         const v = Math.max(r, g, b);
-        
+
         // High opacity for dense, solid cloud appearance
         const alpha = Math.min(255, v * 2.2);
         data[i + 3] = alpha;
@@ -321,8 +364,8 @@ const CloudEffect = () => {
         // Bright white color with original grayscale contours for depth
         const factor = 1.35;
         data[i] = Math.min(255, r * factor);
-        data[i+1] = Math.min(255, g * factor);
-        data[i+2] = Math.min(255, b * factor);
+        data[i + 1] = Math.min(255, g * factor);
+        data[i + 2] = Math.min(255, b * factor);
       }
 
       ctx.putImageData(imgData, 0, 0);
@@ -340,7 +383,7 @@ const CloudEffect = () => {
 
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
-    
+
     // Slow, organic swirling strictly centered under the T-shirt
     if (cloudRef1.current) {
       cloudRef1.current.rotation.z = t * 0.012;
@@ -405,7 +448,7 @@ const cardBgs = [
 ];
 
 // Internal component for scrolling columns
-const ScrollingColumn = ({ items, direction = 'up', speed = 40, isEmpty = false, cardClassName = '', wrapRef, scrollTweenRef }) => {
+const ScrollingColumn = ({ items, direction = 'up', speed = 40, isEmpty = false, cardClassName = '', wrapRef, scrollTweenRef, revealLineRef }) => {
   const innerRef = useRef(null);
 
   useEffect(() => {
@@ -434,7 +477,11 @@ const ScrollingColumn = ({ items, direction = 'up', speed = 40, isEmpty = false,
 
   return (
     <div className={styles.scrollColumnWrap} ref={wrapRef}>
-      <div 
+      {/* Black reveal line — sweeps across column before it appears */}
+      {revealLineRef && (
+        <div ref={revealLineRef} className={styles.revealLine} />
+      )}
+      <div
         className={styles.scrollColumn}
         ref={innerRef}
       >
@@ -463,8 +510,31 @@ const ScrollingColumn = ({ items, direction = 'up', speed = 40, isEmpty = false,
 export default function DashboardHome({ customStyleConfig = null, forceTheme = null }) {
   const [localIsDark, setLocalIsDark] = useState(false);
   const isDark = forceTheme !== null ? forceTheme : localIsDark;
-  const [activeTab, setActiveTab] = useState('about');
+  const [activeTab, setActiveTab] = useState(null); // Keep no option active by default as requested
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [isPhoneValid, setIsPhoneValid] = useState(false);
+  const [isPeeking, setIsPeeking] = useState(false);
   const containerRef = useRef(null);
+
+  const validateIndianPhone = (formatted) => {
+    // Strip space, then check exactly 10 digits starting with 6-9
+    const digits = formatted.replace(/\s/g, '');
+    return /^[6-9]\d{9}$/.test(digits);
+  };
+
+  const handlePhoneChange = (e) => {
+    // Strip non-digits, cap at 10 raw digits, then insert space after 5th digit
+    const raw = e.target.value.replace(/\D/g, '').slice(0, 10);
+    const formatted = raw.length > 5 ? raw.slice(0, 5) + ' ' + raw.slice(5) : raw;
+    setPhoneNumber(formatted);
+    setIsPhoneValid(validateIndianPhone(formatted));
+  };
+
+  // ─── Shirt Carousel State ───────────────────────────────────────────────
+  const [activeShirtIdx, setActiveShirtIdx] = useState(0);
+  const activeShirtIdxRef = useRef(0); // mirrored ref for use inside GSAP callbacks
+  const carouselRunning = useRef(false);
+  const carouselTlRef = useRef(null);
 
   // Refs for cinematic intro animation
   const col1Ref = useRef(null);
@@ -481,6 +551,10 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
   const textSubRef = useRef(null);
   const textMassiveRef = useRef(null);
 
+  // Refs for the physical folding screen panels
+  const foldingLeftRef = useRef(null);
+  const foldingRightRef = useRef(null);
+
   // Refs for column scroll tweens to control speed / timeScale dynamically
   const col1ScrollRef = useRef(null);
   const col2ScrollRef = useRef(null);
@@ -489,165 +563,441 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
 
   // Ref for T-shirt rotation speed (starts at 0.12, decelerates to 0.005)
   const shirtSpeedRef = useRef(0.005);
-  
+
   // Flag to check if we are currently playing the cinematic intro spin
   const isIntroSpinning = useRef(true);
 
   // plain JS object reference for GSAP to animate safely before ThreeJS models have finished loading
+  // Added .x for carousel slide-in/out transitions
   const shirtAnimState = useRef({
     y: -12,
+    x: 0,
+    sX: 1,
+    sY: 1,
+    sZ: 1,
     rotationY: Math.PI * 6
   });
+
+  // Refs and state for manual drag-to-rotate interaction
+  const shirtGroupRef = useRef(null);
+  const isDraggingRef = useRef(false);
+  const [isDraggingState, setIsDraggingState] = useState(false);
+  const dragStartXRef = useRef(0);
+  const dragStartRotationYRef = useRef(0);
+  const targetRotationYRef = useRef(0); // target rotation Y for smooth lerped drag
+  const resumeTimeoutRef = useRef(null);
+
+  // Hover-to-pause rotation
+  const isHoveringShirtRef = useRef(false);
+
+  // Idle detection — hides UI after 3s of no cursor movement
+  const idleTimeoutRef = useRef(null);
+  const isIdleRef = useRef(false);
+  const introCompleteRef = useRef(false); // only activate idle after intro finishes
+
+
+
+  const handlePointerDown = (e) => {
+    // Only drag with left click (button 0) or touches
+    if (e.button !== undefined && e.button !== 0) return;
+
+    // Don't drag during the cinematic intro sequence
+    if (isIntroSpinning.current) return;
+
+    isDraggingRef.current = true;
+    setIsDraggingState(true);
+    dragStartXRef.current = e.clientX;
+
+    if (shirtGroupRef.current) {
+      dragStartRotationYRef.current = targetRotationYRef.current || shirtGroupRef.current.rotation.y;
+      targetRotationYRef.current = targetRotationYRef.current || shirtGroupRef.current.rotation.y;
+    }
+
+    // Pause the carousel timeline so it doesn't move or transition while user interactively rotates
+    if (carouselTlRef.current) {
+      carouselTlRef.current.pause();
+    }
+
+    // Clear any active resume timeout
+    if (resumeTimeoutRef.current) {
+      clearTimeout(resumeTimeoutRef.current);
+      resumeTimeoutRef.current = null;
+    }
+  };
+
+  const handlePointerMove = (e) => {
+    if (!isDraggingRef.current) return;
+
+    const deltaX = e.clientX - dragStartXRef.current;
+
+    if (shirtGroupRef.current) {
+      // 0.008 rad per pixel sensitivity for a responsive feel
+      targetRotationYRef.current = dragStartRotationYRef.current + deltaX * 0.008;
+    }
+  };
+
+  const handlePointerUp = () => {
+    if (!isDraggingRef.current) return;
+    isDraggingRef.current = false;
+    setIsDraggingState(false);
+
+    // Resume auto-rotation after 3.5 seconds of user inactivity
+    if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
+    resumeTimeoutRef.current = setTimeout(() => {
+      if (carouselTlRef.current && carouselRunning.current) {
+        carouselTlRef.current.play();
+      }
+    }, 3500);
+  };
 
   // Set all intro elements to invisible immediately on mount
   useEffect(() => {
     const cols = [col1Ref.current, col2Ref.current, col4Ref.current, col5Ref.current].filter(Boolean);
     gsap.set(cols, { opacity: 0, filter: 'grayscale(1) contrast(1.08) brightness(0.92)' });
     gsap.set(centerFocusRef.current, { opacity: 0 });
-    gsap.set(topNavRef.current, { opacity: 0, y: -14 });
+    gsap.set(topNavRef.current, { opacity: 0, y: -32 });
     gsap.set(exploreButtonRef.current, { opacity: 0, y: 14 });
     gsap.set(canvasRef.current, { opacity: 0 });
     gsap.set([textSubRef.current, textMassiveRef.current], { opacity: 0 });
+    gsap.set([vignetteTopRef.current, vignetteBottomRef.current], { scaleY: 0 }); // ensure collapsed on mount
     shirtSpeedRef.current = 0.005;
     isIntroSpinning.current = true;
-    shirtAnimState.current = { y: -12, rotationY: Math.PI * 6 };
+    shirtAnimState.current = { y: -12, x: 0, sX: 1, sY: 1, sZ: 1, rotationY: Math.PI * 6 };
   }, []);
+
+  // ─── Idle detection — hide UI when no cursor movement for 10s ───────────
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const goIdle = () => {
+      if (!introCompleteRef.current || isIdleRef.current) return;
+      isIdleRef.current = true;
+      gsap.to(topNavRef.current, { opacity: 0, y: -14, duration: 0.6, ease: 'power2.inOut' });
+      gsap.to(exploreButtonRef.current, { opacity: 0, y: 14, duration: 0.6, ease: 'power2.inOut' });
+      gsap.to(vignetteTopRef.current, { scaleY: 0, duration: 0.8, ease: 'power2.inOut' });
+      gsap.to(vignetteBottomRef.current, { scaleY: 0, duration: 0.8, ease: 'power2.inOut' });
+    };
+
+    const wakeUp = () => {
+      if (!introCompleteRef.current) return; // don't reset idle timer during intro
+      if (idleTimeoutRef.current) clearTimeout(idleTimeoutRef.current);
+      if (isIdleRef.current) {
+        isIdleRef.current = false;
+        gsap.to(topNavRef.current, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' });
+        gsap.to(exploreButtonRef.current, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' });
+        gsap.to(vignetteTopRef.current, { scaleY: 1, duration: 0.6, ease: 'power2.out' });
+        gsap.to(vignetteBottomRef.current, { scaleY: 1, duration: 0.6, ease: 'power2.out' });
+      }
+      idleTimeoutRef.current = setTimeout(goIdle, 10000);
+    };
+
+    container.addEventListener('mousemove', wakeUp);
+    container.addEventListener('pointerdown', wakeUp);
+    container.addEventListener('touchstart', wakeUp, { passive: true });
+    container.addEventListener('touchmove', wakeUp, { passive: true });
+    return () => {
+      container.removeEventListener('mousemove', wakeUp);
+      container.removeEventListener('pointerdown', wakeUp);
+      container.removeEventListener('touchstart', wakeUp);
+      container.removeEventListener('touchmove', wakeUp);
+      if (idleTimeoutRef.current) clearTimeout(idleTimeoutRef.current);
+    };
+  }, []);
+
+  // ─── Carousel step function ─────────────────────────────────────────────
+  const runCarouselStep = useRef(null);
+  runCarouselStep.current = () => {
+    if (!carouselRunning.current) return;
+
+    // At 60 fps, 0.008 rad/frame × 510 frames (8.5 s) ≈ 4.08 rad ≈ 233° of slow elegant rotation
+    const SHOWCASE_SPEED = 0.008;  // rad/frame — slow, premium showcase speed
+    const IDLE_SPIN_DURATION = 8.5;  // seconds — shows each shirt for 8 to 9 seconds
+    const RAMP_UP_DURATION = 0.5;    // seconds — smooth acceleration into showcase spin
+    const EXIT_DURATION = 0.45;   // normal exit slide duration
+    const ENTER_DURATION = 0.6;    // normal enter slide duration
+    const SLIDE_DISTANCE = 8.5;    // world-space units (ensures normal scale model clears the frame)
+
+    const stepTl = gsap.timeline({
+      onComplete: () => {
+        if (carouselRunning.current) runCarouselStep.current();
+      }
+    });
+
+    // 1. Showcase hold — user requested front view only, so no spin happens
+    stepTl.to(shirtSpeedRef, {
+      current: 0,
+      duration: RAMP_UP_DURATION,
+      ease: 'power2.inOut'
+    });
+
+    // 2. Hold — shirt stays in perfect front view
+    stepTl.to({}, { duration: IDLE_SPIN_DURATION });
+
+    // 3. Exit: slide out right directly without rotation
+    stepTl.to(shirtSpeedRef, {
+      current: 0,
+      duration: EXIT_DURATION * 0.4,
+      ease: 'power3.in'
+    });
+    stepTl.to(shirtAnimState.current, {
+      x: SLIDE_DISTANCE,
+      duration: EXIT_DURATION,
+      ease: 'power3.in',
+    }, '<');
+
+    // 4. Snap to next shirt + teleport to left offscreen while hidden
+    stepTl.call(() => {
+      const nextIdx = (activeShirtIdxRef.current + 1) % SHIRT_CAROUSEL.length;
+      activeShirtIdxRef.current = nextIdx;
+      setActiveShirtIdx(nextIdx);
+      shirtAnimState.current.x = -SLIDE_DISTANCE;
+      shirtSpeedRef.current = 0; // enter without spinning
+    });
+
+    // 5. Enter: slide in from left with normal sliding
+    stepTl.to(shirtAnimState.current, {
+      x: 0,
+      duration: ENTER_DURATION,
+      ease: 'power3.out', // normal smooth deceleration slide-in
+    });
+    stepTl.to(shirtSpeedRef, {
+      current: 0,
+      duration: ENTER_DURATION,
+      ease: 'power2.out'
+    }, '<');
+
+    carouselTlRef.current = stepTl;
+  };
 
   // Cinematic intro sequence — fires once when splash completes
   useEffect(() => {
     const handler = () => {
       const cols = [col1Ref.current, col2Ref.current, col4Ref.current, col5Ref.current].filter(Boolean);
       const colTweens = [col1ScrollRef.current, col2ScrollRef.current, col4ScrollRef.current, col5ScrollRef.current].filter(Boolean);
-      
+      const colRefs = [col1Ref.current, col2Ref.current, col4Ref.current, col5Ref.current];
+
       const tl = gsap.timeline();
 
-      // Phase 1: Center Card alone first fading in + text pure fade-in
-      tl.to(centerFocusRef.current, {
-        opacity: 1,
-        duration: 0.8,
-        ease: 'power2.out'
-      }, 0);
+      // Establish global 3D perspective context on the grid parent
+      gsap.set(containerRef.current, { perspective: 1200 });
 
-      tl.to([textSubRef.current, textMassiveRef.current], {
-        opacity: 1,
-        duration: 0.8,
-        stagger: 0.15,
-        ease: 'power2.out'
-      }, 0.1);
-
-      // Phase 2: Side rolling cards (columns) fastly load (fade in) at 0.8s
-      tl.to(cols, {
-        opacity: 1,
-        duration: 0.4,
-        ease: 'power2.out'
-      }, 0.8);
-
-      tl.call(() => {
-        colTweens.forEach(t => t.timeScale(14)); // Start rapid scrolling
-      }, [], 0.8);
-
-      // Decelerate columns from 14x speed down to 1x over 2.0s starting at 1.2s
-      colTweens.forEach(t => {
-        tl.to(t, {
-          timeScale: 1,
-          duration: 2.0,
-          ease: 'power2.out'
-        }, 1.2);
+      // Initialise: Columns separated in 3D space, pushed back and tilted in black canvas
+      colRefs.forEach((col, i) => {
+        if (!col) return;
+        const isDown = i % 2 === 0;
+        gsap.set(col, {
+          y: isDown ? -180 : 180,           // Columns 1 and 3 down from top, 2 and 4 up from bottom
+          z: -350,                           // separated back in 3D space
+          rotationX: isDown ? 15 : -15,      // elegant 3D tilt
+          opacity: 0,
+          filter: 'grayscale(1) brightness(0)', // start completely black in canvas
+        });
       });
 
-      // Phase 3: T-shirt fades in, slides up and rolls (starts at 1.0s, right after columns show)
+      // Initialise Center Box folding panels (start at 0% width, slightly open in 3D)
+      gsap.set(foldingLeftRef.current, {
+        scaleX: 0,
+        rotationY: 45,
+        transformOrigin: 'left center',
+        opacity: 0
+      });
+      gsap.set(foldingRightRef.current, {
+        scaleX: 0,
+        rotationY: -45,
+        transformOrigin: 'right center',
+        opacity: 0
+      });
+
+      // Initialise center container, canvas, and typography to hidden states
+      gsap.set(centerFocusRef.current, { opacity: 0, scale: 0.94 });
+      // Canvas starts grayscale so the shirt enters in B&W — no color until vignette phase
+      gsap.set(canvasRef.current, { opacity: 0, filter: 'grayscale(1) brightness(0.9)' });
+      gsap.set([textSubRef.current, textMassiveRef.current], {
+        opacity: 0,
+        y: 25,
+        filter: 'blur(20px)' // start with a elegant 20px blur
+      });
+
+      // 1. Columns entrance animation (Elegant 3D slide & long opacity curves)
+      colRefs.forEach((col, i) => {
+        const startT = i * 0.3; // luxury slow stagger
+        const tween = colTweens[i];
+
+        if (col) {
+          // Slide smoothly into 3D position
+          tl.to(col, {
+            y: 0,
+            z: 0,
+            rotationX: 0,
+            opacity: 1,
+            duration: 2.2,
+            ease: 'power3.out',
+          }, startT);
+
+          // Elegant transition from black to normal color layout
+          tl.to(col, {
+            filter: 'grayscale(0) contrast(1) brightness(1)',
+            duration: 2.4,
+            ease: 'power2.inOut',
+          }, startT);
+        }
+
+        // Trigger infinite scrolling & deceleration on lock-in
+        if (tween) {
+          tl.call(() => {
+            tween.timeScale(14);
+          }, [], startT);
+
+          tl.to(tween, {
+            timeScale: 1,
+            duration: 2.6,
+            ease: 'power3.out',
+          }, startT);
+        }
+      });
+
+      // 2. Center Box fade-in (starts at 1.4s as columns are landing)
+      const centerStart = 1.4;
+
+      // Reveal center column frame cleanly
+      tl.to(centerFocusRef.current, {
+        opacity: 1,
+        scale: 1,
+        duration: 1.0,
+        ease: 'power2.out',
+      }, centerStart);
+
+      // 3. T-shirt canvas fades in in grayscale — shirt rises & spins alone, no vignette competing
       tl.to(canvasRef.current, {
         opacity: 1,
-        duration: 0.4,
-        ease: 'power2.out'
-      }, 1.0);
+        duration: 0.8,
+        ease: 'power2.out',
+      }, centerStart);
+      // Note: canvas stays grayscale(1) until vignette phase — this isolates the WebGL render loop
 
       tl.call(() => {
         isIntroSpinning.current = true;
-      }, [], 1.0);
+      }, [], centerStart);
 
-      // Slide shirt animState position and rotation up (duration reduced to 1.3s for speed and snappiness)
+      // Initialize the shirt rotation at a multiple-spin angle and lowered Y position so it rises from the bottom
+      gsap.set(shirtAnimState.current, {
+        rotationY: Math.PI * 6.0,
+        y: -12,
+        x: 0
+      });
+
+      // Shirt rises smoothly into a full front view (rotation Y goes to 0)
       tl.to(shirtAnimState.current, {
-        y: 0,
         rotationY: 0,
-        duration: 1.3,
-        ease: 'power3.out'
-      }, 1.0);
+        y: 0,
+        duration: 2.2,
+        ease: 'power3.inOut',
+      }, centerStart);
 
-      // Decelerate standard speed ref to match target rotation
       tl.to(shirtSpeedRef, {
-        current: 0.005,
-        duration: 1.3,
-        ease: 'power2.out',
+        current: 0,
+        duration: 2.2,
+        ease: 'power3.inOut',
         onComplete: () => {
-          isIntroSpinning.current = false; // Hand over back to frame loop rotation
-        }
-      }, 1.0);
+          isIntroSpinning.current = false;
+        },
+      }, centerStart);
 
-      // Phase 4: Once T-shirt settles in its position (at 2.3s), slide in Vignettes
+      // 4. Typography rises after shirt begins spinning
+      const textStart = centerStart + 0.7;
+      tl.to(textSubRef.current, {
+        opacity: 1,
+        y: 0,
+        filter: 'blur(0px)',
+        duration: 1.2,
+        ease: 'power3.out',
+      }, textStart);
+
+      tl.to(textMassiveRef.current, {
+        opacity: 1,
+        y: 0,
+        filter: 'blur(0px)',
+        duration: 1.4,
+        ease: 'power3.out',
+      }, textStart + 0.35);
+
+      // 5. Vignette starts AFTER shirt has fully settled (centerStart + 2.2s)
+      //    Simultaneously: canvas transitions from grayscale to full color (GPU-composited, zero reflow)
+      const vignetteStart = centerStart + 2.3;
       tl.to(vignetteTopRef.current, {
-        height: '32vh',
-        duration: 1.0,
-        ease: 'power3.out'
-      }, 2.3);
+        scaleY: 1,
+        duration: 1.2,
+        ease: 'power3.out',
+      }, vignetteStart);
       tl.to(vignetteBottomRef.current, {
-        height: '32vh',
+        scaleY: 1,
+        duration: 1.2,
+        ease: 'power3.out',
+      }, vignetteStart);
+
+      // Shirt color reveal: grayscale → full color, synced with vignette (dramatic reveal moment)
+      tl.to(canvasRef.current, {
+        filter: 'grayscale(0) brightness(1)',
         duration: 1.0,
-        ease: 'power3.out'
-      }, 2.3);
+        ease: 'power2.inOut',
+      }, vignetteStart);
 
-      // Phase 5: Color Sweep starts at 2.3s (when shirt reaches position)
-      // One column turns to color, and as the next column turns color, the previous turns grayscale
-      const colDuration = 0.5;
-      const startCascadeTime = 2.3;
-
-      // Col 1 turns color
-      tl.to(col1Ref.current, { filter: 'grayscale(0) contrast(1) brightness(1)', duration: colDuration, ease: 'power2.inOut' }, startCascadeTime);
-
-      // Col 2 turns color, Col 1 returns to grayscale
-      tl.to(col1Ref.current, { filter: 'grayscale(1) contrast(1.08) brightness(0.92)', duration: colDuration, ease: 'power2.inOut' }, startCascadeTime + colDuration);
-      tl.to(col2Ref.current, { filter: 'grayscale(0) contrast(1) brightness(1)', duration: colDuration, ease: 'power2.inOut' }, startCascadeTime + colDuration);
-
-      // Col 4 turns color, Col 2 returns to grayscale
-      tl.to(col2Ref.current, { filter: 'grayscale(1) contrast(1.08) brightness(0.92)', duration: colDuration, ease: 'power2.inOut' }, startCascadeTime + colDuration * 2);
-      tl.to(col4Ref.current, { filter: 'grayscale(0) contrast(1) brightness(1)', duration: colDuration, ease: 'power2.inOut' }, startCascadeTime + colDuration * 2);
-
-      // Col 5 turns color, Col 4 returns to grayscale
-      tl.to(col4Ref.current, { filter: 'grayscale(1) contrast(1.08) brightness(0.92)', duration: colDuration, ease: 'power2.inOut' }, startCascadeTime + colDuration * 3);
-      tl.to(col5Ref.current, { filter: 'grayscale(0) contrast(1) brightness(1)', duration: colDuration, ease: 'power2.inOut' }, startCascadeTime + colDuration * 3);
-
-      // Col 5 returns to grayscale, completing the loop
-      tl.to(col5Ref.current, { filter: 'grayscale(1) contrast(1.08) brightness(0.92)', duration: colDuration, ease: 'power2.inOut' }, startCascadeTime + colDuration * 4);
-
-      // Phase 6: Once sweep is complete (4.3s), turn all columns to colors and reveal top nav & bottom CTA
-      tl.to(cols, {
-        filter: 'grayscale(0) contrast(1) brightness(1)',
-        duration: 0.85,
-        ease: 'power2.inOut'
-      }, 4.3);
-
-      // Clear inline filters when transition completely finishes so normal hover styles work
+      // Clear filters on side columns so they are clean and hoverable
       tl.call(() => {
         cols.forEach(col => gsap.set(col, { clearProps: 'filter' }));
-      }, [], 5.2);
+      }, [], vignetteStart + 0.5);
 
+      // Top navigation slides down
       tl.to(topNavRef.current, {
         opacity: 1,
         y: 0,
-        duration: 0.8,
-        ease: 'power2.out'
-      }, 4.3);
+        duration: 1.6,
+        ease: 'power2.out',
+      }, vignetteStart);
 
+      tl.call(() => { setIsPeeking(true); }, [], vignetteStart);
+
+      // Explore button slides up
       tl.to(exploreButtonRef.current, {
         opacity: 1,
         y: 0,
         duration: 0.8,
-        ease: 'power2.out'
-      }, 4.5);
+        ease: 'power2.out',
+      }, vignetteStart + 0.2);
+
+      // Peek compression after 5.0 seconds
+      tl.call(() => { setIsPeeking(false); }, [], vignetteStart + 5.0);
+
+      // Start the infinite product carousel loop
+      tl.call(() => {
+        carouselRunning.current = true;
+        runCarouselStep.current();
+      }, [], vignetteStart + 1.2);
+
+      // Mark intro complete → activate idle listeners
+      tl.call(() => {
+        introCompleteRef.current = true;
+        if (idleTimeoutRef.current) clearTimeout(idleTimeoutRef.current);
+        idleTimeoutRef.current = setTimeout(() => {
+          if (!isIdleRef.current) {
+            isIdleRef.current = true;
+            gsap.to(topNavRef.current, { opacity: 0, y: -14, duration: 0.6, ease: 'power2.inOut' });
+            gsap.to(exploreButtonRef.current, { opacity: 0, y: 14, duration: 0.6, ease: 'power2.inOut' });
+            gsap.to(vignetteTopRef.current, { scaleY: 0, duration: 0.8, ease: 'power2.inOut' });
+            gsap.to(vignetteBottomRef.current, { scaleY: 0, duration: 0.8, ease: 'power2.inOut' });
+          }
+        }, 10000);
+      }, [], vignetteStart + 1.7);
     };
 
     window.addEventListener('splashComplete', handler);
-    return () => window.removeEventListener('splashComplete', handler);
+    return () => {
+      window.removeEventListener('splashComplete', handler);
+      carouselRunning.current = false;
+      if (carouselTlRef.current) carouselTlRef.current.kill();
+      if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
+    };
   }, []);
 
   const toggleTheme = () => {
@@ -657,7 +1007,7 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
   };
 
   return (
-    <div ref={containerRef} className={`${isDark ? styles.heroSectionDark : styles.heroSection} ${libreBaskerville.className}`}>
+    <div ref={containerRef} className={`${isDark ? styles.heroSectionDark : styles.heroSection} ${libreBaskerville.className} ${libreBaskerville.variable}`}>
 
       {/* Cinematic Vignette Divs — animated in by GSAP on splashComplete */}
       <div ref={vignetteTopRef} className={styles.vignetteTop} />
@@ -665,59 +1015,146 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
 
       {/* ─── Top Center Navigation Bar (Floating above Vignettes) ─── */}
       <div ref={topNavRef} className={styles.topNavContainer}>
-        {/* Capsule containing logo and tabs */}
-        <div className={styles.topNavTabs}>
-          <div className={styles.topNavLogoWrapper}>
-            <img src="/KnightWolf_Logo_White.svg" alt="Knight Wolf" className={styles.topNavLogoImg} />
-          </div>
+        <div className={styles.topNavGridWrapper}>
+          <div className={styles.topNavCapsule}>
 
-          {/* About Tab (Active, Solid Contrast) */}
-          <div className={styles.topNavTabActive}>
-            <Info size={20} style={{ marginRight: '4px' }} />
-            <span>About</span>
-          </div>
+            {/* Always-visible: logo mark + brand name */}
+            <div className={styles.topNavLogoWrapper} onClick={() => setActiveTab(null)} style={{ cursor: 'pointer' }}>
+              <svg
+                viewBox="0 0 430 593"
+                className={styles.topNavLogoImg}
+                aria-label="Knight Wolf Logo"
+              >
+                <path d="M95.7916 208.421L172.729 269.321C172.729 269.321 173.464 258.689 172.729 251.921C168 208.375 85.6217 165.284 85.1795 166.009C84.7373 166.734 80.6694 174.056 67.9349 197.546C55.2003 221.036 55.5541 282.733 57.3228 310.646C59.0914 338.558 6.47318 367.92 16.2009 387.858C25.9287 407.795 57.3228 459.632 57.3228 459.632C57.3228 459.632 102.424 481.382 132.934 495.52C157.342 506.83 168.75 555.332 168.75 555.332C168.75 555.332 212.714 583.575 222 593C222 593 222.871 570.992 221.81 564.032C220.749 557.072 203.681 548.807 195.28 545.544C195.28 545.544 197.402 395.408 195.28 375.398C193.158 355.388 149.016 342.032 126.465 334.42C130.445 342.395 132.094 348.825 138.462 361.875C144.829 374.925 166.097 380.914 172.729 382.364L155.485 481.382C131.077 455.282 94.9072 445.857 79.8735 444.407L48.0372 387.858L89.159 314.996C68.996 265.406 85.1795 223.284 95.7916 208.421Z" fill="currentColor" />
+                <path d="M348.49 208.421L271.553 269.321C271.553 269.321 270.817 258.689 271.553 251.921C276.282 208.375 358.66 165.284 359.102 166.009C359.544 166.734 363.612 174.056 376.347 197.546C389.081 221.036 388.728 282.733 386.959 310.646C385.19 338.558 437.809 367.92 428.081 387.858C418.353 407.795 386.959 459.632 386.959 459.632C386.959 459.632 341.858 481.382 311.348 495.52C286.94 506.83 275.532 555.332 275.532 555.332C275.532 555.332 231.286 583.575 222 593C222 593 221.41 570.992 222.472 564.032C223.533 557.072 240.601 548.807 249.002 545.544C249.002 545.544 246.879 395.408 249.002 375.398C251.124 355.388 295.266 342.032 317.816 334.42C313.837 342.395 312.187 348.825 305.82 361.875C299.453 374.925 278.185 380.914 271.553 382.364L288.797 481.382C313.205 455.282 349.374 445.857 364.408 444.407L396.245 387.858L355.123 314.996C375.286 265.406 359.102 223.284 348.49 208.421Z" fill="currentColor" />
+                <path d="M260.332 82.1131C255.813 108.324 221.719 133.974 221.719 133.974C221.719 133.974 196.806 91.2368 151.549 133.974C106.292 176.711 49.4092 123.89 29.4794 92.6774C9.54968 61.4648 2.35282 19.848 0 0C1.93762 3.84155 12.0408 28.3314 29.4794 46.0986C46.9181 63.8658 66.8479 60.9846 66.8479 60.9846C66.8479 60.9846 46.0877 47.059 40.69 18.7276C42.3508 20.1681 62.1322 41.413 78.4734 46.0986C111.428 55.5478 130.528 25.1532 161.514 16.3266C192.5 7.5 269.04 31.6097 260.332 82.1131Z" fill="currentColor" />
+                <path d="M199.5 150.5L222 123V359L189.5 248L211.5 222C211.5 222 197.5 224 175 211.5C152.5 199 142.5 199 142.5 199L152 185C169.5 165.5 190.333 165 199.5 162V150.5Z" fill="currentColor" />
+                <path d="M244 150.5L221.5 123V359L254 248L232 222C232 222 246 224 268.5 211.5C291 199 301 199 301 199L291.5 185C274 165.5 253.167 165 244 162V150.5Z" fill="currentColor" />
+              </svg>
+              <span className={styles.topNavBrandName}>KnightWolf</span>
+            </div>
 
-          {/* Contact Tab (Inactive, Phone Icon only) */}
-          <div className={styles.topNavTabInactive}>
-            <Phone size={20} />
-          </div>
+            <div className={styles.topNavDivider} />
 
-          {/* Login Tab (Inactive, User Icon only) */}
-          <div className={styles.topNavTabInactive}>
-            <User size={20} />
+            {/* Navigation Tabs List */}
+            <div className={styles.topNavTabsList}>
+              {/* Home Tab */}
+              <button
+                className={activeTab === null ? styles.navTabActive : styles.navTabInactive}
+                onClick={() => setActiveTab(null)}
+              >
+                {activeTab === null && (
+                  <motion.div
+                    layoutId="activeIndicator"
+                    className={styles.activeIndicatorBg}
+                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                  />
+                )}
+                <Home size={16} className={styles.tabIcon} />
+                {activeTab === null && (
+                  <motion.span
+                    initial={{ opacity: 0, width: 0 }}
+                    animate={{ opacity: 1, width: 'auto' }}
+                    exit={{ opacity: 0, width: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className={styles.tabText}
+                  >
+                    HOME
+                  </motion.span>
+                )}
+              </button>
+
+              {/* Connect Tab (About/Contact) */}
+              <button
+                className={activeTab === 'connect' ? styles.navTabActive : styles.navTabInactive}
+                onClick={() => setActiveTab('connect')}
+              >
+                {activeTab === 'connect' && (
+                  <motion.div
+                    layoutId="activeIndicator"
+                    className={styles.activeIndicatorBg}
+                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                  />
+                )}
+                <Compass size={16} className={styles.tabIcon} />
+                {activeTab === 'connect' && (
+                  <motion.span
+                    initial={{ opacity: 0, width: 0 }}
+                    animate={{ opacity: 1, width: 'auto' }}
+                    exit={{ opacity: 0, width: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className={styles.tabText}
+                  >
+                    CONNECT
+                  </motion.span>
+                )}
+              </button>
+
+              {/* Login Tab */}
+              <button
+                className={activeTab === 'login' ? styles.navTabActive : styles.navTabInactive}
+                onClick={() => setActiveTab('login')}
+              >
+                {activeTab === 'login' && (
+                  <motion.div
+                    layoutId="activeIndicator"
+                    className={styles.activeIndicatorBg}
+                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                  />
+                )}
+                <User size={16} className={styles.tabIcon} />
+                {activeTab === 'login' && (
+                  <motion.span
+                    initial={{ opacity: 0, width: 0 }}
+                    animate={{ opacity: 1, width: 'auto' }}
+                    exit={{ opacity: 0, width: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className={styles.tabText}
+                  >
+                    LOGIN
+                  </motion.span>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* ─── Bottom White Explore Button (Floating above Vignettes) ─── */}
-      <button ref={exploreButtonRef} className={styles.bottomExploreButton}>
-        Explore Collections
-      </button>
+      {activeTab === null && (
+        <div className={styles.bottomExploreButtonContainer}>
+          <div className={styles.bottomExploreButtonGridWrapper}>
+            <button ref={exploreButtonRef} className={styles.bottomExploreButton}>
+              Explore Collections
+            </button>
+          </div>
+        </div>
+      )}
 
 
       {/* ─── Living Gallery Grid ─── */}
       <main className={styles.galleryGrid}>
         {/* Left Side: Two Scrolling Columns */}
-        <ScrollingColumn 
+        <ScrollingColumn
           items={[
             { bgColor: '#141414', img: '/box/PHOTO-2026-05-11-13-18-47.png' },
             { bgColor: '#141414', img: '/box/new_launch_poster.png' },
             { bgColor: '#141414', img: '/box/PHOTO-2026-05-11-13-20-50.png' }
-          ]} 
-          direction="up" 
-          speed={30} 
+          ]}
+          direction="up"
+          speed={30}
           isEmpty={false}
           wrapRef={col1Ref}
           scrollTweenRef={col1ScrollRef}
         />
-        <ScrollingColumn 
+        <ScrollingColumn
           items={[
             { bgColor: '#141414', img: '/box/PHOTO-2026-05-11-13-22-08.png' },
             { bgColor: '#141414', img: '/box/knightwolf_hd_poster.png' },
             { bgColor: '#141414', img: '/box/ad_poster.jpg' }
-          ]} 
-          direction="down" 
-          speed={25} 
+          ]}
+          direction="down"
+          speed={25}
           isEmpty={false}
           cardClassName={styles.squareCard}
           wrapRef={col2Ref}
@@ -729,19 +1166,23 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
 
           <div className={styles.centerContent}>
             <div className={styles.reducedPanoramicFrame}>
+              {/* folding screen visual overlays for luxury door unified reveal */}
+              <div ref={foldingLeftRef} className={styles.foldingLeft} />
+              <div ref={foldingRightRef} className={styles.foldingRight} />
+
               {/* Comic style red background with halftone dots */}
               <div className={styles.comicRedBackground} />
 
-               {/* Gritty Vintage tactile noise overlay layer */}
-               <div className={styles.noiseOverlay} />
- 
-               {/* Background Editorial Poster Typography Layer */}
-              <div 
+              {/* Gritty Vintage tactile noise overlay layer */}
+              <div className={styles.noiseOverlay} />
+
+              {/* Background Editorial Poster Typography Layer */}
+              <div
                 className={styles.backgroundTextContainer}
                 style={customStyleConfig ? customStyleConfig.containerStyle : undefined}
               >
                 <div ref={textSubRef} className={styles.newStreetwearSubtitle}>NEW STREETWEAR</div>
-                <h1 
+                <h1
                   ref={textMassiveRef}
                   className={styles.massiveBgText}
                   style={customStyleConfig ? customStyleConfig.massiveStyle : undefined}
@@ -750,40 +1191,67 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
                 </h1>
               </div>
 
-              <View className={styles.tripleView}>
+
+
+              <View
+                className={styles.tripleView}
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerLeave={() => {
+                  handlePointerUp();
+                  isHoveringShirtRef.current = false;
+                }}
+                onPointerEnter={() => {
+                  if (!isIntroSpinning.current) {
+                    isHoveringShirtRef.current = true;
+                  }
+                }}
+                style={{ cursor: isDraggingState ? 'grabbing' : 'grab', touchAction: 'none' }}
+              >
                 <Suspense fallback={null}>
                   {/* Crimson Smooth adaptive lighting */}
-                  <ambientLight 
-                    intensity={0.9} 
-                    color="#ffe5e5" 
+                  <ambientLight
+                    intensity={0.9}
+                    color="#ffe5e5"
                   />
-                  <directionalLight 
-                    position={[4, 8, 10]} 
-                    intensity={1.8} 
-                    color="#ff7777" 
-                    castShadow 
+                  <directionalLight
+                    position={[4, 8, 10]}
+                    intensity={1.8}
+                    color="#ff7777"
+                    castShadow
                   />
-                  <directionalLight 
-                    position={[-8, 3, 6]}  
-                    intensity={0.8} 
-                    color="#ffffff" 
+                  <directionalLight
+                    position={[-8, 3, 6]}
+                    intensity={0.8}
+                    color="#ffffff"
                     castShadow={false}
                   />
-                  <directionalLight 
-                    position={[0, 6, -12]} 
-                    intensity={0.5} 
-                    color="#ff9999" 
+                  <directionalLight
+                    position={[0, 6, -12]}
+                    intensity={0.5}
+                    color="#ff9999"
                   />
 
-                  {/* Single Hero T-shirt — Adjusted scale to 5.7 per user feedback */}
-                  <RotatingGroup delay={0} speedRef={shirtSpeedRef} isIntroRef={isIntroSpinning} animStateRef={shirtAnimState} mode="spin">
-                    <ModelPreview 
-                      color={customStyleConfig?.shirtColor || '#ffffff'} 
-                      modelPath="/models/oversized_tshirt.glb" 
-                      showSticker={true} 
-                      scale={5.7} 
-                      position={[0, -6.5, 0]} 
-                      rotation={[0, 0, 0]} 
+                  {/* Hero T-shirt Carousel — cycles through SHIRT_CAROUSEL variants */}
+                  <RotatingGroup
+                    ref={shirtGroupRef}
+                    delay={0}
+                    speedRef={shirtSpeedRef}
+                    isIntroRef={isIntroSpinning}
+                    animStateRef={shirtAnimState}
+                    isDraggingRef={isDraggingRef}
+                    hoverPauseRef={isHoveringShirtRef}
+                    targetRotationYRef={targetRotationYRef}
+                    mode="spin"
+                  >
+                    <ModelPreview
+                      color={customStyleConfig?.shirtColor || SHIRT_CAROUSEL[activeShirtIdx].color}
+                      modelPath="/models/oversized_tshirt.glb"
+                      showSticker={SHIRT_CAROUSEL[activeShirtIdx].showSticker}
+                      scale={5.7}
+                      position={[0, -6.5, 0]}
+                      rotation={[0, 0, 0]}
                     />
                   </RotatingGroup>
 
@@ -792,14 +1260,6 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
 
                   {/* Shared shadows aligned with the new T-shirt floor */}
                   <ContactShadows position={[0, -6.8, 0]} opacity={0.5} scale={20} blur={3} far={4} />
-
-                  {/* Enable horizontal rotation only, locking vertical axis */}
-                  <OrbitControls 
-                    enableZoom={false} 
-                    enablePan={false} 
-                    minPolarAngle={Math.PI / 2} 
-                    maxPolarAngle={Math.PI / 2} 
-                  />
                 </Suspense>
               </View>
 
@@ -808,27 +1268,27 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
         </div>
 
         {/* Right Side: Two Scrolling Columns */}
-        <ScrollingColumn 
+        <ScrollingColumn
           items={[
             { bgColor: '#141414', img: '/box/knight_wolf_editorial_v2.png' },
             { bgColor: '#141414', img: '/box/PHOTO-2026-05-11-13-34-40.png' },
             { bgColor: '#141414', img: '/box/PHOTO-2026-05-11-13-22-22.png' }
-          ]} 
-          direction="up" 
-          speed={28} 
+          ]}
+          direction="up"
+          speed={28}
           isEmpty={false}
           cardClassName={styles.squareCard}
           wrapRef={col4Ref}
           scrollTweenRef={col4ScrollRef}
         />
-        <ScrollingColumn 
+        <ScrollingColumn
           items={[
             { bgColor: '#141414', img: '/box/ad_poster.jpg' },
             { bgColor: '#141414', img: '/box/knightwolf_hd_poster.png' },
             { bgColor: '#141414', img: '/box/PHOTO-2026-05-11-13-20-50.png' }
-          ]} 
-          direction="down" 
-          speed={35} 
+          ]}
+          direction="down"
+          speed={35}
           isEmpty={false}
           wrapRef={col5Ref}
           scrollTweenRef={col5ScrollRef}
@@ -837,10 +1297,10 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
 
       {/* ─── Global 3D Canvas Context ─── */}
       <div ref={canvasRef} className={styles.globalCanvas}>
-        <Canvas 
+        <Canvas
           eventSource={containerRef}
-          gl={{ 
-            antialias: true, 
+          gl={{
+            antialias: true,
             powerPreference: 'high-performance',
             toneMapping: THREE.ACESFilmicToneMapping,
             toneMappingExposure: 1.0,
@@ -853,6 +1313,122 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
         </Canvas>
       </div>
 
+      {/* ─── Center Column Pop-Up Modals (Stacked above 3D WebGL Canvas) ─── */}
+      <AnimatePresence>
+        {activeTab && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.35 }}
+            className={styles.modalOverlay}
+          >
+            <div className={styles.modalOverlayCenter}>
+              <AnimatePresence mode="wait">
+                {activeTab === 'connect' && (
+                  <motion.div
+                    key="connect"
+                    initial={{ opacity: 0, y: 50, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -30, scale: 0.96 }}
+                    transition={{ type: 'spring', stiffness: 100, damping: 15 }}
+                    className={styles.modalCard}
+                  >
+                    <label className={styles.modalLabel}>about us</label>
+                    <p className={styles.modalText}>
+                      We design heavy-engineered premium modern streetwear. Combining raw cyber culture aesthetics with premium canvas comfort fitments.
+                    </p>
+
+                    {/* Contact Links */}
+                    <div className={styles.contactLinks}>
+                      <a
+                        href="https://instagram.com/knightwolf.shop"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={styles.contactRow}
+                      >
+                        <svg
+                          width="16" height="16" viewBox="0 0 24 24"
+                          fill="none" stroke="currentColor" strokeWidth="2"
+                          strokeLinecap="round" strokeLinejoin="round"
+                          className={styles.contactIcon}
+                        >
+                          <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                          <circle cx="12" cy="12" r="4"/>
+                          <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+                        </svg>
+                        <span className={styles.contactHandle}>knightwolf.shop</span>
+                      </a>
+                      <a
+                        href="mailto:support@knightwolf.shop"
+                        className={styles.contactRow}
+                      >
+                        <Mail size={16} className={styles.contactIcon} />
+                        <span className={styles.contactHandle}>support@knightwolf.shop</span>
+                      </a>
+                      <a
+                        href="tel:+919941292729"
+                        className={styles.contactRow}
+                      >
+                        <svg
+                          width="16" height="16" viewBox="0 0 24 24"
+                          fill="none" stroke="currentColor" strokeWidth="2"
+                          strokeLinecap="round" strokeLinejoin="round"
+                          className={styles.contactIcon}
+                        >
+                          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.07 11a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3 .18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 7.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16.92z"/>
+                        </svg>
+                        <span className={styles.contactHandle}>+91 99412 92729</span>
+                      </a>
+                    </div>
+
+                    <label className={styles.modalLabel}>message</label>
+                    <textarea placeholder="your inquiry or message..." rows="3" className={styles.modalTextarea} />
+                    
+                    <button className={styles.modalActionBtn}>send message</button>
+                  </motion.div>
+                )}
+
+                {activeTab === 'login' && (
+                  <motion.div
+                    key="login"
+                    initial={{ opacity: 0, y: 50, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -30, scale: 0.96 }}
+                    transition={{ type: 'spring', stiffness: 100, damping: 15 }}
+                    className={styles.modalCard}
+                  >
+                    <h2 className={styles.modalTitle}>join the wolfpack</h2>
+                    <p className={styles.modalSubtitle}>enter your number to unlock early access drops</p>
+
+                    <label className={styles.modalLabel}>Phone number</label>
+                    <div className={styles.phoneInputRow}>
+                      <span className={styles.phonePrefix}>+91</span>
+                      <input
+                        type="tel"
+                        inputMode="numeric"
+                        value={phoneNumber}
+                        onChange={handlePhoneChange}
+                        placeholder="98765 43210"
+                        maxLength={11}
+                        className={styles.phoneDigitInput}
+                        autoComplete="tel-national"
+                      />
+                    </div>
+                    
+                    <button
+                      disabled={!isPhoneValid}
+                      className={`${styles.modalActionBtn} ${!isPhoneValid ? styles.btnDisabled : ''}`}
+                    >
+                      authenticate
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </div>
   )

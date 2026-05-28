@@ -60,12 +60,15 @@
   transition: background-color 0.5s ease, color 0.5s ease, --vignette-color 0.5s ease;
 }
 
-/* Vignettes — real divs so GSAP can animate them in cinematically */
+/* Vignettes — GPU-composited via scaleY (zero layout reflow, no jank) */
 .vignetteTop {
   position: absolute;
   top: 0;
   left: 0; right: 0;
-  height: 0; /* GSAP animates to 32vh on intro */
+  height: 32vh;
+  transform: scaleY(0);          /* GSAP animates scaleY 0→1 */
+  transform-origin: top center;
+  will-change: transform;
   background: linear-gradient(
     to bottom,
     rgba(0, 0, 0, 0.98) 0%,
@@ -83,7 +86,10 @@
   position: absolute;
   bottom: 0;
   left: 0; right: 0;
-  height: 0; /* GSAP animates to 32vh on intro */
+  height: 32vh;
+  transform: scaleY(0);          /* GSAP animates scaleY 0→1 */
+  transform-origin: bottom center;
+  will-change: transform;
   background: linear-gradient(
     to top,
     rgba(0, 0, 0, 0.98) 0%,
@@ -165,10 +171,10 @@
 }
 
 .navItem {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
   background: none;
   border: none;
-  color: #ffffff; /* Always white for readability against dark vignette */
+  color: #ffffff;
   padding: 10px 16px;
   font-size: 13px;
   font-weight: 400;
@@ -237,6 +243,23 @@
   position: relative;
   user-select: none;
   -webkit-user-select: none;
+  will-change: transform, opacity;
+  transform: translate3d(0, 0, 0);
+}
+
+/* ─── Black vertical reveal line (cinematic intro wipe) ─── */
+.revealLine {
+  position: absolute;
+  inset: 0;                     /* fills the entire column */
+  background: #000000;
+  transform: scaleY(0);
+  transform-origin: center top;
+  will-change: transform;
+  z-index: 10;                  /* above the scrolling images, below nav */
+  pointer-events: none;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
 }
 
 .scrollColumn {
@@ -248,6 +271,9 @@
   padding: 0;
   user-select: none;
   -webkit-user-select: none;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
 }
 
 /* ─── Gallery Cards (Rule 7) ─── */
@@ -260,8 +286,13 @@
   background-color: var(--card-bg);
   position: relative;
   overflow: hidden;
-  margin-top: -1px; /* Prevents vertical subpixel gaps */
   transition: background-color 0.5s ease, border-color 0.5s ease;
+}
+
+.textMask {
+  position: relative;
+  overflow: hidden;
+  padding: 10px 20px;
 }
 
 /* Column 2 and 4 card heights increased slightly (Rule 3) */
@@ -284,8 +315,6 @@
   justify-content: center;
   position: relative;
   z-index: 10;
-  width: 100%;
-  height: 100%;
   background-color: var(--hero-bg); /* Dynamic high-fashion poster backdrop */
   overflow: hidden;
   transition: background-color 0.5s ease;
@@ -371,16 +400,29 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%; /* Spans full height of the poster card to allow perfect flex centering */
-  z-index: 1; /* Sits completely behind the WebGL Canvas (z-index: 5) */
+  height: 100%;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 22%;
+  text-align: center;
+  pointer-events: none;
+  user-select: none;
+}
+
+.content {
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 16px;
   text-align: center;
   pointer-events: none;
   user-select: none;
-  transform: translateY(-20%); /* Shift down slightly from -28% to balance typography */
 }
 
 .sleeveSmallHeader {
@@ -529,6 +571,39 @@
   z-index: 0;
 }
 
+/* ─── Luxury Folding Door Panel Overlays ─── */
+.foldingLeft,
+.foldingRight {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  z-index: 25;                  /* overlays actual content, below typography */
+  pointer-events: none;
+  background-color: #c21d1d;
+  background-image: 
+    radial-gradient(circle, rgba(90, 0, 0, 0.4) 20%, transparent 25%),
+    radial-gradient(circle, rgba(90, 0, 0, 0.4) 20%, transparent 25%),
+    radial-gradient(circle at 50% 50%, #ff4d4d 0%, transparent 80%);
+  background-size: 16px 16px, 16px 16px, 100% 100%;
+  background-position: 0 0, 8px 8px, center;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.45);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.foldingLeft {
+  left: 0;
+  transform-origin: left center;
+  border-right: 2px solid #5a0000;
+}
+
+.foldingRight {
+  right: 0;
+  transform-origin: right center;
+  border-left: 2px solid #5a0000;
+}
+
 /* ── Auto-Moving Pastel Gradient Background ── */
 .bgLayerAnimatedGradient {
   position: absolute;
@@ -654,9 +729,20 @@
   user-drag: none;
 }
 
+.logoWrap {
+  position: relative;
+  will-change: filter, transform;
+  overflow: visible;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
 /* ─── Explore More Button (Rule 2) ─── */
 .centerCta {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
   position: fixed;
   bottom: 40px;
   left: 50%;
@@ -664,11 +750,11 @@
   background: var(--btn-bg);
   color: var(--btn-color);
   border: none;
-  height: 56px; /* Increased from 44px */
+  height: 56px;
   padding: 0 48px;
-  border-radius: 0; /* Premium sharp fashion edge */
+  border-radius: 0;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.15em;
   cursor: pointer;
@@ -701,13 +787,26 @@
   overflow: visible;
 }
 
-/* ─── Bottom White Explore Button ─── */
-.bottomExploreButton {
+/* ─── Bottom White Explore Button Container ─── */
+.bottomExploreButtonContainer {
   position: absolute;
   bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
   z-index: 100; /* Elevated z-index above vignette (z-index: 50) */
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.8fr 1fr 1fr;
+  pointer-events: none; /* Let clicks pass through empty space */
+}
+
+.bottomExploreButtonGridWrapper {
+  grid-column: 3;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.bottomExploreButton {
   background: #FFFFFF; /* Pure white filled button per user request */
   color: #000000; /* Streetwear high-contrast bold black text */
   border: none;
@@ -726,104 +825,500 @@
 
 .bottomExploreButton:hover {
   background: rgba(255, 255, 255, 0.92);
-  transform: translateX(-50%) translateY(-2px) scale(1.02);
+  transform: translateY(-2px) scale(1.02);
 }
 
 /* ─── Top Center Navigation Bar ─── */
 .topNavContainer {
   position: absolute;
   top: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 100; /* Elevated z-index above vignette (z-index: 50) */
+  left: 0;
+  right: 0;
+  z-index: 200; /* Elevated z-index above modalOverlay (z-index: 150) and vignette (z-index: 50) */
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.8fr 1fr 1fr;
+  pointer-events: none; /* Let clicks pass through empty space */
+
+  /* Hardware acceleration to prevent text shaking/jitter during translate Y */
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.topNavGridWrapper {
+  grid-column: 3;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+/* ── Collapsed Nav Capsule ─────────────────────────────────────────── */
+
+/* Breathing glow keyframe */
+@keyframes navBreathe {
+  0%, 100% {
+    box-shadow: 0 0 0px 0px rgba(192, 57, 43, 0);
+    border-color: rgba(255, 255, 255, 0.14);
+  }
+  50% {
+    box-shadow: 0 0 14px 4px rgba(192, 57, 43, 0.45);
+    border-color: rgba(192, 57, 43, 0.6);
+  }
+}
+
+.topNavCapsule {
   display: flex;
   align-items: center;
-  gap: 12px;
-  pointer-events: none; /* Let clicks pass through empty space */
+  background: #ffffff;
+  border: 1px solid #e5e5e5;
+  border-radius: 999px;
+  padding: 5px 8px;
+  pointer-events: auto;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  /* Breathing border starts after 6.5s (after intro) */
+  animation: navBreathe 2.8s ease-in-out 6.5s infinite;
+  transition: box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: scale(1);
+
+  /* Prevent child element font shift/jitter on transform */
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.topNavCapsule:hover {
+  animation-play-state: paused;
+  box-shadow: 0 0 20px 6px rgba(192, 57, 43, 0.18);
+  border-color: rgba(192, 57, 43, 0.45);
+  transform: scale(1.015);
 }
 
 .topNavLogoWrapper {
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 0 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.topNavLogoWrapper:hover {
-  transform: scale(1.04);
+  gap: 8px;
+  padding: 2px 4px;
+  flex-shrink: 0;
 }
 
 .topNavLogoImg {
-  height: 32px;
+  height: 30px;
   width: auto;
-  filter: brightness(0); /* Make logo black on white menu background */
+  color: #111111;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
 }
 
-.topNavTabs {
-  display: flex;
-  align-items: center;
-  gap: 12px; /* Creates space between the logo, about tab, and icons */
-  background: #ffffff; /* Solid white background, removing glassmorphism */
-  border: 1px solid #e5e5e5;
-  border-radius: 26px;
-  padding: 6px;
-  pointer-events: auto; /* Enable clicks */
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-}
-
-.topNavTabActive {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: #111111; /* Solid dark/black active tab background */
-  border: 1px solid #111111;
-  border-radius: 22px;
-  padding: 8px 16px;
-  color: #ffffff;
+.topNavBrandName {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #111;
   font-family: 'Space Grotesk', 'Inter', sans-serif;
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.03em;
   text-transform: uppercase;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.topNavDivider {
+  width: 1px;
+  height: 18px;
+  background: rgba(0, 0, 0, 0.12);
+  margin: 0 10px 0 6px;
+  flex-shrink: 0;
+}
+
+/* New Horizontal Tabs List */
+.topNavTabsList {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Active & Inactive Tabs */
+.navTabActive {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  height: 32px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: #ffffff !important; /* Force white content over active indicator */
   cursor: pointer;
-  transition: all 0.2s ease;
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  outline: none;
+  user-select: none;
+  -webkit-user-select: none;
+  flex-shrink: 0;
 }
 
-.topNavTabActive:hover {
-  background: #222222;
-  border-color: #222222;
-}
-
-.topNavTabInactive {
+.navTabInactive {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 10px;
-  height: 36px;
-  border-radius: 18px;
-  color: #666666; /* Dark grey for visibility on white background */
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: #666666;
   cursor: pointer;
+  outline: none;
+  transition: color 0.2s ease, background-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.navTabInactive:hover {
+  color: #111111;
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+.activeIndicatorBg {
+  position: absolute;
+  inset: 0;
+  background: #111111; /* Dark/Black indicator */
+  border-radius: 999px;
+  z-index: 0;
+}
+
+.tabIcon {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  display: block;
+}
+
+.tabText {
+  position: relative;
+  z-index: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  display: block;
+}
+
+/* ─── Modal Overlay styles for top Nav tabs ─── */
+.modalOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 150; /* Above globalCanvas (z-index: 10) and vignettes/nav */
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.8fr 1fr 1fr;
+  pointer-events: none; /* Let clicks pass through outside the center column */
+}
+
+.modalOverlayCenter {
+  grid-column: 3;
+  width: 100%;
+  height: 100%;
+  background: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 60px 0;
+  position: relative;
+  animation: modalFadeIn 0.3s ease-out, crimsonGlow 8s ease-in-out infinite alternate;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+/* Extend black fill to the left edge for a clean finish */
+.modalOverlayCenter::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 100%;
+  width: 100vw;
+  background: #000000;
+  pointer-events: none;
+}
+
+.modalOverlayCenter::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes crimsonGlow {
+  0% {
+    background: radial-gradient(circle at 50% 40%, #1b0000 0%, #000000 70%);
+  }
+  100% {
+    background: radial-gradient(circle at 50% 60%, #300000 0%, #000000 80%);
+  }
+}
+
+/* Modal form card content overlay */
+.modalCard {
+  width: clamp(240px, 82%, 420px); /* Fluid: fills center column, caps at 420px on large screens */
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  box-shadow: none;
+  z-index: 10;
+  position: relative;
+  animation: cardSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes cardSlideUp {
+  from { transform: translateY(12px) scale(0.97); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.modalTitle {
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: clamp(22px, 2.2vw, 32px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+  margin-bottom: clamp(6px, 0.6vw, 10px);
+  text-transform: uppercase;
+}
+
+.modalSubtitle {
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: clamp(11px, 0.85vw, 13px);
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.60);
+  margin-bottom: clamp(22px, 2.2vw, 36px);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.modalLabel {
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: clamp(12px, 1vw, 15px);
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: clamp(6px, 0.5vw, 10px);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.modalText {
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: clamp(13px, 1.05vw, 16px);
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: clamp(22px, 2vw, 32px);
+  font-weight: 400;
+}
+
+.modalInput {
+  width: 100%;
+  background: #d9d9d9;
+  border: none;
+  color: #000000;
+  padding: clamp(13px, 1.2vw, 18px) clamp(14px, 1.2vw, 20px);
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: clamp(13px, 1.1vw, 16px);
+  font-weight: 600;
+  margin-bottom: clamp(18px, 1.8vw, 28px);
+  border-radius: 0;
+  outline: none;
+  letter-spacing: 0.05em;
+}
+
+.modalInput:focus {
+  background: #ffffff;
+}
+
+/* ─── Phone Input Compound Field ─── */
+.phoneInputRow {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  margin-bottom: clamp(18px, 1.8vw, 28px);
+  background: #d9d9d9;
+}
+
+.phonePrefix {
+  display: flex;
+  align-items: center;
+  padding: 0 4px 0 clamp(12px, 1.1vw, 18px);
+  background: transparent;
+  color: #000000;
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: clamp(13px, 1.1vw, 16px);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.phoneDigitInput {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  color: #000000;
+  padding: clamp(13px, 1.2vw, 18px) clamp(12px, 1.1vw, 16px) clamp(13px, 1.2vw, 18px) 6px;
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: clamp(13px, 1.1vw, 16px);
+  font-weight: 600;
+  outline: none;
+  letter-spacing: 0.05em;
+}
+
+.phoneDigitInput::placeholder {
+  color: rgba(0, 0, 0, 0.38);
+  font-weight: 500;
+}
+
+.phoneInputRow:focus-within {
+  background: #ffffff;
+}
+
+.phoneInputRow:focus-within .phonePrefix {
+  background: transparent;
+}
+
+.modalTextarea {
+  width: 100%;
+  background: #d9d9d9;
+  border: none;
+  color: #000000;
+  padding: clamp(13px, 1.2vw, 18px) clamp(14px, 1.2vw, 20px);
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: clamp(13px, 1.05vw, 16px);
+  font-weight: 500;
+  margin-bottom: clamp(16px, 1.6vw, 24px);
+  border-radius: 0;
+  outline: none;
+  resize: none;
+}
+
+.modalTextarea:focus {
+  background: #ffffff;
+}
+
+.modalActionBtn {
+  width: 100%;
+  background: #ffffff;
+  color: #000000;
+  border: none;
+  border-radius: 0;
+  padding: clamp(12px, 1.1vw, 17px);
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: clamp(11px, 0.85vw, 14px);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  margin-top: clamp(6px, 0.5vw, 10px);
+  margin-bottom: clamp(18px, 1.8vw, 28px);
   transition: all 0.2s ease;
 }
 
-.topNavTabInactive:hover {
-  color: #111111;
-  background: rgba(0, 0, 0, 0.06);
-}
-.exploreShortText {
-  display: none;
+.modalActionBtn:hover {
+  background: rgba(255, 255, 255, 0.9);
 }
 
-.exploreFullText {
-  display: inline;
+.btnDisabled {
+  opacity: 0.35;
+  background: #555558 !important;
+  color: #a0a0a5 !important;
+  cursor: not-allowed;
+  pointer-events: none;
 }
+
+/* ─── Contact Links (About Us panel) ─── */
+.contactLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: clamp(22px, 2vw, 32px);
+}
+
+.contactRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.06);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.contactRow:hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateX(4px);
+}
+
+.contactIcon {
+  color: rgba(255, 255, 255, 0.55);
+  flex-shrink: 0;
+  transition: color 0.2s ease;
+}
+
+.contactRow:hover .contactIcon {
+  color: #ffffff;
+}
+
+.contactHandle {
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: clamp(12px, 0.95vw, 14px);
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.65);
+  letter-spacing: 0.03em;
+  transition: color 0.2s ease;
+}
+
+.contactRow:hover .contactHandle {
+  color: #ffffff;
+}
+
+.modalCloseBtn {
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: lowercase;
+  cursor: pointer;
+  margin-top: 12px;
+  align-self: center;
+  transition: color 0.2s ease;
+}
+
+
 
 /* Responsive Grid columns fraction structure (Rule 6) */
 @media (max-width: 1024px) {
-  .galleryGrid {
+  .galleryGrid,
+  .topNavContainer,
+  .bottomExploreButtonContainer {
     grid-template-columns: repeat(3, 1fr);
+  }
+  .topNavGridWrapper,
+  .bottomExploreButtonGridWrapper {
+    grid-column: 2; /* Center column is index 2 in 3-column tablet view */
   }
   .scrollColumnWrap:nth-child(1),
   .scrollColumnWrap:nth-child(5) {
@@ -849,11 +1344,23 @@
   .sleeveSmallHeader {
     font-size: 10px;
   }
+  .modalOverlay {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .modalOverlayCenter {
+    grid-column: 2;
+  }
 }
 
 @media (max-width: 600px) {
-  .galleryGrid {
+  .galleryGrid,
+  .topNavContainer,
+  .bottomExploreButtonContainer {
     grid-template-columns: 1fr;
+  }
+  .topNavGridWrapper,
+  .bottomExploreButtonGridWrapper {
+    grid-column: 1; /* Center column is index 1 in 1-column mobile view */
   }
   .scrollColumnWrap:nth-child(2),
   .scrollColumnWrap:nth-child(4) {
@@ -882,6 +1389,12 @@
   .sleeveSmallHeader {
     font-size: 9px;
     letter-spacing: 0.3em;
+  }
+  .modalOverlay {
+    grid-template-columns: 1fr;
+  }
+  .modalOverlayCenter {
+    grid-column: 1;
   }
 }
 

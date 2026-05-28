@@ -19,13 +19,18 @@ export default function RootLayout({ children }) {
   const [splashDone, setSplashDone] = useState(false)
 
   return (
-    <html lang="en">
+    <html lang="en" style={{ backgroundColor: '#0a0a0f' }}>
       <head>
         <title>Knight Wolf — Wear The Hunt</title>
         <meta name="description" content="Premium custom T-shirts. Design your own with our interactive 3D configurator. Knight Wolf — Wear The Hunt." />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <style>{`
+          html, body {
+            background-color: #0a0a0f !important;
+          }
+        `}</style>
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} ${!splashDone ? 'splash-active' : ''}`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${!splashDone ? 'splash-active' : ''}`} style={{ backgroundColor: '#0a0a0f' }}>
         
         {/* Finalized Cinematic Splash Screen */}
         {!splashDone && (
