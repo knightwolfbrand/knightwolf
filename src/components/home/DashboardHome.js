@@ -178,28 +178,20 @@ const RotatingGroup = React.forwardRef(({ delay = 0, speed = 0.004, speedRef, is
     const isHovering = hoverPauseRef && hoverPauseRef.current;
 
     // Target tracking for auto-rotation — paused when hovering or dragging
-    // User requested front view only, so speed is set to 0.0 when not dragging
     if (!isDragging && !isHovering) {
       if (startTime.current === null) startTime.current = state.clock.elapsedTime
       const elapsed = state.clock.elapsedTime - startTime.current
       if (elapsed >= delay) active.current = true
 
       if (active.current) {
-        const t = elapsed - delay
-        const currentSpeed = 0.0 // front view only
-        if (mode === 'spin') {
+        // Slow continuous relative increment to ensure 100% jump-free transition after manual drag
+        const deltaSpeed = 0.005; 
+
+        if (mode === 'spin' || mode === 'swing') {
           if (targetRotationYRef) {
-            targetRotationYRef.current = 0.0;
+            targetRotationYRef.current = (targetRotationYRef.current ?? 0) + deltaSpeed;
           } else {
-            groupRef.current.rotation.y = 0.0;
-            return;
-          }
-        } else if (mode === 'swing') {
-          const targetSwing = Math.sin(t * currentSpeed) * Math.PI;
-          if (targetRotationYRef) {
-            targetRotationYRef.current = targetSwing;
-          } else {
-            groupRef.current.rotation.y = targetSwing;
+            groupRef.current.rotation.y += deltaSpeed;
             return;
           }
         }
@@ -296,20 +288,23 @@ const ModelPreview = ({ color = '#f5f5f5', modelPath = '/models/shirt_baked.glb'
 
     clonedScene.traverse((child) => {
       if (child.isMesh) {
-        // Retrieve original mesh material to preserve baked normal/AO detailing (creases, seams, ribs)
-        const originalMesh = scene.getObjectByName(child.name);
-        const originalMat = originalMesh?.material;
+        // Clone original material once to avoid memory leak and constant shader recompilation
+        if (!child.userData.isMaterialCloned) {
+          const originalMesh = scene.getObjectByName(child.name);
+          const originalMat = originalMesh?.material;
+          
+          if (originalMat) {
+            child.material = originalMat.clone();
+          } else {
+            child.material = new THREE.MeshStandardMaterial();
+          }
+          child.userData.isMaterialCloned = true;
+        }
 
-        child.material = new THREE.MeshStandardMaterial({
-          map: uvTex,
-          normalMap: originalMat?.normalMap || null,
-          normalScale: originalMat?.normalScale || new THREE.Vector2(1, 1),
-          aoMap: originalMat?.aoMap || null,
-          aoMapIntensity: originalMat?.aoMapIntensity !== undefined ? originalMat?.aoMapIntensity : 1.0,
-          roughness: 1.0,
-          metalness: 0.0,
-        });
-
+        // Just update the map property instead of recreating the MeshStandardMaterial
+        child.material.map = uvTex;
+        child.material.roughness = 1.0;
+        child.material.metalness = 0.0;
         child.material.needsUpdate = true;
 
         // Physically parent the sleeve label directly to the right sleeve mesh (Object_3)
@@ -322,7 +317,7 @@ const ModelPreview = ({ color = '#f5f5f5', modelPath = '/models/shirt_baked.glb'
         }
       }
     });
-  }, [uvTex, clonedScene, logoTex, isOversized, showSticker]);
+  }, [uvTex, clonedScene, isOversized, showSticker]);
 
   return (
     <group position={finalPos} scale={finalScale} rotation={finalRot}>
@@ -1351,7 +1346,7 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
             toneMappingExposure: 1.0,
             outputColorSpace: THREE.SRGBColorSpace,
           }}
-          shadows
+          shadows={false}
         >
           <View.Port />
           <Preload all />

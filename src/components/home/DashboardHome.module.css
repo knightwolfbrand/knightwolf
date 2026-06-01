@@ -1030,6 +1030,7 @@
   overflow-x: hidden;
   padding: 60px 0;
   position: relative;
+  box-shadow: 0 0 0 2px #000000; /* Mask sub-pixel rounding gaps on outer edges */
   animation: modalFadeIn 0.3s ease-out, crimsonGlow 8s ease-in-out infinite alternate;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE/Edge */
@@ -1041,7 +1042,7 @@
   position: absolute;
   top: 0;
   bottom: 0;
-  right: 100%;
+  right: calc(100% - 2px); /* Slight overlap to prevent sub-pixel vertical gap */
   width: 100vw;
   background: #000000;
   pointer-events: none;
