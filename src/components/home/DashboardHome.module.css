@@ -1128,7 +1128,7 @@
 
 .modalInput {
   width: 100%;
-  background: #d9d9d9;
+  background: #ffffff;
   border: none;
   color: #000000;
   padding: clamp(13px, 1.2vw, 18px) clamp(14px, 1.2vw, 20px);
@@ -1151,7 +1151,7 @@
   align-items: stretch;
   width: 100%;
   margin-bottom: clamp(18px, 1.8vw, 28px);
-  background: #d9d9d9;
+  background: #ffffff;
 }
 
 .phonePrefix {
@@ -1198,7 +1198,7 @@
 
 .modalTextarea {
   width: 100%;
-  background: #d9d9d9;
+  background: #ffffff;
   border: none;
   color: #000000;
   padding: clamp(13px, 1.2vw, 18px) clamp(14px, 1.2vw, 20px);
@@ -1290,6 +1290,13 @@
 
 .contactRow:hover .contactHandle {
   color: #ffffff;
+}
+
+.modalDivider {
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.35);
+  margin: clamp(16px, 1.6vw, 24px) 0;
 }
 
 .modalCloseBtn {
@@ -1407,3 +1414,161 @@
     display: inline;
   }
 }
+
+/* ─── Contact Links (Style 05: Neon Hologram Glow) ─── */
+.iconRow {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+  margin-top: 10px;
+  margin-bottom: 14px;
+}
+
+.iconBtn {
+  position: relative;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 12px;
+}
+
+.iconTooltip {
+  margin-top: 8px;
+  background: rgba(10, 10, 10, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  padding: 6px 12px;
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+  letter-spacing: 0.05em;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.tooltipWrapper {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+}
+
+.btnInsta, .btnWa, .btnMail, .btnPhone {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* --- Instagram brand styles --- */
+.btnInsta:hover, .btnInstaActive {
+  color: #E1306C;
+  filter: drop-shadow(0 0 10px rgba(225, 48, 108, 0.7));
+  transform: translateY(-2px);
+}
+.revealInsta {
+  background: rgba(225, 48, 108, 0.04) !important;
+  border-color: #E1306C !important;
+  color: #ffb3c6 !important;
+  box-shadow: 0 0 20px rgba(225, 48, 108, 0.3) !important;
+}
+
+/* --- WhatsApp brand styles --- */
+.btnWa:hover, .btnWaActive {
+  color: #25D366;
+  filter: drop-shadow(0 0 10px rgba(37, 211, 102, 0.7));
+  transform: translateY(-2px);
+}
+.revealWa {
+  background: rgba(37, 211, 102, 0.04) !important;
+  border-color: #25D366 !important;
+  color: #b3ffc6 !important;
+  box-shadow: 0 0 20px rgba(37, 211, 102, 0.3) !important;
+}
+
+/* --- Email brand styles --- */
+.btnMail:hover, .btnMailActive {
+  color: #00aaff;
+  filter: drop-shadow(0 0 10px rgba(0, 170, 255, 0.7));
+  transform: translateY(-2px);
+}
+.revealMail {
+  background: rgba(0, 170, 255, 0.04) !important;
+  border-color: #00aaff !important;
+  color: #b3e5ff !important;
+  box-shadow: 0 0 20px rgba(0, 170, 255, 0.3) !important;
+}
+
+/* --- Phone brand styles --- */
+.btnPhone:hover, .btnPhoneActive {
+  color: #ffd600;
+  filter: drop-shadow(0 0 10px rgba(255, 214, 0, 0.7));
+  transform: translateY(-2px);
+}
+.revealPhone {
+  background: rgba(255, 214, 0, 0.04) !important;
+  border-color: #ffd600 !important;
+  color: #fff9c4 !important;
+  box-shadow: 0 0 20px rgba(255, 214, 0, 0.3) !important;
+}
+
+.revealHolo {
+  width: 100%;
+  border-radius: 8px;
+  padding: 14px;
+  text-align: center;
+  text-decoration: none;
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 24px;
+  display: block;
+  animation: glowPulse 0.3s ease-out;
+  letter-spacing: 0.04em;
+  transition: all 0.3s ease;
+}
+
+@keyframes glowPulse {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.contactInstruction {
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  width: 100%;
+  text-align: center;
+  margin-top: 10px;
+  margin-bottom: 24px;
+}
+
+.copiedToast {
+  margin-top: 14px;
+  background: #ffffff;
+  color: #000000;
+  padding: 8px 20px;
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border-radius: 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  display: inline-block;
+  align-self: center;
+}
+

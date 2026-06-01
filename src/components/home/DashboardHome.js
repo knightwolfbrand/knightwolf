@@ -511,10 +511,55 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
   const [localIsDark, setLocalIsDark] = useState(false);
   const isDark = forceTheme !== null ? forceTheme : localIsDark;
   const [activeTab, setActiveTab] = useState(null); // Keep no option active by default as requested
+  const [activeContactType, setActiveContactType] = useState('instagram');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isPhoneValid, setIsPhoneValid] = useState(false);
   const [isPeeking, setIsPeeking] = useState(false);
+  const [connectName, setConnectName] = useState('');
+  const [connectMessage, setConnectMessage] = useState('');
+  const [showCopiedToast, setShowCopiedToast] = useState(false);
+  const [hoveredIcon, setHoveredIcon] = useState(null);
   const containerRef = useRef(null);
+
+  const handlePhoneClick = () => {
+    const textToCopy = '+919941292729';
+    if (typeof window !== 'undefined') {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(textToCopy)
+          .then(() => {
+            setShowCopiedToast(true);
+            setTimeout(() => {
+              setShowCopiedToast(false);
+            }, 2000);
+          })
+          .catch((err) => {
+            console.error('Failed to copy: ', err);
+          });
+      } else {
+        // Safe Fallback copy method for non-HTTPS or non-secure local IP contexts
+        try {
+          const textarea = document.createElement('textarea');
+          textarea.value = textToCopy;
+          textarea.style.position = 'fixed';
+          textarea.style.top = '0';
+          textarea.style.left = '0';
+          textarea.style.opacity = '0';
+          document.body.appendChild(textarea);
+          textarea.select();
+          const successful = document.execCommand('copy');
+          document.body.removeChild(textarea);
+          if (successful) {
+            setShowCopiedToast(true);
+            setTimeout(() => {
+              setShowCopiedToast(false);
+            }, 2000);
+          }
+        } catch (err) {
+          console.error('Fallback copy failed: ', err);
+        }
+      }
+    }
+  };
 
   const validateIndianPhone = (formatted) => {
     // Strip space, then check exactly 10 digits starting with 6-9
@@ -1339,53 +1384,168 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
                       We design heavy-engineered premium modern streetwear. Combining raw cyber culture aesthetics with premium canvas comfort fitments.
                     </p>
 
-                    {/* Contact Links */}
-                    <div className={styles.contactLinks}>
-                      <a
-                        href="https://instagram.com/knightwolf.shop"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={styles.contactRow}
+                    {/* Horizontal Divider Line */}
+                    <div className={styles.modalDivider} />
+
+                    <label className={styles.modalLabel}>name</label>
+                    <input
+                      type="text"
+                      placeholder="your name..."
+                      className={styles.modalInput}
+                      value={connectName}
+                      onChange={(e) => setConnectName(e.target.value)}
+                    />
+
+                    <label className={styles.modalLabel}>message</label>
+                    <textarea
+                      placeholder="your inquiry or message..."
+                      rows="3"
+                      className={styles.modalTextarea}
+                      value={connectMessage}
+                      onChange={(e) => setConnectMessage(e.target.value)}
+                    />
+                    
+                    <button className={styles.modalActionBtn}>send message</button>
+
+                    {/* Horizontal Divider Line */}
+                    <div className={styles.modalDivider} />
+
+                    <label className={styles.modalLabel}>contact us</label>
+
+                    {/* Contact Links (Style 05: Neon Hologram Glow) */}
+                    <div className={styles.iconRow}>
+                      <button
+                        onClick={() => window.open('https://instagram.com/knightwolf.shop', '_blank')}
+                        onMouseEnter={() => setHoveredIcon('instagram')}
+                        onMouseLeave={() => setHoveredIcon(null)}
+                        className={`${styles.iconBtn} ${styles.btnInsta}`}
                       >
                         <svg
-                          width="16" height="16" viewBox="0 0 24 24"
+                          width="25" height="25" viewBox="0 0 24 24"
                           fill="none" stroke="currentColor" strokeWidth="2"
                           strokeLinecap="round" strokeLinejoin="round"
-                          className={styles.contactIcon}
                         >
                           <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
                           <circle cx="12" cy="12" r="4"/>
                           <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
                         </svg>
-                        <span className={styles.contactHandle}>knightwolf.shop</span>
-                      </a>
-                      <a
-                        href="mailto:support@knightwolf.shop"
-                        className={styles.contactRow}
-                      >
-                        <Mail size={16} className={styles.contactIcon} />
-                        <span className={styles.contactHandle}>support@knightwolf.shop</span>
-                      </a>
-                      <a
-                        href="tel:+919941292729"
-                        className={styles.contactRow}
+                        <AnimatePresence>
+                          {hoveredIcon === 'instagram' && (
+                            <div className={styles.tooltipWrapper}>
+                              <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 5 }}
+                                transition={{ duration: 0.15 }}
+                                className={styles.iconTooltip}
+                              >
+                                @knightwolf.shop
+                              </motion.div>
+                            </div>
+                          )}
+                        </AnimatePresence>
+                      </button>
+
+                      <button
+                        onClick={() => window.open('https://wa.me/919941292729', '_blank')}
+                        onMouseEnter={() => setHoveredIcon('whatsapp')}
+                        onMouseLeave={() => setHoveredIcon(null)}
+                        className={`${styles.iconBtn} ${styles.btnWa}`}
                       >
                         <svg
-                          width="16" height="16" viewBox="0 0 24 24"
+                          width="25" height="25" viewBox="0 0 24 24"
+                          fill="currentColor"
+                        >
+                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.746.953 3.71 1.455 5.704 1.456h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                        </svg>
+                        <AnimatePresence>
+                          {hoveredIcon === 'whatsapp' && (
+                            <div className={styles.tooltipWrapper}>
+                              <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 5 }}
+                                transition={{ duration: 0.15 }}
+                                className={styles.iconTooltip}
+                              >
+                                +91 99412 92729
+                              </motion.div>
+                            </div>
+                          )}
+                        </AnimatePresence>
+                      </button>
+
+                      <button
+                        onClick={() => window.location.href = 'mailto:hello.knightwolf@gmail.com'}
+                        onMouseEnter={() => setHoveredIcon('email')}
+                        onMouseLeave={() => setHoveredIcon(null)}
+                        className={`${styles.iconBtn} ${styles.btnMail}`}
+                      >
+                        <Mail size={25} />
+                        <AnimatePresence>
+                          {hoveredIcon === 'email' && (
+                            <div className={styles.tooltipWrapper}>
+                              <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 5 }}
+                                transition={{ duration: 0.15 }}
+                                className={styles.iconTooltip}
+                              >
+                                hello.knightwolf@gmail.com
+                              </motion.div>
+                            </div>
+                          )}
+                        </AnimatePresence>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          handlePhoneClick();
+                          window.location.href = 'tel:+919941292729';
+                        }}
+                        onMouseEnter={() => setHoveredIcon('phone')}
+                        onMouseLeave={() => setHoveredIcon(null)}
+                        className={`${styles.iconBtn} ${styles.btnPhone}`}
+                      >
+                        <svg
+                          width="25" height="25" viewBox="0 0 24 24"
                           fill="none" stroke="currentColor" strokeWidth="2"
                           strokeLinecap="round" strokeLinejoin="round"
-                          className={styles.contactIcon}
                         >
                           <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.07 11a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3 .18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 7.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16.92z"/>
                         </svg>
-                        <span className={styles.contactHandle}>+91 99412 92729</span>
-                      </a>
+                        <AnimatePresence>
+                          {hoveredIcon === 'phone' && (
+                            <div className={styles.tooltipWrapper}>
+                              <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 5 }}
+                                transition={{ duration: 0.15 }}
+                                className={styles.iconTooltip}
+                              >
+                                +91 99412 92729
+                              </motion.div>
+                            </div>
+                          )}
+                        </AnimatePresence>
+                      </button>
                     </div>
 
-                    <label className={styles.modalLabel}>message</label>
-                    <textarea placeholder="your inquiry or message..." rows="3" className={styles.modalTextarea} />
-                    
-                    <button className={styles.modalActionBtn}>send message</button>
+                    <AnimatePresence>
+                      {showCopiedToast && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                          transition={{ duration: 0.2 }}
+                          className={styles.copiedToast}
+                        >
+                          COPIED
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </motion.div>
                 )}
 

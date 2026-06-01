@@ -1,0 +1,470 @@
+.container {
+  min-height: 100vh;
+  background: #000000;
+  color: #ffffff;
+  padding: 80px 24px;
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-x: hidden;
+}
+
+.backBtn {
+  align-self: flex-start;
+  margin-bottom: 40px;
+  color: rgba(255, 255, 255, 0.5);
+  text-decoration: none;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: color 0.3s ease;
+}
+
+.backBtn:hover {
+  color: #ffffff;
+}
+
+.header {
+  text-align: center;
+  max-width: 800px;
+  margin-bottom: 80px;
+}
+
+.title {
+  font-size: clamp(32px, 4vw, 56px);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #ffffff 30%, #a3a3a3 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: #888888;
+  line-height: 1.6;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 40px;
+  width: 100%;
+  max-width: 1200px;
+}
+
+.demoCard {
+  background: #0a0a0a;
+  border: 1px solid #1a1a1a;
+  border-radius: 12px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.demoCard:hover {
+  border-color: #333333;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+}
+
+.demoHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #1a1a1a;
+  padding-bottom: 16px;
+}
+
+.demoNum {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: #c21d1d;
+  font-weight: 700;
+}
+
+.demoName {
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.demoBody {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 16px;
+}
+
+/* ─── Global Common Icon Container Row ─── */
+.iconRow {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+}
+
+.iconBtn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   STYLE 1: Cyberpunk Brackets Slide
+   ────────────────────────────────────────────────────────────────────────── */
+.btnCyber {
+  padding: 12px;
+  border: 1px dashed rgba(255, 0, 85, 0.3);
+  color: #ff0055;
+  background: rgba(255, 0, 85, 0.02);
+}
+
+.btnCyber:hover, .btnCyberActive {
+  color: #ffffff;
+  background: rgba(255, 0, 85, 0.15);
+  border-style: solid;
+  border-color: #ff0055;
+  box-shadow: 0 0 10px rgba(255, 0, 85, 0.4);
+}
+
+.revealCyber {
+  width: 100%;
+  background: rgba(255, 0, 85, 0.05);
+  border: 1px solid #ff0055;
+  padding: 14px;
+  text-align: center;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  color: #ffffff;
+  animation: cyberFade 0.3s ease-out;
+  letter-spacing: 0.05em;
+}
+
+@keyframes cyberFade {
+  from { opacity: 0; transform: translateY(-8px); filter: blur(3px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   STYLE 2: Minimalist Underline Slide
+   ────────────────────────────────────────────────────────────────────────── */
+.btnUnderline {
+  padding: 10px;
+  position: relative;
+}
+
+.btnUnderline::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: #ffffff;
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+}
+
+.btnUnderline:hover::after, .btnUnderlineActive::after {
+  width: 80%;
+}
+
+.btnUnderlineActive {
+  color: #ffffff;
+}
+
+.revealUnderline {
+  width: 100%;
+  padding: 12px 0;
+  text-align: center;
+  color: #ffffff;
+  font-size: 15px;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  animation: slideDownFade 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideDownFade {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   STYLE 3: Glassmorphic Floating Panel
+   ────────────────────────────────────────────────────────────────────────── */
+.btnGlass {
+  padding: 14px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.btnGlass:hover, .btnGlassActive {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  transform: scale(1.1);
+}
+
+.revealGlass {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #ffffff;
+  font-size: 14px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  animation: zoomInFade 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes zoomInFade {
+  from { opacity: 0; transform: scale(0.95) translateY(-5px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   STYLE 4: Heavy Industrial Bracket
+   ────────────────────────────────────────────────────────────────────────── */
+.btnIndustrial {
+  padding: 14px;
+  border: 2px solid #333333;
+}
+
+.btnIndustrial:hover, .btnIndustrialActive {
+  border-color: #ffffff;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.revealIndustrial {
+  width: 100%;
+  border: 2px solid #ffffff;
+  background: #ffffff;
+  color: #000000;
+  padding: 14px;
+  text-align: center;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  animation: industrialSlide 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes industrialSlide {
+  from { transform: translateY(-8px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   STYLE 5: Holographic Glow Panel
+   ────────────────────────────────────────────────────────────────────────── */
+.btnHolo {
+  padding: 12px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.btnHolo:hover, .btnHoloActive {
+  color: #ffffff;
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
+  transform: translateY(-2px);
+}
+
+.revealHolo {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid #ffffff;
+  border-radius: 8px;
+  padding: 14px;
+  text-align: center;
+  color: #ffffff;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+  animation: glowPulse 0.3s ease-out;
+}
+
+@keyframes glowPulse {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   STYLE 6: Magnetic Accent Pill
+   ────────────────────────────────────────────────────────────────────────── */
+.btnMagnetic {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #111111;
+}
+
+.btnMagnetic:hover, .btnMagneticActive {
+  background: #c21d1d;
+  color: #ffffff;
+  transform: rotate(15deg);
+}
+
+.revealMagnetic {
+  width: 100%;
+  background: #161616;
+  border-radius: 30px;
+  padding: 14px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  font-weight: 500;
+  border: 1px solid #222222;
+  animation: pillSlide 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes pillSlide {
+  from { opacity: 0; transform: translateY(-12px) scaleY(0.8); }
+  to { opacity: 1; transform: translateY(0) scaleY(1); }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   STYLE 7: Split Block Shift
+   ────────────────────────────────────────────────────────────────────────── */
+.btnSplit {
+  flex: 1;
+  padding: 16px;
+  background: #111111;
+  border: 1px solid #222222;
+}
+
+.btnSplit:hover, .btnSplitActive {
+  background: #ffffff;
+  color: #000000;
+  border-color: #ffffff;
+}
+
+.revealSplit {
+  width: 100%;
+  background: #111111;
+  border-left: 3px solid #ffffff;
+  padding: 14px 18px;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  animation: splitOpen 0.3s ease;
+}
+
+@keyframes splitOpen {
+  from { border-left-width: 0px; opacity: 0; }
+  to { border-left-width: 3px; opacity: 1; }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   STYLE 8: Left Border Accent Slide
+   ────────────────────────────────────────────────────────────────────────── */
+.btnAccent {
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.btnAccent:hover, .btnAccentActive {
+  background: rgba(255, 255, 255, 0.04);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.revealAccent {
+  width: 100%;
+  border-left: 4px solid #c21d1d;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 14px;
+  font-weight: 500;
+  animation: accentReveal 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes accentReveal {
+  from { opacity: 0; transform: translateX(-6px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   STYLE 9: Clean Fade Grid
+   ────────────────────────────────────────────────────────────────────────── */
+.btnClean {
+  padding: 12px;
+}
+
+.btnClean:hover, .btnCleanActive {
+  color: #ffffff;
+  transform: scale(1.15);
+}
+
+.revealClean {
+  width: 100%;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 0.08em;
+  padding: 10px 0;
+  animation: cleanFade 0.4s ease-out;
+}
+
+@keyframes cleanFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   STYLE 10: Retro Terminal Execution
+   ────────────────────────────────────────────────────────────────────────── */
+.btnTerminal {
+  padding: 12px;
+  border: 1px solid #15803d;
+  color: #22c55e;
+  border-radius: 4px;
+}
+
+.btnTerminal:hover, .btnTerminalActive {
+  background: #15803d;
+  color: #ffffff;
+}
+
+.revealTerminal {
+  width: 100%;
+  background: #020202;
+  border: 1px solid #15803d;
+  border-radius: 4px;
+  padding: 14px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
+  color: #22c55e;
+  animation: typewriterSim 0.3s steps(30, end);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+@keyframes typewriterSim {
+  from { width: 0; opacity: 0; }
+  to { width: 100%; opacity: 1; }
+}
