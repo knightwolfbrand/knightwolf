@@ -216,25 +216,13 @@ function drawTextOnCanvas(ctx, text, uv, cfg) {
     const sx = Math.round(ux * UV_SIZE);
     const sy = Math.round(uy * UV_SIZE);
     
-    let styleStr = '';
-    if (text.italic) styleStr += 'italic ';
-    
-    const scaledSize = Math.round(text.fontSize * (UV_SIZE / 1024) * text.scale);
-    styleStr += `${text.fontWeight} ${scaledSize}px "${text.fontFamily}"`;
+    const scaledSize = Math.round(text.fontSize * (UV_SIZE / 1024));
+    const styleStr = `700 ${scaledSize}px ${text.fontFamily}`;
     
     ctx.font = styleStr;
     ctx.fillStyle = text.color;
-    ctx.textAlign = text.textAlign || 'center';
+    ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    
-    let content = text.content;
-    if (text.uppercase || text.textTransform === 'uppercase') {
-        content = content.toUpperCase();
-    } else if (text.textTransform === 'lowercase') {
-        content = content.toLowerCase();
-    } else if (text.textTransform === 'capitalize') {
-        content = content.replace(/\b\w/g, c => c.toUpperCase());
-    }
     
     ctx.translate(sx, sy);
     
@@ -242,15 +230,7 @@ function drawTextOnCanvas(ctx, text, uv, cfg) {
         ctx.scale(1, -1);
     }
     
-    ctx.rotate(text.rotation * Math.PI / 180);
-    
-    if ('letterSpacing' in ctx) {
-        ctx.letterSpacing = `${text.letterSpacing * (UV_SIZE / 1024)}px`;
-        ctx.fillText(content, 0, 0);
-    } else {
-        ctx.fillText(content, 0, 0);
-    }
-    
+    ctx.fillText(text.content, 0, 0);
     ctx.restore();
 }
 
