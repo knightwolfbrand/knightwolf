@@ -37,8 +37,7 @@ html, body {
 .app-container {
     display: grid;
     grid-template-columns: var(--sidebar-width) 1fr var(--sidebar-width);
-    height: 100%;
-    padding-bottom: var(--bottom-bar-height);
+    height: calc(100% - var(--bottom-bar-height));
     width: 100%;
     background-color: var(--bg-dark);
 }
@@ -51,6 +50,8 @@ html, body {
     display: flex;
     flex-direction: column;
     z-index: 10;
+    min-height: 0;
+    overflow: hidden;
 }
 
 .sidebar-right {
@@ -103,7 +104,7 @@ html, body {
 .sidebar-scroll-content {
     flex: 1;
     overflow-y: auto;
-    padding: 24px;
+    padding: 24px 24px 48px 24px;
     scrollbar-width: none; /* Firefox */
 }
 
