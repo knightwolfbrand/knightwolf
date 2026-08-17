@@ -503,13 +503,11 @@ html, body {
 /* Tab Panels */
 .tab-panel {
     display: none;
-    height: 100%;
 }
 
 .tab-panel.active {
     display: flex;
     flex-direction: column;
-    height: 100%;
 }
 
 .tab-placeholder-text {
@@ -549,6 +547,7 @@ html, body {
     padding-bottom: 12px;
     margin-bottom: 16px;
     scrollbar-width: none;
+    flex-shrink: 0;
 }
 
 .categories-row::-webkit-scrollbar {
@@ -798,3 +797,52 @@ html, body {
         min-height: 400px;
     }
 }
+
+/* --- Sticker Hover / Drag Preview on the side --- */
+.sticker-hover-preview {
+    position: fixed;
+    right: calc(var(--sidebar-width) + 20px); /* Positioned exactly on the side (left) of the right sidebar controls */
+    top: 50%;
+    transform: translateY(-50%) scale(0.9);
+    width: 210px;
+    background: rgba(10, 10, 10, 0.95);
+    border: 1px solid var(--accent-blue);
+    box-shadow: 0 0 30px rgba(0, 210, 255, 0.3);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 1000;
+    pointer-events: none; /* Mouse coordinates pass through naturally */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sticker-hover-preview.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(-50%) scale(1);
+}
+
+.sticker-hover-preview img {
+    max-width: 100%;
+    max-height: 150px;
+    object-fit: contain;
+    margin-bottom: 12px;
+    filter: drop-shadow(0 0 12px rgba(255,255,255,0.1));
+}
+
+.hover-preview-title {
+    font-family: var(--font-title);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent-blue);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-align: center;
+    text-shadow: 0 0 8px rgba(0, 210, 255, 0.4);
+}
+

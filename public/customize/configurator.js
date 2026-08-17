@@ -561,6 +561,37 @@ document.getElementById('ctrl-reset').addEventListener('click', () => {
     });
 });
 
+// ─── STICKER HOVER / DRAG PREVIEW ─────────────────────────────────────────────
+const hoverPreview = document.getElementById('sticker-hover-preview');
+const hoverPreviewImg = document.getElementById('hover-preview-img');
+const hoverPreviewTitle = document.getElementById('hover-preview-title');
+
+document.querySelectorAll('.sticker-opt').forEach(btn => {
+    const showPreview = () => {
+        const img = btn.querySelector('img');
+        if (!img) return;
+        const imgSrc = img.getAttribute('src');
+        const title = btn.getAttribute('title') || 'Sticker';
+        
+        if (hoverPreview && hoverPreviewImg && hoverPreviewTitle) {
+            hoverPreviewImg.src = imgSrc;
+            hoverPreviewTitle.textContent = title;
+            hoverPreview.classList.add('visible');
+        }
+    };
+    
+    const hidePreview = () => {
+        if (hoverPreview) {
+            hoverPreview.classList.remove('visible');
+        }
+    };
+
+    btn.addEventListener('mouseenter', showPreview);
+    btn.addEventListener('mouseleave', hidePreview);
+    btn.addEventListener('dragstart', showPreview);
+    btn.addEventListener('dragend', hidePreview);
+});
+
 // ─── ANIMATION LOOP ───────────────────────────────────────────────────────────
 function animate() {
     requestAnimationFrame(animate);
