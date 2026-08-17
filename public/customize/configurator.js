@@ -10,7 +10,7 @@ const PRINT_SIZES = {
         width: 0.28,
         height: 0.40,
         x: 0.50,
-        y: 0.55
+        y: 0.44
     },
     mediumFront: {
         name: "MEDIUM FRONT",
@@ -34,7 +34,7 @@ const PRINT_SIZES = {
         width: 0.28,
         height: 0.40,
         x: 0.50,
-        y: 0.55
+        y: 0.44
     },
     mediumBack: {
         name: "MEDIUM BACK",
