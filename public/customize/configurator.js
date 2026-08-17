@@ -3,7 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 // --- CONFIGURATION & STATE ---
-const PRINT_SIZES = {
+const PRINT_AREAS = {
     fullFront: {
         name: "FULL FRONT",
         side: "front",
@@ -291,7 +291,7 @@ function repaintStickerCanvas() {
     const front = STATE.designs.front;
     if (front.stickerImage) {
         const sizeId = front.printSize || 'mediumFront';
-        const printSizeConfig = PRINT_SIZES[sizeId];
+        const printSizeConfig = PRINT_AREAS[sizeId];
         const uv = cfg.uvCenter;
         const aspectY = cfg.aspectY || 1.0;
 
@@ -309,10 +309,10 @@ function repaintStickerCanvas() {
             stickerWidth = boxHeight / aspectY;
         }
 
-        const widthFactor = 0.18;
-        const heightFactor = 0.22;
-        const ux = uv.cx + (printSizeConfig.x - 0.5) * widthFactor;
-        const uy = uv.cy + (printSizeConfig.y - 0.5) * heightFactor;
+        const posX = front.x !== undefined ? front.x : 0.5;
+        const posY = front.y !== undefined ? front.y : 0.5;
+        const ux = uv.cx + (printSizeConfig.x - 0.5) * 0.18 + (posX - 0.5) * 0.18 * printSizeConfig.width;
+        const uy = uv.cy + (printSizeConfig.y - 0.5) * 0.22 + (posY - 0.5) * 0.22 * printSizeConfig.height;
 
         const sx = Math.round(ux * UV_SIZE);
         const sy = Math.round(uy * UV_SIZE);
@@ -343,7 +343,7 @@ function repaintStickerCanvas() {
     const back = STATE.designs.back;
     if (back.stickerImage) {
         const sizeId = back.printSize || 'mediumBack';
-        const printSizeConfig = PRINT_SIZES[sizeId];
+        const printSizeConfig = PRINT_AREAS[sizeId];
         const uv = cfg.uvBack;
         const aspectY = cfg.aspectY || 1.0;
 
@@ -361,10 +361,10 @@ function repaintStickerCanvas() {
             stickerWidth = boxHeight / aspectY;
         }
 
-        const widthFactor = 0.18;
-        const heightFactor = 0.22;
-        const ux = uv.cx + (printSizeConfig.x - 0.5) * widthFactor;
-        const uy = uv.cy + (printSizeConfig.y - 0.5) * heightFactor;
+        const posX = back.x !== undefined ? back.x : 0.5;
+        const posY = back.y !== undefined ? back.y : 0.5;
+        const ux = uv.cx + (printSizeConfig.x - 0.5) * 0.18 + (posX - 0.5) * 0.18 * printSizeConfig.width;
+        const uy = uv.cy + (printSizeConfig.y - 0.5) * 0.22 + (posY - 0.5) * 0.22 * printSizeConfig.height;
 
         const sx = Math.round(ux * UV_SIZE);
         const sy = Math.round(uy * UV_SIZE);
@@ -535,6 +535,8 @@ function applySticker(key) {
     activeZone.stickerImage = stickerImages[key];
     activeZone.stickerKey = key;
     activeZone._cachedClean = null; 
+    activeZone.x = 0.5;
+    activeZone.y = 0.5;
     
     // Assign default printSize based on active side ONLY if not already set
     if (!activeZone.printSize) {
@@ -547,6 +549,9 @@ function applySticker(key) {
     });
 
     repaintStickerCanvas();
+    if (typeof syncTextOverlay === 'function') {
+        syncTextOverlay();
+    }
 }
 
 function applyCustomSticker(imgEl) {
@@ -554,6 +559,8 @@ function applyCustomSticker(imgEl) {
     activeZone.stickerImage = imgEl;
     activeZone.stickerKey = 'custom_' + Date.now();
     activeZone._cachedClean = null; 
+    activeZone.x = 0.5;
+    activeZone.y = 0.5;
     
     // Assign default printSize based on active side ONLY if not already set
     if (!activeZone.printSize) {
@@ -566,6 +573,9 @@ function applyCustomSticker(imgEl) {
     });
 
     repaintStickerCanvas();
+    if (typeof syncTextOverlay === 'function') {
+        syncTextOverlay();
+    }
 }
 
 // ─── UI EVENT LISTENERS ──────────────────────────────────────────────────────
@@ -708,11 +718,17 @@ document.querySelectorAll('.zone-btn').forEach(btn => {
 document.querySelectorAll('.print-size-card').forEach(btn => {
     btn.addEventListener('click', () => {
         const sizeId = btn.dataset.sizeId;
-        const config = PRINT_SIZES[sizeId];
+        const config = PRINT_AREAS[sizeId];
         
         // Update the design state on the placement's side
         const targetZone = STATE.designs[config.side];
         targetZone.printSize = sizeId;
+        targetZone.x = 0.5;
+        targetZone.y = 0.5;
+        
+        if (typeof syncTextOverlay === 'function') {
+            syncTextOverlay();
+        }
         
         // Auto-populate sticker if switching sides and the other side has one
         const otherSide = config.side === 'front' ? 'back' : 'front';
@@ -1263,7 +1279,7 @@ if (addToCartBtn) {
             const stickers = [];
             const front = STATE.designs.front;
             if (front.stickerImage) {
-                const cfg = PRINT_SIZES[front.printSize || 'mediumFront'];
+                const cfg = PRINT_AREAS[front.printSize || 'mediumFront'];
                 stickers.push({
                     id: front.stickerKey,
                     src: front.stickerImage.src || '',
@@ -1275,7 +1291,7 @@ if (addToCartBtn) {
             }
             const back = STATE.designs.back;
             if (back.stickerImage) {
-                const cfg = PRINT_SIZES[back.printSize || 'mediumBack'];
+                const cfg = PRINT_AREAS[back.printSize || 'mediumBack'];
                 stickers.push({
                     id: back.stickerKey,
                     src: back.stickerImage.src || '',
@@ -1422,11 +1438,145 @@ function getSelectedText() {
     return activeZone.texts.find(t => t.id === selectedTextId);
 }
 
+function syncDesignOverlay() {
+    const overlay = document.getElementById('design-canvas-overlay');
+    if (!overlay) return;
+
+    const activeZone = STATE.designs[STATE.stickerZone];
+    const sizeId = activeZone.printSize || (STATE.stickerZone === 'front' ? 'mediumFront' : 'mediumBack');
+    
+    // 1. Update guide box size & position
+    const VIEWPORT_PRINT_AREAS = {
+        fullFront:   { width: 130, height: 180, top: 41, left: 50 },
+        mediumFront: { width: 85,  height: 110, top: 38, left: 50 },
+        leftChest:   { width: 40,  height: 40,  top: 33, left: 56.5 },
+        fullBack:    { width: 130, height: 180, top: 41, left: 50 },
+        mediumBack:  { width: 85,  height: 110, top: 38, left: 50 }
+    };
+    
+    const area = VIEWPORT_PRINT_AREAS[sizeId];
+    overlay.style.width = `${area.width}px`;
+    overlay.style.height = `${area.height}px`;
+    overlay.style.top = `${area.top}%`;
+    overlay.style.left = `${area.left}%`;
+
+    // 2. If a sticker is applied, add a draggable handle
+    if (activeZone.stickerImage) {
+        const handle = document.createElement('div');
+        handle.className = 'sticker-drag-handle';
+        
+        // Calculate aspect ratio and dimensions
+        const cfg = MODEL_CONFIGS[STATE.modelStyle];
+        const aspectY = cfg.aspectY || 1.0;
+        
+        let handleWidth = area.width;
+        let handleHeight = area.width * aspectY;
+        if (handleHeight > area.height) {
+            handleHeight = area.height;
+            handleWidth = area.height / aspectY;
+        }
+        
+        handle.style.width = `${handleWidth}px`;
+        handle.style.height = `${handleHeight}px`;
+        
+        // Position handle centered on activeZone.x, activeZone.y (which default to 0.5)
+        const posX = activeZone.x !== undefined ? activeZone.x : 0.5;
+        const posY = activeZone.y !== undefined ? activeZone.y : 0.5;
+        
+        handle.style.left = `${posX * 100}%`;
+        handle.style.top = `${posY * 100}%`;
+        handle.style.transform = 'translate(-50%, -50%)';
+
+        // Bind drag events
+        let isDragging = false;
+        let startX = 0, startY = 0;
+        let origX = 0, origY = 0;
+
+        const startDrag = (clientX, clientY) => {
+            isDragging = true;
+            startX = clientX;
+            startY = clientY;
+            origX = activeZone.x !== undefined ? activeZone.x : 0.5;
+            origY = activeZone.y !== undefined ? activeZone.y : 0.5;
+            handle.classList.add('dragging');
+        };
+
+        handle.addEventListener('mousedown', (e) => {
+            e.stopPropagation();
+            startDrag(e.clientX, e.clientY);
+        });
+
+        handle.addEventListener('touchstart', (e) => {
+            e.stopPropagation();
+            const touch = e.touches[0];
+            startDrag(touch.clientX, touch.clientY);
+        });
+
+        const doDrag = (clientX, clientY) => {
+            if (!isDragging) return;
+            const deltaX = clientX - startX;
+            const deltaY = clientY - startY;
+
+            // Normalized delta relative to guide box
+            const normDeltaX = deltaX / area.width;
+            const normDeltaY = deltaY / area.height;
+
+            let targetX = origX + normDeltaX;
+            let targetY = origY + normDeltaY;
+
+            // Bounding box clamping: entire sticker bounding box must stay inside the print area
+            const w = handleWidth / area.width;
+            const h = handleHeight / area.height;
+            
+            const minX = w / 2;
+            const maxX = 1.0 - w / 2;
+            const minY = h / 2;
+            const maxY = 1.0 - h / 2;
+
+            targetX = Math.max(minX, Math.min(maxX, targetX));
+            targetY = Math.max(minY, Math.min(maxY, targetY));
+
+            activeZone.x = targetX;
+            activeZone.y = targetY;
+
+            handle.style.left = `${targetX * 100}%`;
+            handle.style.top = `${targetY * 100}%`;
+
+            repaintStickerCanvas();
+        };
+
+        window.addEventListener('mousemove', (e) => {
+            if (isDragging) doDrag(e.clientX, e.clientY);
+        });
+
+        window.addEventListener('touchmove', (e) => {
+            if (isDragging) {
+                const touch = e.touches[0];
+                doDrag(touch.clientX, touch.clientY);
+            }
+        });
+
+        const endDrag = () => {
+            if (isDragging) {
+                isDragging = false;
+                handle.classList.remove('dragging');
+            }
+        };
+
+        window.addEventListener('mouseup', endDrag);
+        window.addEventListener('touchend', endDrag);
+
+        overlay.appendChild(handle);
+    }
+}
+
 function syncTextOverlay() {
     const overlay = document.getElementById('design-canvas-overlay');
     if (!overlay) return;
 
     overlay.innerHTML = '';
+    
+    syncDesignOverlay();
 
     const activeZone = STATE.designs[STATE.stickerZone];
     if (!activeZone.texts || activeZone.texts.length === 0) {

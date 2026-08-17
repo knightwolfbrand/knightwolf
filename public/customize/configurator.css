@@ -1815,5 +1815,24 @@ html, body {
     opacity: 1;
     transform: scale(1);
 }
+.sticker-drag-handle {
+    position: absolute;
+    border: 1.5px dashed rgba(0, 210, 255, 0.45);
+    background: rgba(0, 210, 255, 0.02);
+    box-sizing: border-box;
+    cursor: grab;
+    pointer-events: auto;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+    z-index: 101;
+}
 
+.sticker-drag-handle:hover {
+    border-color: rgba(0, 210, 255, 0.8);
+    background: rgba(0, 210, 255, 0.05);
+}
 
+.sticker-drag-handle.dragging {
+    border: 1.5px solid rgba(0, 210, 255, 0.95);
+    background: rgba(0, 210, 255, 0.08);
+    cursor: grabbing;
+}
