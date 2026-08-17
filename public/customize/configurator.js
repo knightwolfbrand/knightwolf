@@ -495,8 +495,16 @@ document.querySelectorAll('.zone-btn').forEach(btn => {
 // Sticker size slider
 document.querySelectorAll('#sticker-resize').forEach(slider => {
     slider.addEventListener('input', (e) => {
-        STATE.stickerScale = parseFloat(e.target.value);
+        const val = parseFloat(e.target.value);
+        STATE.stickerScale = val;
         repaintStickerCanvas();
+
+        // Dynamically scale the active sticker preview image on the side grid
+        const activeImg = document.querySelector('.sticker-opt.active img');
+        if (activeImg) {
+            const visualScale = 0.8 + ((val - 0.05) / 0.45) * 0.7; // Maps 0.05-0.5 to 0.8-1.5
+            activeImg.style.transform = `scale(${visualScale})`;
+        }
     });
 });
 
