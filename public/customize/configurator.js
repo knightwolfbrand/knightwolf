@@ -70,21 +70,6 @@ controls.minPolarAngle = Math.PI * 0.5;
 controls.maxPolarAngle = Math.PI * 0.5;
 controls.update();
 
-// Update elliptical indicator angle based on camera orbit
-controls.addEventListener('change', () => {
-    // Calculate orbital angle around Y axis
-    const angle = Math.atan2(camera.position.x, camera.position.z);
-    
-    // map angle to dot position on ellipse
-    // SVG is 200px wide. Center is 100px. Radius is 90px.
-    const dot = document.getElementById('position-dot');
-    if (dot) {
-        const cx = 100 + Math.sin(angle) * 90;
-        const cy = 20 + Math.cos(angle) * 15;
-        dot.setAttribute('cx', cx);
-        dot.setAttribute('cy', cy);
-    }
-});
 
 // ─── ENVIRONMENT ─────────────────────────────────────────────────────────────
 const texLoader = new THREE.TextureLoader();
