@@ -8,10 +8,21 @@ const STATE = {
     loaded: false,
     modelStyle: 'regular',
     fabricStyle: 'structured',
-    stickerImage: null,      // raw HTMLImageElement of chosen sticker
     stickerZone: 'front',    // 'front' | 'back'
-    stickerScale: 0.15,      
-    _cachedCleanSticker: null, 
+    designs: {
+        front: {
+            stickerImage: null,
+            stickerScale: 0.15,
+            stickerKey: null,
+            _cachedClean: null
+        },
+        back: {
+            stickerImage: null,
+            stickerScale: 0.15,
+            stickerKey: null,
+            _cachedClean: null
+        }
+    }
 };
 
 // ─── COLORS ──────────────────────────────────────────────────────────────────
@@ -194,30 +205,29 @@ function repaintStickerCanvas() {
     uvCtx.fillStyle = hexToRgb(STATE.color);
     uvCtx.fillRect(0, 0, UV_SIZE, UV_SIZE);
 
-    if (STATE.stickerImage) {
-        const cfg = MODEL_CONFIGS[STATE.modelStyle];
-        const uv = (STATE.stickerZone === 'front') ? cfg.uvCenter : cfg.uvBack;
-        
-        const stickerSize = Math.round(UV_SIZE * STATE.stickerScale);
+    const cfg = MODEL_CONFIGS[STATE.modelStyle];
+
+    // Paint Front Design
+    const front = STATE.designs.front;
+    if (front.stickerImage) {
+        const uv = cfg.uvCenter;
+        const stickerSize = Math.round(UV_SIZE * front.stickerScale);
         const aspectY = cfg.aspectY || 1.0;
 
-        if (!STATE._cachedCleanSticker) {
-            STATE._cachedCleanSticker = removeBackground(STATE.stickerImage);
+        if (!front._cachedClean) {
+            front._cachedClean = removeBackground(front.stickerImage);
         }
-        const cleanSticker = STATE._cachedCleanSticker;
 
         const sx = Math.round(uv.cx * UV_SIZE);
         const sy = Math.round(uv.cy * UV_SIZE);
 
         uvCtx.save();
         uvCtx.translate(sx, sy);
-
         if (cfg.isFlipped) {
             uvCtx.scale(1, -1);
         }
-
         uvCtx.drawImage(
-            cleanSticker, 
+            front._cachedClean, 
             -stickerSize / 2, 
             -(stickerSize * aspectY) / 2, 
             stickerSize, 
@@ -225,7 +235,40 @@ function repaintStickerCanvas() {
         );
         uvCtx.restore();
     }
+
+    // Paint Back Design
+    const back = STATE.designs.back;
+    if (back.stickerImage) {
+        const uv = cfg.uvBack;
+        const stickerSize = Math.round(UV_SIZE * back.stickerScale);
+        const aspectY = cfg.aspectY || 1.0;
+
+        if (!back._cachedClean) {
+            back._cachedClean = removeBackground(back.stickerImage);
+        }
+
+        const sx = Math.round(uv.cx * UV_SIZE);
+        const sy = Math.round(uv.cy * UV_SIZE);
+
+        uvCtx.save();
+        uvCtx.translate(sx, sy);
+        if (cfg.isFlipped) {
+            uvCtx.scale(1, -1);
+        }
+        uvCtx.drawImage(
+            back._cachedClean, 
+            -stickerSize / 2, 
+            -(stickerSize * aspectY) / 2, 
+            stickerSize, 
+            stickerSize * aspectY
+        );
+        uvCtx.restore();
+    }
+
     uvTexture.needsUpdate = true;
+    if (typeof updateLivePrice === 'function') {
+        updateLivePrice();
+    }
 }
 
 // ─── MATERIAL FACTORY ────────────────────────────────────────────────────────
@@ -358,14 +401,18 @@ Object.entries(STICKER_SRCS).forEach(([key, src]) => {
 
 function applySticker(key) {
     if (!stickerImages[key]) { return; }
-    STATE.stickerImage = stickerImages[key];
-    STATE._cachedCleanSticker = null; 
+    const activeZone = STATE.designs[STATE.stickerZone];
+    activeZone.stickerImage = stickerImages[key];
+    activeZone.stickerKey = key;
+    activeZone._cachedClean = null; 
     repaintStickerCanvas();
 }
 
 function applyCustomSticker(imgEl) {
-    STATE.stickerImage = imgEl;
-    STATE._cachedCleanSticker = null; 
+    const activeZone = STATE.designs[STATE.stickerZone];
+    activeZone.stickerImage = imgEl;
+    activeZone.stickerKey = 'custom_' + Date.now();
+    activeZone._cachedClean = null; 
     repaintStickerCanvas();
 }
 
@@ -439,12 +486,23 @@ document.getElementById('sticker-search').addEventListener('input', (e) => {
     });
 });
 
-// Sticker grid buttons
+// Sticker grid buttons (Toggles sticker on/off)
 document.querySelectorAll('.sticker-opt').forEach(btn => {
     btn.addEventListener('click', () => {
+        const isAlreadyActive = btn.classList.contains('active');
         document.querySelectorAll('.sticker-opt').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        applySticker(btn.dataset.sticker);
+        
+        const activeZone = STATE.designs[STATE.stickerZone];
+        if (isAlreadyActive) {
+            // Remove the sticker
+            activeZone.stickerImage = null;
+            activeZone.stickerKey = null;
+            activeZone._cachedClean = null;
+            repaintStickerCanvas();
+        } else {
+            btn.classList.add('active');
+            applySticker(btn.dataset.sticker);
+        }
     });
 });
 
@@ -456,6 +514,30 @@ document.querySelectorAll('.zone-btn').forEach(btn => {
 
         document.querySelectorAll('.zone-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
+
+        // Sync slider scale to current zone's scale
+        const activeZone = STATE.designs[zone];
+        const slider = document.getElementById('sticker-resize');
+        if (slider) {
+            slider.value = activeZone.stickerScale;
+        }
+
+        // Sync active sticker option card highlights
+        document.querySelectorAll('.sticker-opt').forEach(opt => {
+            const isCurrentSticker = opt.dataset.sticker === activeZone.stickerKey;
+            opt.classList.toggle('active', isCurrentSticker);
+            
+            // Sync its visual scale preview
+            const img = opt.querySelector('img');
+            if (img) {
+                if (isCurrentSticker) {
+                    const visualScale = 0.8 + ((activeZone.stickerScale - 0.05) / 0.45) * 0.7;
+                    img.style.transform = `scale(${visualScale})`;
+                } else {
+                    img.style.transform = '';
+                }
+            }
+        });
 
         // Natural Orbital Swivel
         const targetAngle = (zone === 'front') ? 0 : Math.PI; 
@@ -481,7 +563,8 @@ document.querySelectorAll('.zone-btn').forEach(btn => {
 document.querySelectorAll('#sticker-resize').forEach(slider => {
     slider.addEventListener('input', (e) => {
         const val = parseFloat(e.target.value);
-        STATE.stickerScale = val;
+        const activeZone = STATE.designs[STATE.stickerZone];
+        activeZone.stickerScale = val;
         repaintStickerCanvas();
 
         // Dynamically scale the active sticker preview image on the side grid
@@ -625,13 +708,83 @@ document.querySelectorAll('.sticker-opt').forEach(btn => {
 });
 
 // ─── CENTRALIZED PRICE CALCULATION ───────────────────────────────────────────
-function calculateCartItemPrice(config) {
-    const basePrice = 1499.00;
-    const customizationPrice = 0.00; // Customizable/sticker upgrades can go here
+const PRICING = {
+    tshirt: 500,
+    sticker: 150,
+    stickerSizeIncrease: 30,
+    standardStickerScale: 0.15
+};
+
+function calculatePrice() {
+    const tshirtPrice = PRICING.tshirt;
+    
+    // Count stickers from both front and back designs
+    let stickerCount = 0;
+    let enlargedStickerCount = 0;
+    
+    const front = STATE.designs.front;
+    if (front.stickerImage) {
+        stickerCount++;
+        if (front.stickerScale > PRICING.standardStickerScale) {
+            enlargedStickerCount++;
+        }
+    }
+    
+    const back = STATE.designs.back;
+    if (back.stickerImage) {
+        stickerCount++;
+        if (back.stickerScale > PRICING.standardStickerScale) {
+            enlargedStickerCount++;
+        }
+    }
+    
+    const stickerCost = stickerCount * PRICING.sticker;
+    const stickerSizeCost = enlargedStickerCount * PRICING.stickerSizeIncrease;
+    const total = tshirtPrice + stickerCost + stickerSizeCost;
+    
     return {
-        unitPrice: basePrice,
-        customizationPrice: customizationPrice,
-        totalPrice: basePrice + customizationPrice
+        tshirtPrice,
+        stickerCount,
+        stickerCost,
+        enlargedStickerCount,
+        stickerSizeCost,
+        total
+    };
+}
+
+function updateLivePrice() {
+    const priceInfo = calculatePrice();
+    const livePriceNode = document.getElementById('live-price-total');
+    const breakdownTotalNode = document.getElementById('breakdown-total-val');
+    const stickerRow = document.getElementById('breakdown-row-stickers');
+    const sizeRow = document.getElementById('breakdown-row-sizes');
+
+    if (livePriceNode) {
+        livePriceNode.textContent = `₹${priceInfo.total}`;
+    }
+    if (breakdownTotalNode) {
+        breakdownTotalNode.textContent = `₹${priceInfo.total}`;
+    }
+    if (stickerRow) {
+        stickerRow.innerHTML = `<span>Stickers × ${priceInfo.stickerCount}</span><span>₹${priceInfo.stickerCost}</span>`;
+    }
+    if (sizeRow) {
+        sizeRow.innerHTML = `<span>Size Increase × ${priceInfo.enlargedStickerCount}</span><span>₹${priceInfo.stickerSizeCost}</span>`;
+    }
+}
+
+function calculateCartItemPrice(item) {
+    if (item && item.pricing) {
+        return {
+            unitPrice: item.pricing.tshirtPrice,
+            customizationPrice: item.pricing.stickerCost + item.pricing.stickerSizeCost,
+            totalPrice: item.pricing.total
+        };
+    }
+    return {
+        unitPrice: PRICING.tshirt,
+        customizationPrice: 0,
+        totalPrice: PRICING.tshirt
     };
 }
 
@@ -660,16 +813,24 @@ function saveCart(cart) {
 function addToCart(item) {
     const cart = getCart();
     
-    // Config hash check to combine duplicates
-    const itemHash = `${item.fit.id}_${item.color.id}_${item.size}_${item.customization.stickers[0]?.id || 'none'}_${item.customization.stickers[0]?.side || 'front'}`;
+    // Hash based on fit, color, size, sticker keys, and sticker scales
+    const itemHash = `${item.fit.id}_${item.color.id}_${item.size}_` +
+                     `${item.customization.frontDesign.stickers[0]?.id || 'none'}_` +
+                     `${item.customization.frontDesign.stickers[0]?.scale || 0}_` +
+                     `${item.customization.backDesign.stickers[0]?.id || 'none'}_` +
+                     `${item.customization.backDesign.stickers[0]?.scale || 0}`;
+
     const existing = cart.find(i => {
-        const iHash = `${i.fit.id}_${i.color.id}_${i.size}_${i.customization.stickers[0]?.id || 'none'}_${i.customization.stickers[0]?.side || 'front'}`;
+        const iHash = `${i.fit.id}_${i.color.id}_${i.size}_` +
+                      `${i.customization.frontDesign.stickers[0]?.id || 'none'}_` +
+                      `${i.customization.frontDesign.stickers[0]?.scale || 0}_` +
+                      `${i.customization.backDesign.stickers[0]?.id || 'none'}_` +
+                      `${i.customization.backDesign.stickers[0]?.scale || 0}`;
         return iHash === itemHash;
     });
 
     if (existing) {
         existing.quantity += item.quantity;
-        existing.price = calculateCartItemPrice(existing); // recalculate total price
     } else {
         cart.push(item);
     }
@@ -688,7 +849,6 @@ function updateCartQuantity(id, qty) {
     const item = cart.find(item => item.id === id);
     if (item) {
         item.quantity = Math.max(1, qty);
-        item.price = calculateCartItemPrice(item);
         saveCart(cart);
     }
 }
@@ -702,7 +862,7 @@ function getCartCount() {
 }
 
 function getCartSubtotal() {
-    return getCart().reduce((sum, item) => sum + (item.price.totalPrice * item.quantity), 0);
+    return getCart().reduce((sum, item) => sum + (item.pricing.total * item.quantity), 0);
 }
 
 // ─── TOAST NOTIFICATION SYSTEM ────────────────────────────────────────────────
@@ -757,8 +917,11 @@ function renderCartDrawer() {
     }
 
     container.innerHTML = cart.map(item => {
-        const customizationInfo = item.customization.stickers[0] 
-            ? `• ${item.customization.stickers[0].id.toUpperCase()}` 
+        const stickersBreakdown = item.pricing.stickerCount > 0 
+            ? `<p class="cart-item-details">Stickers × ${item.pricing.stickerCount}: ₹${item.pricing.stickerCost}</p>` 
+            : '';
+        const sizeBreakdown = item.pricing.enlargedStickerCount > 0 
+            ? `<p class="cart-item-details">Size Increase × ${item.pricing.enlargedStickerCount}: ₹${item.pricing.stickerSizeCost}</p>` 
             : '';
         return `
             <div class="cart-item" data-id="${item.id}">
@@ -767,14 +930,17 @@ function renderCartDrawer() {
                 </div>
                 <div class="cart-item-info">
                     <h4>${item.product.name}</h4>
-                    <p class="cart-item-details">${item.fit.name} • ${item.color.name} • ${item.size} ${customizationInfo}</p>
+                    <p class="cart-item-details">${item.fit.name} • ${item.color.name} • ${item.size}</p>
+                    <p class="cart-item-details">Base T-Shirt: ₹${item.pricing.tshirtPrice}</p>
+                    ${stickersBreakdown}
+                    ${sizeBreakdown}
                     <div class="cart-item-controls">
                         <div class="cart-qty-selector">
                             <button class="cart-qty-btn minus-qty" data-id="${item.id}">-</button>
                             <span class="cart-qty-value">${item.quantity}</span>
                             <button class="cart-qty-btn plus-qty" data-id="${item.id}">+</button>
                         </div>
-                        <p class="cart-item-price">₹${(item.price.totalPrice * item.quantity).toLocaleString('en-IN')}</p>
+                        <p class="cart-item-price">₹${(item.pricing.total * item.quantity).toLocaleString('en-IN')}</p>
                     </div>
                 </div>
                 <button class="remove-item" data-id="${item.id}">&times;</button>
@@ -815,7 +981,6 @@ function renderCartDrawer() {
 function capturePreview() {
     try {
         renderer.render(scene, camera);
-        // data URL is JPEG at 0.5 quality to protect localStorage limit sizes
         return renderer.domElement.toDataURL('image/jpeg', 0.5);
     } catch(e) {
         console.error('Failed to capture canvas screenshot:', e);
@@ -826,10 +991,8 @@ function capturePreview() {
 const addToCartBtn = document.querySelector('.add-to-cart-btn');
 if (addToCartBtn) {
     addToCartBtn.addEventListener('click', () => {
-        // Double-click protection
         if (addToCartBtn.disabled) return;
         
-        // 1. Validation check
         const activeFitCard = document.querySelector('.fit-card.active');
         const activeColorSwatch = document.querySelector('.color-swatch-ring.active');
         const activeSizeBtn = document.querySelector('.size-btn.active');
@@ -847,13 +1010,11 @@ if (addToCartBtn) {
             return;
         }
 
-        // Lock button
         addToCartBtn.disabled = true;
         const originalText = addToCartBtn.textContent;
         addToCartBtn.textContent = 'ADDING...';
 
         try {
-            // Collect metadata fields
             const fitName = activeFitCard.querySelector('.fit-name').textContent.trim();
             const fitId = activeFitCard.dataset.style || 'regular';
             const colorValue = STATE.color;
@@ -861,30 +1022,34 @@ if (addToCartBtn) {
             const colorId = activeColorSwatch.dataset.color || colorValue;
             const sizeValue = activeSizeBtn.textContent.trim();
             
-            // Collect active sticker
-            const activeStickerOpt = document.querySelector('.sticker-opt.active');
+            // Collect stickers from both designs
             const stickers = [];
-            if (STATE.stickerImage && activeStickerOpt) {
-                const stickerId = activeStickerOpt.dataset.sticker;
-                const stickerSrc = activeStickerOpt.querySelector('img').getAttribute('src');
-                const cfg = MODEL_CONFIGS[STATE.modelStyle];
-                const uv = (STATE.stickerZone === 'front') ? cfg.uvCenter : cfg.uvBack;
+            const front = STATE.designs.front;
+            if (front.stickerImage) {
                 stickers.push({
-                    id: stickerId,
-                    src: stickerSrc,
-                    x: uv.cx,
-                    y: uv.cy,
-                    scale: STATE.stickerScale,
-                    rotation: 0,
-                    side: STATE.stickerZone
+                    id: front.stickerKey,
+                    src: front.stickerImage.src || '',
+                    scale: front.stickerScale,
+                    side: 'front'
                 });
             }
+            const back = STATE.designs.back;
+            if (back.stickerImage) {
+                stickers.push({
+                    id: back.stickerKey,
+                    src: back.stickerImage.src || '',
+                    scale: back.stickerScale,
+                    side: 'back'
+                });
+            }
+
+            const priceInfo = calculatePrice();
 
             const cartItem = {
                 id: 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
                 product: {
                     name: 'Custom T-Shirt',
-                    basePrice: 1499.00
+                    basePrice: PRICING.tshirt
                 },
                 fit: { id: fitId, name: fitName },
                 color: { id: colorId, name: colorName, value: colorValue },
@@ -894,28 +1059,30 @@ if (addToCartBtn) {
                     stickers: stickers,
                     texts: [],
                     uploadedImages: [],
-                    frontDesign: STATE.stickerZone === 'front' ? { stickers } : { stickers: [] },
-                    backDesign: STATE.stickerZone === 'back' ? { stickers } : { stickers: [] }
+                    frontDesign: { stickers: front.stickerImage ? [stickers.find(s => s.side === 'front')] : [] },
+                    backDesign: { stickers: back.stickerImage ? [stickers.find(s => s.side === 'back')] : [] }
                 },
                 preview: {
                     frontImage: capturePreview(),
                     backImage: ''
                 },
-                price: calculateCartItemPrice(),
+                pricing: priceInfo,
+                price: {
+                    unitPrice: priceInfo.tshirtPrice,
+                    customizationPrice: priceInfo.stickerCost + priceInfo.stickerSizeCost,
+                    totalPrice: priceInfo.total
+                },
                 createdAt: Date.now()
             };
 
-            // Save to localStorage
             addToCart(cartItem);
 
-            // Button success visual feedback
             addToCartBtn.textContent = 'ADDED ✓';
             showToast(`Added to cart: Custom T-Shirt · ${fitName} · ${sizeValue}`);
 
             setTimeout(() => {
                 addToCartBtn.textContent = originalText;
                 addToCartBtn.disabled = false;
-                // Open drawer after successful action
                 const drawer = document.getElementById('cart-drawer');
                 if (drawer) drawer.classList.add('active');
             }, 1000);
@@ -961,6 +1128,7 @@ if (checkoutBtn) {
 }
 
 // Initial storage synch execution
+updateLivePrice();
 updateCartCount();
 renderCartDrawer();
 
