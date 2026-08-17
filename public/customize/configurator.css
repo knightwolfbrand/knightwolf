@@ -88,17 +88,13 @@ html, body {
 }
 
 .logo-text {
-    font-family: var(--font-title);
-    font-size: 26px;
-    font-weight: 700;
-    line-height: 0.95;
-    letter-spacing: -0.5px;
+    font-family: 'Cinzel', serif;
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 1.1;
+    letter-spacing: 5px;
     color: var(--text-primary);
     text-transform: uppercase;
-}
-
-.logo-text .accent {
-    color: var(--accent-blue);
 }
 
 .sidebar-scroll-content {
@@ -773,10 +769,10 @@ html, body {
 }
 
 .brand-title {
-    font-family: var(--font-title);
-    font-weight: 700;
+    font-family: 'Cinzel', serif;
+    font-weight: 500;
     font-size: 18px;
-    letter-spacing: 2px;
+    letter-spacing: 5px;
     color: var(--text-primary);
 }
 
