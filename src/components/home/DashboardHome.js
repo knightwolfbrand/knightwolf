@@ -442,45 +442,16 @@ const cardBgs = [
   "#1A1A1A"  // Dark Grey/Black
 ];
 
-// Internal component for scrolling columns
-const ScrollingColumn = ({ items, direction = 'up', speed = 40, isEmpty = false, cardClassName = '', wrapRef, scrollTweenRef, revealLineRef }) => {
-  const innerRef = useRef(null);
-
-  useEffect(() => {
-    if (!innerRef.current) return;
-
-    const fromVal = direction === 'up' ? 0 : -50;
-    const toVal = direction === 'up' ? -50 : 0;
-
-    gsap.set(innerRef.current, { yPercent: fromVal });
-
-    const tween = gsap.to(innerRef.current, {
-      yPercent: toVal,
-      duration: speed,
-      repeat: -1,
-      ease: 'none'
-    });
-
-    if (scrollTweenRef) {
-      scrollTweenRef.current = tween;
-    }
-
-    return () => {
-      tween.kill();
-    };
-  }, [direction, speed, scrollTweenRef]);
-
+// Internal component for side columns
+const ScrollingColumn = ({ items, isEmpty = false, cardClassName = '', wrapRef, revealLineRef }) => {
   return (
     <div className={styles.scrollColumnWrap} ref={wrapRef}>
       {/* Black reveal line — sweeps across column before it appears */}
       {revealLineRef && (
         <div ref={revealLineRef} className={styles.revealLine} />
       )}
-      <div
-        className={styles.scrollColumn}
-        ref={innerRef}
-      >
-        {[...items, ...items].map((item, idx) => (
+      <div className={styles.scrollColumn}>
+        {items.map((item, idx) => (
           <div key={idx} className={`${styles.galleryCard} ${cardClassName}`}>
             {item.img && (
               <img src={item.img} alt="Gallery item" className={styles.centerImg} draggable="false" />
@@ -1170,11 +1141,7 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
             { bgColor: '#141414', img: '/box/new_launch_poster.png' },
             { bgColor: '#141414', img: '/box/PHOTO-2026-05-11-13-20-50.png' }
           ]}
-          direction="up"
-          speed={30}
-          isEmpty={false}
           wrapRef={col1Ref}
-          scrollTweenRef={col1ScrollRef}
         />
         <ScrollingColumn
           items={[
@@ -1182,12 +1149,8 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
             { bgColor: '#141414', img: '/box/knightwolf_hd_poster.png' },
             { bgColor: '#141414', img: '/box/ad_poster.jpg' }
           ]}
-          direction="down"
-          speed={25}
-          isEmpty={false}
           cardClassName={styles.squareCard}
           wrapRef={col2Ref}
-          scrollTweenRef={col2ScrollRef}
         />
 
         {/* Center Focus — Reduced Panoramic Frame */}
@@ -1303,12 +1266,8 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
             { bgColor: '#141414', img: '/box/PHOTO-2026-05-11-13-34-40.png' },
             { bgColor: '#141414', img: '/box/PHOTO-2026-05-11-13-22-22.png' }
           ]}
-          direction="up"
-          speed={28}
-          isEmpty={false}
           cardClassName={styles.squareCard}
           wrapRef={col4Ref}
-          scrollTweenRef={col4ScrollRef}
         />
         <ScrollingColumn
           items={[
@@ -1316,11 +1275,7 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
             { bgColor: '#141414', img: '/box/knightwolf_hd_poster.png' },
             { bgColor: '#141414', img: '/box/PHOTO-2026-05-11-13-20-50.png' }
           ]}
-          direction="down"
-          speed={35}
-          isEmpty={false}
           wrapRef={col5Ref}
-          scrollTweenRef={col5ScrollRef}
         />
       </main>
 
