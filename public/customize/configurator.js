@@ -626,7 +626,7 @@ document.querySelectorAll('.sticker-opt').forEach(btn => {
 
 // ─── CENTRALIZED PRICE CALCULATION ───────────────────────────────────────────
 function calculateCartItemPrice(config) {
-    const basePrice = 29.00;
+    const basePrice = 1499.00;
     const customizationPrice = 0.00; // Customizable/sticker upgrades can go here
     return {
         unitPrice: basePrice,
@@ -752,7 +752,7 @@ function renderCartDrawer() {
     
     if (cart.length === 0) {
         container.innerHTML = '<p class="empty-cart-msg">YOUR BAG IS EMPTY</p>';
-        if (subtotalNode) subtotalNode.textContent = '$0.00';
+        if (subtotalNode) subtotalNode.textContent = '₹0.00';
         return;
     }
 
@@ -774,7 +774,7 @@ function renderCartDrawer() {
                             <span class="cart-qty-value">${item.quantity}</span>
                             <button class="cart-qty-btn plus-qty" data-id="${item.id}">+</button>
                         </div>
-                        <p class="cart-item-price">$${(item.price.totalPrice * item.quantity).toFixed(2)}</p>
+                        <p class="cart-item-price">₹${(item.price.totalPrice * item.quantity).toLocaleString('en-IN')}</p>
                     </div>
                 </div>
                 <button class="remove-item" data-id="${item.id}">&times;</button>
@@ -783,7 +783,7 @@ function renderCartDrawer() {
     }).join('');
 
     if (subtotalNode) {
-        subtotalNode.textContent = `$${getCartSubtotal().toFixed(2)}`;
+        subtotalNode.textContent = `₹${getCartSubtotal().toLocaleString('en-IN')}`;
     }
 
     // Bind quantity increment/decrement buttons inside drawer
@@ -884,7 +884,7 @@ if (addToCartBtn) {
                 id: 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
                 product: {
                     name: 'Custom T-Shirt',
-                    basePrice: 29.00
+                    basePrice: 1499.00
                 },
                 fit: { id: fitId, name: fitName },
                 color: { id: colorId, name: colorName, value: colorValue },
