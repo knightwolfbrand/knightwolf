@@ -297,6 +297,10 @@ html, body {
     flex: 1;
     width: 100%;
     position: relative;
+    background-image: url('/images/room_bg.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 /* Watermark Overlay */

@@ -44,12 +44,12 @@ const MODEL_CONFIGS = {
 // ─── SCENE ───────────────────────────────────────────────────────────────────
 const container = document.getElementById('canvas-container');
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0a0a0a);
 
 const camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 0.1, 1000);
 camera.position.set(0, 4, 16);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setClearColor(0x000000, 0);
 renderer.setSize(container.clientWidth, container.clientHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.shadowMap.enabled = false; // Disabled real shadow maps for premium optimization
