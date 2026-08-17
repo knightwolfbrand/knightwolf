@@ -1273,7 +1273,6 @@ function syncTextOverlay() {
     const overlay = document.getElementById('design-canvas-overlay');
     if (!overlay) return;
 
-    // Clear old overlay elements
     overlay.innerHTML = '';
 
     const activeZone = STATE.designs[STATE.stickerZone];
@@ -1286,39 +1285,23 @@ function syncTextOverlay() {
         div.className = `text-element-overlay ${txt.id === selectedTextId ? 'active' : ''}`;
         div.dataset.id = txt.id;
         
-        // Position absolutely inside the 200x200 printable box
         div.style.left = `${txt.x * 100}%`;
         div.style.top = `${txt.y * 100}%`;
-        div.style.transform = `translate(-50%, -50%) rotate(${txt.rotation}deg) scale(${txt.scale})`;
+        div.style.transform = `translate(-50%, -50%)`;
 
         const span = document.createElement('span');
         span.className = 'text-element-overlay-content';
         span.textContent = txt.content;
         
-        // Apply basic visual styling to the overlay helper so the user sees a preview
         span.style.fontFamily = txt.fontFamily;
-        span.style.fontWeight = txt.fontWeight;
+        span.style.fontSize = `${txt.fontSize}px`;
         span.style.color = txt.color;
-        span.style.letterSpacing = `${txt.letterSpacing}px`;
-        span.style.lineHeight = txt.lineHeight;
+        span.style.fontWeight = '700';
         
-        let content = txt.content;
-        if (txt.uppercase || txt.textTransform === 'uppercase') {
-            content = content.toUpperCase();
-        } else if (txt.textTransform === 'lowercase') {
-            content = content.toLowerCase();
-        } else if (txt.textTransform === 'capitalize') {
-            content = content.replace(/\b\w/g, c => c.toUpperCase());
-        }
-        span.textContent = content;
-
-        if (txt.italic) span.style.fontStyle = 'italic';
-        if (txt.underline) span.style.textDecoration = 'underline';
-
         div.appendChild(span);
         overlay.appendChild(div);
 
-        // Bind Drag events directly to this element
+        // Bind simple drag events
         let isDragging = false;
         let dragStartX = 0;
         let dragStartY = 0;
@@ -1326,7 +1309,7 @@ function syncTextOverlay() {
         let originalY = 0;
 
         div.addEventListener('mousedown', (e) => {
-            e.stopPropagation(); // prevent deselecting or rotating 3D view
+            e.stopPropagation();
             selectText(txt.id);
             
             isDragging = true;
@@ -1334,11 +1317,9 @@ function syncTextOverlay() {
             dragStartY = e.clientY;
             originalX = txt.x;
             originalY = txt.y;
-            
             div.style.cursor = 'grabbing';
         });
 
-        // Touch support
         div.addEventListener('touchstart', (e) => {
             e.stopPropagation();
             selectText(txt.id);
@@ -1353,25 +1334,18 @@ function syncTextOverlay() {
 
         const handleMove = (clientX, clientY) => {
             if (!isDragging) return;
-            
             const rect = overlay.getBoundingClientRect();
-            
-            // Calculate pixel movement delta
             const deltaX = clientX - dragStartX;
             const deltaY = clientY - dragStartY;
             
-            // Map pixel delta to normalized coordinates (0.0 to 1.0) inside the 200px container
             const normDeltaX = deltaX / rect.width;
             const normDeltaY = deltaY / rect.height;
             
-            // Apply new coordinates constrained within printable design area (0.05 to 0.95)
             txt.x = Math.max(0.05, Math.min(0.95, originalX + normDeltaX));
             txt.y = Math.max(0.05, Math.min(0.95, originalY + normDeltaY));
             
-            // Update overlay position instantly
             div.style.left = `${txt.x * 100}%`;
             div.style.top = `${txt.y * 100}%`;
-            
             repaintStickerCanvas();
         };
 
@@ -1401,7 +1375,7 @@ function syncTextOverlay() {
 function selectText(id) {
     selectedTextId = id;
     
-    // De-select active stickers when text is selected to avoid UI overlap
+    // De-select active stickers when text is selected
     document.querySelectorAll('.sticker-opt').forEach(opt => opt.classList.remove('active'));
 
     const txt = getSelectedText();
@@ -1412,38 +1386,14 @@ function selectText(id) {
         controlsSection.classList.remove('hidden');
         emptyState.classList.add('hidden');
 
-        // Sync inputs and controls
         document.getElementById('edit-text-content').value = txt.content;
         document.getElementById('text-font-family').value = txt.fontFamily;
-        document.getElementById('text-size-slider').value = txt.fontSize;
-        document.getElementById('text-size-val').textContent = `${txt.fontSize}px`;
-        document.getElementById('text-font-weight').value = txt.fontWeight;
         document.getElementById('text-color-picker').value = txt.color;
-        
-        // Sync toggles
-        document.getElementById('toggle-style-bold').classList.toggle('active', txt.fontWeight === '700' || txt.fontWeight === '900');
-        document.getElementById('toggle-style-italic').classList.toggle('active', txt.italic);
-        document.getElementById('toggle-style-underline').classList.toggle('active', txt.underline);
-        document.getElementById('toggle-style-uppercase').classList.toggle('active', txt.uppercase);
 
-        // Sync alignment buttons
-        document.querySelectorAll('.align-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.align === txt.textAlign);
-        });
-
-        // Sync sliders
-        document.getElementById('text-letterspacing-slider').value = txt.letterSpacing;
-        document.getElementById('text-letterspacing-val').textContent = `${txt.letterSpacing}px`;
-        document.getElementById('text-lineheight-slider').value = txt.lineHeight;
-        document.getElementById('text-lineheight-val').textContent = txt.lineHeight;
-        document.getElementById('text-scale-slider').value = Math.round(txt.scale * 100);
-        document.getElementById('text-scale-val').textContent = `${Math.round(txt.scale * 100)}%`;
-        document.getElementById('text-rotation-slider').value = txt.rotation;
-        document.getElementById('text-rotation-val').textContent = `${txt.rotation}°`;
-
-        // Sync color swatches highlight
-        document.querySelectorAll('.text-swatch').forEach(swatch => {
-            swatch.classList.toggle('active', swatch.dataset.color.toLowerCase() === txt.color.toLowerCase());
+        // Sync size buttons active class
+        document.querySelectorAll('.size-preset-btn').forEach(btn => {
+            const isMatch = parseInt(btn.dataset.size) === txt.fontSize;
+            btn.classList.toggle('active', isMatch);
         });
     } else {
         controlsSection.classList.add('hidden');
@@ -1468,18 +1418,12 @@ if (addTextBtn) {
         const newText = {
             id: 'txt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
             content: content,
-            fontFamily: 'Space Grotesk',
-            fontSize: 32,
+            fontFamily: 'Montserrat',
+            fontSize: 36, // default Medium
             fontWeight: '700',
             color: '#ffffff',
-            textAlign: 'center',
-            letterSpacing: 0,
-            lineHeight: 1.2,
-            italic: false,
-            underline: false,
-            uppercase: false,
-            x: 0.5, // Center chest by default
-            y: 0.35, // Upper chest by default
+            x: 0.5, // Center chest
+            y: 0.35, // Chest height
             scale: 1.0,
             rotation: 0,
             side: STATE.stickerZone
@@ -1492,7 +1436,7 @@ if (addTextBtn) {
     });
 }
 
-// ─── INPUT / CONTROL SYNC LISTENERS ──────────────────────────────────────────
+// ─── CONTROL SYNC LISTENERS ──────────────────────────────────────────────────
 const editContentInput = document.getElementById('edit-text-content');
 if (editContentInput) {
     editContentInput.addEventListener('input', (e) => {
@@ -1517,113 +1461,14 @@ if (fontFamilySelect) {
     });
 }
 
-const sizeSlider = document.getElementById('text-size-slider');
-if (sizeSlider) {
-    sizeSlider.addEventListener('input', (e) => {
-        const val = parseInt(e.target.value);
-        document.getElementById('text-size-val').textContent = `${val}px`;
-        const txt = getSelectedText();
-        if (txt) {
-            txt.fontSize = val;
-            repaintStickerCanvas();
-            syncTextOverlay();
-        }
-    });
-}
-
-const fontWeightSelect = document.getElementById('text-font-weight');
-if (fontWeightSelect) {
-    fontWeightSelect.addEventListener('change', (e) => {
-        const txt = getSelectedText();
-        if (txt) {
-            txt.fontWeight = e.target.value;
-            document.getElementById('toggle-style-bold').classList.toggle('active', txt.fontWeight === '700' || txt.fontWeight === '900');
-            repaintStickerCanvas();
-            syncTextOverlay();
-        }
-    });
-}
-
-const colorPicker = document.getElementById('text-color-picker');
-if (colorPicker) {
-    colorPicker.addEventListener('input', (e) => {
-        const txt = getSelectedText();
-        if (txt) {
-            txt.color = e.target.value;
-            // De-activate swatches
-            document.querySelectorAll('.text-swatch').forEach(s => s.classList.remove('active'));
-            repaintStickerCanvas();
-            syncTextOverlay();
-        }
-    });
-}
-
-// Swatches clicks
-document.querySelectorAll('.text-swatch').forEach(swatch => {
-    swatch.addEventListener('click', () => {
-        const color = swatch.dataset.color;
-        const txt = getSelectedText();
-        if (txt) {
-            txt.color = color;
-            document.getElementById('text-color-picker').value = color;
-            document.querySelectorAll('.text-swatch').forEach(s => s.classList.remove('active'));
-            swatch.classList.add('active');
-            repaintStickerCanvas();
-            syncTextOverlay();
-        }
-    });
-});
-
-// Style Toggles
-document.getElementById('toggle-style-bold').addEventListener('click', (e) => {
-    const txt = getSelectedText();
-    if (txt) {
-        const isBold = txt.fontWeight === '700' || txt.fontWeight === '900';
-        txt.fontWeight = isBold ? '400' : '700';
-        document.getElementById('text-font-weight').value = txt.fontWeight;
-        e.target.classList.toggle('active', !isBold);
-        repaintStickerCanvas();
-        syncTextOverlay();
-    }
-});
-
-document.getElementById('toggle-style-italic').addEventListener('click', (e) => {
-    const txt = getSelectedText();
-    if (txt) {
-        txt.italic = !txt.italic;
-        e.target.classList.toggle('active', txt.italic);
-        repaintStickerCanvas();
-        syncTextOverlay();
-    }
-});
-
-document.getElementById('toggle-style-underline').addEventListener('click', (e) => {
-    const txt = getSelectedText();
-    if (txt) {
-        txt.underline = !txt.underline;
-        e.target.classList.toggle('active', txt.underline);
-        repaintStickerCanvas();
-        syncTextOverlay();
-    }
-});
-
-document.getElementById('toggle-style-uppercase').addEventListener('click', (e) => {
-    const txt = getSelectedText();
-    if (txt) {
-        txt.uppercase = !txt.uppercase;
-        e.target.classList.toggle('active', txt.uppercase);
-        repaintStickerCanvas();
-        syncTextOverlay();
-    }
-});
-
-// Alignment buttons
-document.querySelectorAll('.align-btn').forEach(btn => {
+// Size preset triggers
+document.querySelectorAll('.size-preset-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         const txt = getSelectedText();
         if (txt) {
-            txt.textAlign = btn.dataset.align;
-            document.querySelectorAll('.align-btn').forEach(b => b.classList.remove('active'));
+            const size = parseInt(btn.dataset.size);
+            txt.fontSize = size;
+            document.querySelectorAll('.size-preset-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             repaintStickerCanvas();
             syncTextOverlay();
@@ -1631,83 +1476,14 @@ document.querySelectorAll('.align-btn').forEach(btn => {
     });
 });
 
-// Letter spacing slider
-const letterSpacingSlider = document.getElementById('text-letterspacing-slider');
-if (letterSpacingSlider) {
-    letterSpacingSlider.addEventListener('input', (e) => {
-        const val = parseInt(e.target.value);
-        document.getElementById('text-letterspacing-val').textContent = `${val}px`;
+const colorPicker = document.getElementById('text-color-picker');
+if (colorPicker) {
+    colorPicker.addEventListener('input', (e) => {
         const txt = getSelectedText();
         if (txt) {
-            txt.letterSpacing = val;
+            txt.color = e.target.value;
             repaintStickerCanvas();
             syncTextOverlay();
-        }
-    });
-}
-
-// Line height slider
-const lineHeightSlider = document.getElementById('text-lineheight-slider');
-if (lineHeightSlider) {
-    lineHeightSlider.addEventListener('input', (e) => {
-        const val = parseFloat(e.target.value);
-        document.getElementById('text-lineheight-val').textContent = val.toFixed(1);
-        const txt = getSelectedText();
-        if (txt) {
-            txt.lineHeight = val;
-            repaintStickerCanvas();
-            syncTextOverlay();
-        }
-    });
-}
-
-// Scale slider
-const scaleSlider = document.getElementById('text-scale-slider');
-if (scaleSlider) {
-    scaleSlider.addEventListener('input', (e) => {
-        const val = parseInt(e.target.value);
-        document.getElementById('text-scale-val').textContent = `${val}%`;
-        const txt = getSelectedText();
-        if (txt) {
-            txt.scale = val / 100;
-            repaintStickerCanvas();
-            syncTextOverlay();
-        }
-    });
-}
-
-// Rotation slider
-const rotationSlider = document.getElementById('text-rotation-slider');
-if (rotationSlider) {
-    rotationSlider.addEventListener('input', (e) => {
-        const val = parseInt(e.target.value);
-        document.getElementById('text-rotation-val').textContent = `${val}°`;
-        const txt = getSelectedText();
-        if (txt) {
-            txt.rotation = val;
-            repaintStickerCanvas();
-            syncTextOverlay();
-        }
-    });
-}
-
-// Duplicate text
-const duplicateBtn = document.getElementById('duplicate-text-btn');
-if (duplicateBtn) {
-    duplicateBtn.addEventListener('click', () => {
-        const txt = getSelectedText();
-        if (txt) {
-            const activeZone = STATE.designs[STATE.stickerZone];
-            const duplicate = {
-                ...txt,
-                id: 'txt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-                // Offset position slightly so it doesn't overlap exactly
-                x: Math.min(0.9, txt.x + 0.05),
-                y: Math.min(0.9, txt.y + 0.05)
-            };
-            activeZone.texts.push(duplicate);
-            selectText(duplicate.id);
-            repaintStickerCanvas();
         }
     });
 }
@@ -1729,7 +1505,6 @@ if (deleteBtn) {
 // Keyboard Backspace/Delete hook
 window.addEventListener('keydown', (e) => {
     if (e.key === 'Backspace' || e.key === 'Delete') {
-        // Do NOT delete text if the user is typing in a text field!
         const activeEl = document.activeElement;
         if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable)) {
             return;
@@ -1748,7 +1523,6 @@ window.addEventListener('keydown', (e) => {
 
 // Click outside deselects text
 document.addEventListener('mousedown', (e) => {
-    // If clicking inside canvas overlay or text panel inputs, do nothing
     if (e.target.closest('#design-canvas-overlay') || e.target.closest('#panel-text') || e.target.closest('#toast-container')) {
         return;
     }
