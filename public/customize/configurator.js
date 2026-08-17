@@ -68,6 +68,8 @@ controls.minDistance = 9;
 controls.maxDistance = 22;
 controls.minPolarAngle = Math.PI * 0.25;
 controls.maxPolarAngle = Math.PI * 0.75;
+controls.minAzimuthAngle = THREE.MathUtils.degToRad(-35);
+controls.maxAzimuthAngle = THREE.MathUtils.degToRad(35);
 controls.update();
 
 // Update elliptical indicator angle based on camera orbit
@@ -472,6 +474,11 @@ document.querySelectorAll('.zone-btn').forEach(btn => {
         document.querySelectorAll('.zone-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
 
+        // Temporarily disable OrbitControls and limits to prevent snapping/user-drag conflicts during swivel
+        controls.enabled = false;
+        controls.minAzimuthAngle = -Infinity;
+        controls.maxAzimuthAngle = Infinity;
+
         // Natural Orbital Swivel
         const targetAngle = (zone === 'front') ? 0 : Math.PI; 
         const distance = 16;
@@ -484,6 +491,19 @@ document.querySelectorAll('.zone-btn').forEach(btn => {
                 camera.position.x = Math.sin(proxy.angle) * distance;
                 camera.position.z = Math.cos(proxy.angle) * distance;
                 camera.position.y = 4;
+                controls.update();
+            },
+            onComplete: () => {
+                // Apply clamped horizontal limits (+/- 35 degrees)
+                const limitRad = THREE.MathUtils.degToRad(35);
+                if (zone === 'front') {
+                    controls.minAzimuthAngle = -limitRad;
+                    controls.maxAzimuthAngle = limitRad;
+                } else {
+                    controls.minAzimuthAngle = Math.PI - limitRad;
+                    controls.maxAzimuthAngle = Math.PI + limitRad;
+                }
+                controls.enabled = true;
                 controls.update();
             }
         });
@@ -548,6 +568,18 @@ document.getElementById('ctrl-zoom').addEventListener('click', () => {
 document.getElementById('ctrl-reset').addEventListener('click', () => {
     controls.autoRotate = false;
     document.getElementById('ctrl-rotate').classList.remove('active');
+    
+    // Temporarily clear limits during transition to allow returning to FRONT view (0deg)
+    controls.enabled = false;
+    controls.minAzimuthAngle = -Infinity;
+    controls.maxAzimuthAngle = Infinity;
+    
+    // Reset active zone button states to Front
+    document.querySelectorAll('.zone-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('.zone-btn[data-zone="front"]')?.classList.add('active');
+    STATE.stickerZone = 'front';
+    repaintStickerCanvas();
+
     gsap.to(camera.position, {
         x: 0,
         y: 4,
@@ -556,6 +588,13 @@ document.getElementById('ctrl-reset').addEventListener('click', () => {
         ease: "power2.out",
         onComplete: () => {
             controls.target.set(0, 4, 0);
+            
+            // Re-apply front view limits (+/- 35 degrees)
+            const limitRad = THREE.MathUtils.degToRad(35);
+            controls.minAzimuthAngle = -limitRad;
+            controls.maxAzimuthAngle = limitRad;
+            
+            controls.enabled = true;
             controls.update();
         }
     });
