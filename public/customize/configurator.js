@@ -298,7 +298,7 @@ function loadModel(style) {
         MODEL_CONFIGS[style].url,
         (gltf) => {
             tshirtModel = gltf.scene;
-            fitModel(tshirtModel, 9.0);
+            fitModel(tshirtModel, 7.8);
             applyMaterialToModel();
             scene.add(tshirtModel);
         },
@@ -313,7 +313,7 @@ function loadModel(style) {
         MODEL_CONFIGS.regular.url,
         (gltf) => {
             tshirtModel = gltf.scene;
-            fitModel(tshirtModel, 9.0);
+            fitModel(tshirtModel, 7.8);
             applyMaterialToModel();
             scene.add(tshirtModel);
             STATE.loaded = true;
