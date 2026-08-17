@@ -10,7 +10,7 @@ const PRINT_SIZES = {
         width: 0.28,
         height: 0.40,
         x: 0.50,
-        y: 0.50
+        y: 0.55
     },
     mediumFront: {
         name: "MEDIUM FRONT",
@@ -18,14 +18,14 @@ const PRINT_SIZES = {
         width: 0.18,
         height: 0.24,
         x: 0.50,
-        y: 0.50
+        y: 0.44
     },
     leftChest: {
         name: "LEFT CHEST",
         side: "front",
         width: 0.08,
         height: 0.08,
-        x: 0.65,
+        x: 0.66,
         y: 0.32
     },
     fullBack: {
@@ -34,7 +34,7 @@ const PRINT_SIZES = {
         width: 0.28,
         height: 0.40,
         x: 0.50,
-        y: 0.50
+        y: 0.55
     },
     mediumBack: {
         name: "MEDIUM BACK",
@@ -42,7 +42,7 @@ const PRINT_SIZES = {
         width: 0.18,
         height: 0.24,
         x: 0.50,
-        y: 0.50
+        y: 0.44
     }
 };
 
