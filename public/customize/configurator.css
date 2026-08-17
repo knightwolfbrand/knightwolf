@@ -1750,6 +1750,7 @@ html, body {
     cursor: pointer;
     text-align: left;
     padding: 0 16px;
+    outline: none;
     transition: all 0.2s ease;
 }
 

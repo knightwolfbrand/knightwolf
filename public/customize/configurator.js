@@ -3,6 +3,39 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 // --- CONFIGURATION & STATE ---
+const STICKER_PLACEMENTS = {
+    FULL_FRONT: {
+        side: "front",
+        scale: 0.24,
+        x: 0.5,
+        y: 0.5
+    },
+    MEDIUM_FRONT: {
+        side: "front",
+        scale: 0.16,
+        x: 0.5,
+        y: 0.44
+    },
+    LEFT_CHEST: {
+        side: "front",
+        scale: 0.08,
+        x: 0.64,
+        y: 0.32
+    },
+    FULL_BACK: {
+        side: "back",
+        scale: 0.25,
+        x: 0.5,
+        y: 0.48
+    },
+    MEDIUM_BACK: {
+        side: "back",
+        scale: 0.17,
+        x: 0.5,
+        y: 0.44
+    }
+};
+
 const STATE = {
     color: '#f5f5f5', // Default color white as per user instructions
     loaded: false,
@@ -12,14 +45,14 @@ const STATE = {
     designs: {
         front: {
             stickerImage: null,
-            stickerScale: 0.15,
+            stickerPlacement: 'FULL_FRONT',
             stickerKey: null,
             _cachedClean: null,
             texts: []
         },
         back: {
             stickerImage: null,
-            stickerScale: 0.15,
+            stickerPlacement: 'FULL_BACK',
             stickerKey: null,
             _cachedClean: null,
             texts: []
@@ -243,16 +276,23 @@ function repaintStickerCanvas() {
     // Paint Front Design
     const front = STATE.designs.front;
     if (front.stickerImage) {
+        const placementKey = front.stickerPlacement || 'FULL_FRONT';
+        const placement = STICKER_PLACEMENTS[placementKey];
         const uv = cfg.uvCenter;
-        const stickerSize = Math.round(UV_SIZE * front.stickerScale);
+        const stickerSize = Math.round(UV_SIZE * placement.scale);
         const aspectY = cfg.aspectY || 1.0;
 
         if (!front._cachedClean) {
             front._cachedClean = removeBackground(front.stickerImage);
         }
 
-        const sx = Math.round(uv.cx * UV_SIZE);
-        const sy = Math.round(uv.cy * UV_SIZE);
+        const widthFactor = 0.18;
+        const heightFactor = 0.22;
+        const ux = uv.cx + (placement.x - 0.5) * widthFactor;
+        const uy = uv.cy + (placement.y - 0.5) * heightFactor;
+
+        const sx = Math.round(ux * UV_SIZE);
+        const sy = Math.round(uy * UV_SIZE);
 
         uvCtx.save();
         uvCtx.translate(sx, sy);
@@ -279,17 +319,22 @@ function repaintStickerCanvas() {
     // Paint Back Design
     const back = STATE.designs.back;
     if (back.stickerImage) {
+        const placementKey = back.stickerPlacement || 'FULL_BACK';
+        const placement = STICKER_PLACEMENTS[placementKey];
         const uv = cfg.uvBack;
-        const stickerSize = Math.round(UV_SIZE * back.stickerScale);
+        const stickerSize = Math.round(UV_SIZE * placement.scale);
         const aspectY = cfg.aspectY || 1.0;
 
         if (!back._cachedClean) {
             back._cachedClean = removeBackground(back.stickerImage);
         }
+        const widthFactor = 0.18;
+        const heightFactor = 0.22;
+        const ux = uv.cx + (placement.x - 0.5) * widthFactor;
+        const uy = uv.cy + (placement.y - 0.5) * heightFactor;
 
-        const sx = Math.round(uv.cx * UV_SIZE);
-        const sy = Math.round(uv.cy * UV_SIZE);
-
+        const sx = Math.round(ux * UV_SIZE);
+        const sy = Math.round(uy * UV_SIZE);
         uvCtx.save();
         uvCtx.translate(sx, sy);
         if (cfg.isFlipped) {
@@ -457,8 +502,10 @@ function applySticker(key) {
     activeZone.stickerKey = key;
     activeZone._cachedClean = null; 
     
-    // Assign default placement based on active side
-    activeZone.stickerPlacement = STATE.stickerZone === 'front' ? 'FULL_FRONT' : 'FULL_BACK';
+    // Assign default placement based on active side ONLY if not already set
+    if (!activeZone.stickerPlacement) {
+        activeZone.stickerPlacement = STATE.stickerZone === 'front' ? 'FULL_FRONT' : 'FULL_BACK';
+    }
     
     // Highlight the active placement button in the list
     document.querySelectorAll('.placement-btn').forEach(btn => {
@@ -474,8 +521,10 @@ function applyCustomSticker(imgEl) {
     activeZone.stickerKey = 'custom_' + Date.now();
     activeZone._cachedClean = null; 
     
-    // Assign default placement based on active side
-    activeZone.stickerPlacement = STATE.stickerZone === 'front' ? 'FULL_FRONT' : 'FULL_BACK';
+    // Assign default placement based on active side ONLY if not already set
+    if (!activeZone.stickerPlacement) {
+        activeZone.stickerPlacement = STATE.stickerZone === 'front' ? 'FULL_FRONT' : 'FULL_BACK';
+    }
     
     // Highlight the active placement button in the list
     document.querySelectorAll('.placement-btn').forEach(btn => {
