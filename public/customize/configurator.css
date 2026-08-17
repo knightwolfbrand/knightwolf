@@ -578,48 +578,86 @@ html, body {
     color: var(--accent-blue);
 }
 
-/* Sticker Grid (4 columns) */
+/* Sticker Grid (2 columns) */
 .sticker-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
     margin-bottom: 24px;
 }
 
 .sticker-opt {
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid var(--border-dark);
-    aspect-ratio: 1;
     border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    padding: 12px;
+    width: 100%;
+    aspect-ratio: auto;
+}
+
+.sticker-opt-img-wrapper {
+    width: 100%;
+    aspect-ratio: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    transition: all 0.25s ease;
+    background: rgba(255, 255, 255, 0.01);
+    border-radius: 6px;
+    margin-bottom: 10px;
     padding: 8px;
 }
 
+.sticker-opt-img-wrapper img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    transition: all 0.2s ease;
+}
+
+.sticker-opt-info {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    margin-top: 4px;
+}
+
+.sticker-opt-title {
+    font-family: var(--font-title);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: 0.5px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+}
+
+.sticker-opt-zone {
+    font-size: 9px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
 .sticker-opt:hover {
-    border-color: rgba(255,255,255,0.2);
+    border-color: rgba(255,255,255,0.15);
     background: rgba(255,255,255,0.04);
 }
 
 .sticker-opt.active {
     border-color: var(--accent-blue);
-    background: rgba(var(--accent-blue-rgb), 0.06);
+    background: rgba(var(--accent-blue-rgb), 0.04);
     box-shadow: var(--glow-active);
-}
-
-.sticker-opt img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-    filter: brightness(0.85);
-    transition: all 0.2s ease;
-}
-
-.sticker-opt.active img, .sticker-opt:hover img {
-    filter: brightness(1);
 }
 
 /* Slider Controls */

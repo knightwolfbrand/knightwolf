@@ -607,3 +607,34 @@ window.addEventListener('resize', () => {
 
 animate();
 console.log('Knight Wolf Configurator v5.0 — 3-Column Premium Mode');
+
+// ─── DYNAMIC STICKER CARD BUILDER ─────────────────────────────────────────────
+document.querySelectorAll('.sticker-opt').forEach(btn => {
+    const title = btn.getAttribute('title') || 'Artwork';
+    const category = (btn.dataset.category || 'front').toUpperCase();
+
+    // Create wrapper for the image
+    const img = btn.querySelector('img');
+    if (img) {
+        const imgWrapper = document.createElement('div');
+        imgWrapper.className = 'sticker-opt-img-wrapper';
+        btn.insertBefore(imgWrapper, img);
+        imgWrapper.appendChild(img);
+    }
+
+    // Create info text container
+    const info = document.createElement('div');
+    info.className = 'sticker-opt-info';
+
+    const titleSpan = document.createElement('span');
+    titleSpan.className = 'sticker-opt-title';
+    titleSpan.textContent = title;
+
+    const zoneSpan = document.createElement('span');
+    zoneSpan.className = 'sticker-opt-zone';
+    zoneSpan.textContent = category; // E.g. "WOLF", "MINIMAL", "STREET", "SYMBOL"
+
+    info.appendChild(titleSpan);
+    info.appendChild(zoneSpan);
+    btn.appendChild(info);
+});
