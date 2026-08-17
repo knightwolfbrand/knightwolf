@@ -1262,7 +1262,40 @@ updateCartCount();
 renderCartDrawer();
 
 // ─── T-SHIRT TEXT CUSTOMIZATION EDITOR ───────────────────────────────────────
+const FONT_MAPPING = {
+    Modern: "'Montserrat', sans-serif",
+    Clean: "'Poppins', sans-serif",
+    Minimal: "'Roboto', sans-serif",
+    Tech: "'Space Grotesk', sans-serif",
+    Futuristic: "'Orbitron', sans-serif",
+    
+    Bold: "'Bebas Neue', sans-serif",
+    Heavy: "'Anton', sans-serif",
+    Impact: "Impact, sans-serif",
+    Strong: "'Archivo Black', sans-serif",
+    Blackout: "'Rubik Mono One', sans-serif",
+    
+    Classic: "Georgia, serif",
+    Elegant: "'Playfair Display', serif",
+    Serif: "'Times New Roman', serif",
+    Vintage: "'Cinzel', serif",
+    Royal: "'Cormorant Garamond', serif",
+    
+    Street: "'Oswald', sans-serif",
+    Urban: "'Black Ops One', sans-serif",
+    Graffiti: "'Permanent Marker', cursive",
+    HipHop: "'Bungee', sans-serif",
+    Sport: "'Teko', sans-serif",
+    
+    Handwritten: "'Caveat', cursive",
+    Script: "'Pacifico', cursive",
+    Signature: "'Dancing Script', cursive",
+    Brush: "'Great Vibes', cursive",
+    Casual: "'Shadows Into Light', cursive"
+};
+
 let selectedTextId = null;
+let defaultFontStyle = 'Modern';
 
 function getSelectedText() {
     const activeZone = STATE.designs[STATE.stickerZone];
@@ -1375,19 +1408,23 @@ function syncTextOverlay() {
 function selectText(id) {
     selectedTextId = id;
     
-    // De-select active stickers when text is selected
     document.querySelectorAll('.sticker-opt').forEach(opt => opt.classList.remove('active'));
 
     const txt = getSelectedText();
     const controlsSection = document.getElementById('text-controls-section');
     const emptyState = document.getElementById('text-empty-state');
 
+    // Sync font style grid highlights
+    const activeStyle = txt ? txt.fontStyleName : defaultFontStyle;
+    document.querySelectorAll('.font-style-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.font === activeStyle);
+    });
+
     if (txt) {
         controlsSection.classList.remove('hidden');
         emptyState.classList.add('hidden');
 
         document.getElementById('edit-text-content').value = txt.content;
-        document.getElementById('text-font-family').value = txt.fontFamily;
         document.getElementById('text-color-picker').value = txt.color;
 
         // Sync size buttons active class
@@ -1418,7 +1455,8 @@ if (addTextBtn) {
         const newText = {
             id: 'txt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
             content: content,
-            fontFamily: 'Montserrat',
+            fontStyleName: defaultFontStyle,
+            fontFamily: FONT_MAPPING[defaultFontStyle] || "'Montserrat', sans-serif",
             fontSize: 36, // default Medium
             fontWeight: '700',
             color: '#ffffff',
@@ -1449,17 +1487,28 @@ if (editContentInput) {
     });
 }
 
-const fontFamilySelect = document.getElementById('text-font-family');
-if (fontFamilySelect) {
-    fontFamilySelect.addEventListener('change', (e) => {
+// Font Style Grid clicking bindings
+document.querySelectorAll('.font-style-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const style = btn.dataset.font;
         const txt = getSelectedText();
+        
         if (txt) {
-            txt.fontFamily = e.target.value;
+            txt.fontStyleName = style;
+            txt.fontFamily = FONT_MAPPING[style];
             repaintStickerCanvas();
             syncTextOverlay();
+        } else {
+            // Apply to next added text
+            defaultFontStyle = style;
         }
+
+        // Highlight active style button
+        document.querySelectorAll('.font-style-btn').forEach(b => {
+            b.classList.toggle('active', b.dataset.font === style);
+        });
     });
-}
+});
 
 // Size preset triggers
 document.querySelectorAll('.size-preset-btn').forEach(btn => {
