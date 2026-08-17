@@ -10,7 +10,7 @@ const PRINT_SIZES = {
         width: 0.28,
         height: 0.40,
         x: 0.50,
-        y: 0.44
+        y: 0.50
     },
     mediumFront: {
         name: "MEDIUM FRONT",
@@ -18,7 +18,7 @@ const PRINT_SIZES = {
         width: 0.18,
         height: 0.24,
         x: 0.50,
-        y: 0.44
+        y: 0.50
     },
     leftChest: {
         name: "LEFT CHEST",
@@ -34,7 +34,7 @@ const PRINT_SIZES = {
         width: 0.28,
         height: 0.40,
         x: 0.50,
-        y: 0.44
+        y: 0.50
     },
     mediumBack: {
         name: "MEDIUM BACK",
@@ -42,7 +42,7 @@ const PRINT_SIZES = {
         width: 0.18,
         height: 0.24,
         x: 0.50,
-        y: 0.44
+        y: 0.50
     }
 };
 
@@ -88,14 +88,14 @@ const COLORS = {
 const MODEL_CONFIGS = {
     regular:   { 
         url: '/models/Tshirt2.glb', 
-        uvCenter: { cx: 0.27, cy: 0.68 },
-        uvBack:   { cx: 0.73, cy: 0.68 }, 
+        uvCenter: { cx: 0.27, cy: 0.72 },
+        uvBack:   { cx: 0.73, cy: 0.72 }, 
         isFlipped: true 
     },
     oversized: { 
         url: '/models/oversized_tshirt.glb', 
-        uvCenter: { cx: 0.30, cy: 0.45 },
-        uvBack:   { cx: 0.74, cy: 0.45 }, 
+        uvCenter: { cx: 0.30, cy: 0.52 },
+        uvBack:   { cx: 0.74, cy: 0.52 }, 
         aspectY: 1.25,
         isFlipped: true
     },
