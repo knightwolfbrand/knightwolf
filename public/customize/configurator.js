@@ -88,8 +88,8 @@ const COLORS = {
 const MODEL_CONFIGS = {
     regular:   { 
         url: '/models/Tshirt2.glb', 
-        uvCenter: { cx: 0.25, cy: 0.68 },
-        uvBack:   { cx: 0.75, cy: 0.68 }, 
+        uvCenter: { cx: 0.27, cy: 0.68 },
+        uvBack:   { cx: 0.73, cy: 0.68 }, 
         isFlipped: true 
     },
     oversized: { 
