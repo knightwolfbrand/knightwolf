@@ -375,6 +375,7 @@ function loadModel(style) {
             tshirtModel = gltf.scene;
             fitModel(tshirtModel, 7.8);
             applyMaterialToModel();
+            repaintStickerCanvas();
             scene.add(tshirtModel);
         },
         undefined,
@@ -440,7 +441,10 @@ Object.entries(STICKER_SRCS).forEach(([key, src]) => {
         stickerImages[key] = img;
         console.log(`✅ Sticker loaded: ${key}`);
         if (key === 'logo') {
-            applySticker('logo');
+            const activeZone = STATE.designs.front;
+            if (!activeZone.stickerKey) {
+                applySticker('logo');
+            }
         }
     };
     img.src = src;
