@@ -693,7 +693,7 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
   // Set all intro elements to invisible immediately on mount
   useEffect(() => {
     const cols = [col1Ref.current, col2Ref.current, col4Ref.current, col5Ref.current].filter(Boolean);
-    gsap.set(cols, { opacity: 0, filter: 'grayscale(1) contrast(1.08) brightness(0.92)' });
+    gsap.set(cols, { opacity: 0, filter: 'none' });
     gsap.set(centerFocusRef.current, { opacity: 0 });
     gsap.set(topNavRef.current, { opacity: 0, y: -32 });
     gsap.set(exploreButtonRef.current, { opacity: 0, y: 14 });
@@ -822,16 +822,15 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
       // Establish global 3D perspective context on the grid parent
       gsap.set(containerRef.current, { perspective: 1200 });
 
-      // Initialise: Columns separated in 3D space, pushed back and tilted in black canvas
-      colRefs.forEach((col, i) => {
+      // Initialise: Columns start at opacity 0 with no 3D offset or filters
+      colRefs.forEach((col) => {
         if (!col) return;
-        const isDown = i % 2 === 0;
         gsap.set(col, {
-          y: isDown ? -180 : 180,           // Columns 1 and 3 down from top, 2 and 4 up from bottom
-          z: -350,                           // separated back in 3D space
-          rotationX: isDown ? 15 : -15,      // elegant 3D tilt
+          y: 0,
+          z: 0,
+          rotationX: 0,
           opacity: 0,
-          filter: 'grayscale(1) brightness(0)', // start completely black in canvas
+          filter: 'none',
         });
       });
 
@@ -859,27 +858,17 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
         filter: 'blur(20px)' // start with a elegant 20px blur
       });
 
-      // 1. Columns entrance animation (Elegant 3D slide & long opacity curves)
+      // 1. Columns entrance animation (Elegant clean fade-in)
       colRefs.forEach((col, i) => {
         const startT = i * 0.3; // luxury slow stagger
         const tween = colTweens[i];
 
         if (col) {
-          // Slide smoothly into 3D position
+          // Fade in smoothly
           tl.to(col, {
-            y: 0,
-            z: 0,
-            rotationX: 0,
             opacity: 1,
-            duration: 2.2,
-            ease: 'power3.out',
-          }, startT);
-
-          // Elegant transition from black to normal color layout
-          tl.to(col, {
-            filter: 'grayscale(0) contrast(1) brightness(1)',
-            duration: 2.4,
-            ease: 'power2.inOut',
+            duration: 1.8,
+            ease: 'power2.out',
           }, startT);
         }
 
