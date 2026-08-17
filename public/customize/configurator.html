@@ -103,8 +103,7 @@
         <!-- CENTER COLUMN: Canvas & 3D Viewer -->
         <main class="viewer-section">
             <div id="canvas-container">
-
-
+                <div id="design-canvas-overlay" class="design-canvas-overlay"></div>
                 <!-- Three.js will inject canvas here -->
                 <div id="loader">
                     <div class="loader-container">
@@ -229,9 +228,150 @@
                     </div>
                 </div>
 
-                <!-- Tab Panel: Text Customization -->
                 <div class="tab-panel" id="panel-text">
-                    <p class="tab-placeholder-text">Text customization features coming soon.</p>
+                    <!-- Text Creator -->
+                    <div class="text-creator-container">
+                        <input type="text" id="text-input" placeholder="Enter your text..." class="cyber-input">
+                        <button id="add-text-btn" class="add-text-btn">+ ADD TEXT</button>
+                    </div>
+
+                    <!-- Selected Text Controls (Hidden by default unless text is active) -->
+                    <div id="text-controls-section" class="text-controls-section hidden">
+                        <div class="divider-line"></div>
+                        
+                        <div class="control-group-title">SELECTED TEXT</div>
+                        
+                        <!-- Content Editor -->
+                        <div class="editor-control-row">
+                            <label class="control-label">CONTENT</label>
+                            <input type="text" id="edit-text-content" class="cyber-input">
+                        </div>
+
+                        <!-- Font Selection -->
+                        <div class="editor-control-row">
+                            <label class="control-label">FONT FAMILY</label>
+                            <select id="text-font-family" class="cyber-select">
+                                <option value="Arial">Arial</option>
+                                <option value="Helvetica">Helvetica</option>
+                                <option value="Inter">Inter</option>
+                                <option value="Montserrat">Montserrat</option>
+                                <option value="Poppins">Poppins</option>
+                                <option value="Roboto">Roboto</option>
+                                <option value="Oswald">Oswald</option>
+                                <option value="Bebas Neue">Bebas Neue</option>
+                                <option value="Playfair Display">Playfair Display</option>
+                                <option value="Courier New">Courier New</option>
+                            </select>
+                        </div>
+
+                        <!-- Font Size Slider -->
+                        <div class="editor-control-row">
+                            <div class="control-label-row">
+                                <label class="control-label">FONT SIZE</label>
+                                <span id="text-size-val" class="control-value-label">32px</span>
+                            </div>
+                            <input type="range" id="text-size-slider" min="12" max="120" step="1" value="32" class="cyber-slider">
+                        </div>
+
+                        <!-- Font Weight -->
+                        <div class="editor-control-row">
+                            <label class="control-label">FONT WEIGHT</label>
+                            <select id="text-font-weight" class="cyber-select">
+                                <option value="300">Light</option>
+                                <option value="400">Regular</option>
+                                <option value="500">Medium</option>
+                                <option value="700">Bold</option>
+                                <option value="900">Black</option>
+                            </select>
+                        </div>
+
+                        <!-- Text Color Swatches & Picker -->
+                        <div class="editor-control-row">
+                            <label class="control-label">COLOR</label>
+                            <div class="color-picker-row">
+                                <input type="color" id="text-color-picker" value="#ffffff" class="cyber-color-picker">
+                                <div class="text-color-swatches">
+                                    <button class="text-swatch active" style="background:#ffffff;" data-color="#ffffff" title="White"></button>
+                                    <button class="text-swatch" style="background:#050505; border: 1px solid #333;" data-color="#050505" title="Black"></button>
+                                    <button class="text-swatch" style="background:#949494;" data-color="#949494" title="Gray"></button>
+                                    <button class="text-swatch" style="background:#ff3b30;" data-color="#ff3b30" title="Red"></button>
+                                    <button class="text-swatch" style="background:#00d2ff;" data-color="#00d2ff" title="Blue"></button>
+                                    <button class="text-swatch" style="background:#ffcc00;" data-color="#ffcc00" title="Yellow"></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Styles Buttons (Bold, Italic, Underline, Uppercase) -->
+                        <div class="editor-control-row">
+                            <label class="control-label">TEXT STYLE</label>
+                            <div class="style-toggle-buttons">
+                                <button class="style-toggle-btn" id="toggle-style-bold" title="Bold">B</button>
+                                <button class="style-toggle-btn" id="toggle-style-italic" title="Italic"><i>I</i></button>
+                                <button class="style-toggle-btn" id="toggle-style-underline" title="Underline"><u>U</u></button>
+                                <button class="style-toggle-btn" id="toggle-style-uppercase" title="Uppercase">AA</button>
+                            </div>
+                        </div>
+
+                        <!-- Alignment Buttons -->
+                        <div class="editor-control-row">
+                            <label class="control-label">ALIGNMENT</label>
+                            <div class="alignment-buttons">
+                                <button class="align-btn" data-align="left" title="Left">←</button>
+                                <button class="align-btn active" data-align="center" title="Center">CENTER</button>
+                                <button class="align-btn" data-align="right" title="Right">→</button>
+                            </div>
+                        </div>
+
+                        <!-- Letter Spacing -->
+                        <div class="editor-control-row">
+                            <div class="control-label-row">
+                                <label class="control-label">LETTER SPACING</label>
+                                <span id="text-letterspacing-val" class="control-value-label">0px</span>
+                            </div>
+                            <input type="range" id="text-letterspacing-slider" min="-5" max="20" step="1" value="0" class="cyber-slider">
+                        </div>
+
+                        <!-- Line Height -->
+                        <div class="editor-control-row">
+                            <div class="control-label-row">
+                                <label class="control-label">LINE HEIGHT</label>
+                                <span id="text-lineheight-val" class="control-value-label">1.2</span>
+                            </div>
+                            <input type="range" id="text-lineheight-slider" min="0.8" max="2.0" step="0.1" value="1.2" class="cyber-slider">
+                        </div>
+
+                        <!-- Text Scale -->
+                        <div class="editor-control-row">
+                            <div class="control-label-row">
+                                <label class="control-label">SCALE</label>
+                                <span id="text-scale-val" class="control-value-label">100%</span>
+                            </div>
+                            <input type="range" id="text-scale-slider" min="50" max="200" step="5" value="100" class="cyber-slider">
+                        </div>
+
+                        <!-- Text Rotation -->
+                        <div class="editor-control-row">
+                            <div class="control-label-row">
+                                <label class="control-label">ROTATION</label>
+                                <span id="text-rotation-val" class="control-value-label">0°</span>
+                            </div>
+                            <input type="range" id="text-rotation-slider" min="-180" max="180" step="5" value="0" class="cyber-slider">
+                        </div>
+
+                        <!-- Actions Row (Duplicate / Delete) -->
+                        <div class="divider-line"></div>
+                        <div class="editor-actions-row">
+                            <button id="duplicate-text-btn" class="editor-action-btn duplicate-btn">DUPLICATE</button>
+                            <button id="delete-text-btn" class="editor-action-btn delete-btn">DELETE</button>
+                        </div>
+                    </div>
+
+                    <!-- Selected Text Empty State -->
+                    <div id="text-empty-state" class="text-empty-state">
+                        <span class="empty-icon">✎</span>
+                        <div class="empty-title">ADD TEXT TO YOUR DESIGN</div>
+                        <div class="empty-desc">Enter text above and click ADD TEXT.</div>
+                    </div>
                 </div>
 
                 <!-- Tab Panel: Upload Area -->

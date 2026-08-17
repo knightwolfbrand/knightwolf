@@ -1317,4 +1317,298 @@ html, body {
     margin: 4px 0;
 }
 
+/* --- Text Customizer Panel Layout --- */
+.text-creator-container {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.add-text-btn {
+    background: var(--accent-blue);
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    padding: 0 16px;
+    font-family: var(--font-title);
+    font-size: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.add-text-btn:hover {
+    background: #33e0ff;
+    box-shadow: var(--glow-active);
+}
+
+.text-controls-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.text-controls-section.hidden {
+    display: none;
+}
+
+.control-group-title {
+    font-family: var(--font-title);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent-blue);
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+}
+
+.editor-control-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.control-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.control-value-label {
+    font-size: 10px;
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+.cyber-select {
+    width: 100%;
+    height: 38px;
+    background: #0d0d0d;
+    border: 1px solid var(--border-dark);
+    border-radius: 6px;
+    color: var(--text-primary);
+    padding: 0 12px;
+    font-family: var(--font-body);
+    font-size: 12px;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.cyber-select:focus {
+    border-color: var(--accent-blue);
+}
+
+.color-picker-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.cyber-color-picker {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.cyber-color-picker::-webkit-color-swatch {
+    border: 1px solid var(--border-dark);
+    border-radius: 8px;
+}
+
+.text-color-swatches {
+    display: flex;
+    gap: 6px;
+    flex: 1;
+}
+
+.text-swatch {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.text-swatch:hover {
+    transform: scale(1.1);
+}
+
+.text-swatch.active {
+    border-color: var(--accent-blue);
+    transform: scale(1.15);
+}
+
+.style-toggle-buttons, .alignment-buttons {
+    display: flex;
+    gap: 6px;
+}
+
+.style-toggle-btn, .align-btn {
+    flex: 1;
+    height: 34px;
+    background: #0d0d0d;
+    border: 1px solid var(--border-dark);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    font-family: var(--font-title);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.style-toggle-btn:hover, .align-btn:hover {
+    color: var(--text-primary);
+    border-color: var(--text-secondary);
+}
+
+.style-toggle-btn.active, .align-btn.active {
+    background: rgba(0, 210, 255, 0.05);
+    color: var(--accent-blue);
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 10px rgba(0, 210, 255, 0.1);
+}
+
+.editor-actions-row {
+    display: flex;
+    gap: 12px;
+}
+
+.editor-action-btn {
+    flex: 1;
+    height: 38px;
+    border: 1px solid var(--border-dark);
+    border-radius: 6px;
+    font-family: var(--font-title);
+    font-size: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.editor-action-btn.duplicate-btn {
+    background: transparent;
+    color: var(--text-primary);
+}
+
+.editor-action-btn.duplicate-btn:hover {
+    border-color: var(--text-primary);
+    background: rgba(255,255,255,0.03);
+}
+
+.editor-action-btn.delete-btn {
+    background: transparent;
+    color: #ff3b30;
+    border-color: rgba(255, 59, 48, 0.3);
+}
+
+.editor-action-btn.delete-btn:hover {
+    background: rgba(255, 59, 48, 0.08);
+    border-color: #ff3b30;
+}
+
+.text-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+    border: 1px dashed var(--border-dark);
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.text-empty-state .empty-icon {
+    font-size: 32px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.text-empty-state .empty-title {
+    font-family: var(--font-title);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+}
+
+.text-empty-state .empty-desc {
+    font-size: 10px;
+    color: var(--text-secondary);
+}
+
+/* --- Drag Overlay Bounding Box on the Shirt --- */
+.design-canvas-overlay {
+    position: absolute;
+    top: 36%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px;
+    height: 200px;
+    border: 1.5px dashed rgba(0, 210, 255, 0.15);
+    z-index: 100;
+    pointer-events: none; /* Mouse coordinates pass through so OrbitControls rotate T-shirt */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.design-canvas-overlay.hidden {
+    display: none;
+}
+
+.text-element-overlay {
+    position: absolute;
+    border: 1.5px solid transparent;
+    color: transparent;
+    user-select: none;
+    cursor: move;
+    pointer-events: auto; /* enable clicks/drags */
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.15s ease;
+}
+
+.text-element-overlay.active {
+    border-color: var(--accent-blue);
+}
+
+/* Selection outline corners */
+.text-element-overlay.active::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    width: 6px;
+    height: 6px;
+    background: var(--accent-blue);
+    border: 1px solid #000;
+}
+.text-element-overlay.active::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    width: 6px;
+    height: 6px;
+    background: var(--accent-blue);
+    border: 1px solid #000;
+}
+.text-element-overlay-content {
+    font-size: 12px;
+    line-height: 1;
+    text-align: center;
+}
+
 
