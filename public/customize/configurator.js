@@ -48,7 +48,7 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 0.1, 1000);
 camera.position.set(0, 4, 16);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
 renderer.setClearColor(0x000000, 0);
 renderer.setSize(container.clientWidth, container.clientHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -623,3 +623,344 @@ document.querySelectorAll('.sticker-opt').forEach(btn => {
     info.appendChild(zoneSpan);
     btn.appendChild(info);
 });
+
+// ─── CENTRALIZED PRICE CALCULATION ───────────────────────────────────────────
+function calculateCartItemPrice(config) {
+    const basePrice = 29.00;
+    const customizationPrice = 0.00; // Customizable/sticker upgrades can go here
+    return {
+        unitPrice: basePrice,
+        customizationPrice: customizationPrice,
+        totalPrice: basePrice + customizationPrice
+    };
+}
+
+// ─── CART STORAGE HELPER FUNCTIONS ────────────────────────────────────────────
+function getCart() {
+    try {
+        const stored = localStorage.getItem('knightWolfCart');
+        return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+        console.error('Failed to parse cart storage:', e);
+        return [];
+    }
+}
+
+function saveCart(cart) {
+    try {
+        localStorage.setItem('knightWolfCart', JSON.stringify(cart));
+        updateCartCount();
+        renderCartDrawer();
+    } catch (e) {
+        console.error('Failed to write cart storage:', e);
+        showToast('Unable to save cart. Storage quota full.', true);
+    }
+}
+
+function addToCart(item) {
+    const cart = getCart();
+    
+    // Config hash check to combine duplicates
+    const itemHash = `${item.fit.id}_${item.color.id}_${item.size}_${item.customization.stickers[0]?.id || 'none'}_${item.customization.stickers[0]?.side || 'front'}`;
+    const existing = cart.find(i => {
+        const iHash = `${i.fit.id}_${i.color.id}_${i.size}_${i.customization.stickers[0]?.id || 'none'}_${i.customization.stickers[0]?.side || 'front'}`;
+        return iHash === itemHash;
+    });
+
+    if (existing) {
+        existing.quantity += item.quantity;
+        existing.price = calculateCartItemPrice(existing); // recalculate total price
+    } else {
+        cart.push(item);
+    }
+    
+    saveCart(cart);
+}
+
+function removeFromCart(id) {
+    const cart = getCart();
+    const filtered = cart.filter(item => item.id !== id);
+    saveCart(filtered);
+}
+
+function updateCartQuantity(id, qty) {
+    const cart = getCart();
+    const item = cart.find(item => item.id === id);
+    if (item) {
+        item.quantity = Math.max(1, qty);
+        item.price = calculateCartItemPrice(item);
+        saveCart(cart);
+    }
+}
+
+function clearCart() {
+    saveCart([]);
+}
+
+function getCartCount() {
+    return getCart().reduce((sum, item) => sum + item.quantity, 0);
+}
+
+function getCartSubtotal() {
+    return getCart().reduce((sum, item) => sum + (item.price.totalPrice * item.quantity), 0);
+}
+
+// ─── TOAST NOTIFICATION SYSTEM ────────────────────────────────────────────────
+function showToast(message, isError = false) {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    
+    const toast = document.createElement('div');
+    toast.className = `toast-notification ${isError ? 'error-toast' : ''}`;
+    toast.innerHTML = `
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            ${isError 
+                ? '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>' 
+                : '<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>'}
+        </svg>
+        <span>${message}</span>
+    `;
+    
+    container.appendChild(toast);
+    
+    // Slide in
+    setTimeout(() => { toast.classList.add('show'); }, 10);
+    
+    // Auto remove
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => { toast.remove(); }, 350);
+    }, 3200);
+}
+
+// ─── UPDATE CART BADGE & UI ───────────────────────────────────────────────────
+function updateCartCount() {
+    const count = getCartCount();
+    const badges = document.querySelectorAll('.cart-badge-count, .cart-drawer-count-val');
+    badges.forEach(badge => {
+        badge.textContent = count;
+        badge.classList.toggle('hidden', count === 0);
+    });
+}
+
+function renderCartDrawer() {
+    const container = document.getElementById('cart-items-container');
+    const subtotalNode = document.querySelector('.cart-subtotal-val');
+    if (!container) return;
+
+    const cart = getCart();
+    
+    if (cart.length === 0) {
+        container.innerHTML = '<p class="empty-cart-msg">YOUR BAG IS EMPTY</p>';
+        if (subtotalNode) subtotalNode.textContent = '$0.00';
+        return;
+    }
+
+    container.innerHTML = cart.map(item => {
+        const customizationInfo = item.customization.stickers[0] 
+            ? `• ${item.customization.stickers[0].id.toUpperCase()}` 
+            : '';
+        return `
+            <div class="cart-item" data-id="${item.id}">
+                <div class="cart-item-preview-box">
+                    <img src="${item.preview.frontImage || '/images/room_bg.png'}" alt="Preview">
+                </div>
+                <div class="cart-item-info">
+                    <h4>${item.product.name}</h4>
+                    <p class="cart-item-details">${item.fit.name} • ${item.color.name} • ${item.size} ${customizationInfo}</p>
+                    <div class="cart-item-controls">
+                        <div class="cart-qty-selector">
+                            <button class="cart-qty-btn minus-qty" data-id="${item.id}">-</button>
+                            <span class="cart-qty-value">${item.quantity}</span>
+                            <button class="cart-qty-btn plus-qty" data-id="${item.id}">+</button>
+                        </div>
+                        <p class="cart-item-price">$${(item.price.totalPrice * item.quantity).toFixed(2)}</p>
+                    </div>
+                </div>
+                <button class="remove-item" data-id="${item.id}">&times;</button>
+            </div>
+        `;
+    }).join('');
+
+    if (subtotalNode) {
+        subtotalNode.textContent = `$${getCartSubtotal().toFixed(2)}`;
+    }
+
+    // Bind quantity increment/decrement buttons inside drawer
+    container.querySelectorAll('.minus-qty').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = btn.dataset.id;
+            const item = getCart().find(i => i.id === id);
+            if (item) updateCartQuantity(id, item.quantity - 1);
+        });
+    });
+
+    container.querySelectorAll('.plus-qty').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = btn.dataset.id;
+            const item = getCart().find(i => i.id === id);
+            if (item) updateCartQuantity(id, item.quantity + 1);
+        });
+    });
+
+    // Bind remove button inside drawer
+    container.querySelectorAll('.remove-item').forEach(btn => {
+        btn.addEventListener('click', () => {
+            removeFromCart(btn.dataset.id);
+        });
+    });
+}
+
+// ─── ADD TO CART ACTION FLOW ──────────────────────────────────────────────────
+function capturePreview() {
+    try {
+        renderer.render(scene, camera);
+        // data URL is JPEG at 0.5 quality to protect localStorage limit sizes
+        return renderer.domElement.toDataURL('image/jpeg', 0.5);
+    } catch(e) {
+        console.error('Failed to capture canvas screenshot:', e);
+        return '';
+    }
+}
+
+const addToCartBtn = document.querySelector('.add-to-cart-btn');
+if (addToCartBtn) {
+    addToCartBtn.addEventListener('click', () => {
+        // Double-click protection
+        if (addToCartBtn.disabled) return;
+        
+        // 1. Validation check
+        const activeFitCard = document.querySelector('.fit-card.active');
+        const activeColorSwatch = document.querySelector('.color-swatch-ring.active');
+        const activeSizeBtn = document.querySelector('.size-btn.active');
+        
+        if (!activeFitCard) {
+            showToast('Please select your fit card.', true);
+            return;
+        }
+        if (!activeColorSwatch) {
+            showToast('Please select your fabric color.', true);
+            return;
+        }
+        if (!activeSizeBtn) {
+            showToast('Please select a size before adding to cart.', true);
+            return;
+        }
+
+        // Lock button
+        addToCartBtn.disabled = true;
+        const originalText = addToCartBtn.textContent;
+        addToCartBtn.textContent = 'ADDING...';
+
+        try {
+            // Collect metadata fields
+            const fitName = activeFitCard.querySelector('.fit-name').textContent.trim();
+            const fitId = activeFitCard.dataset.style || 'regular';
+            const colorValue = STATE.color;
+            const colorName = activeColorSwatch.getAttribute('title') || 'Fabric';
+            const colorId = activeColorSwatch.dataset.color || colorValue;
+            const sizeValue = activeSizeBtn.textContent.trim();
+            
+            // Collect active sticker
+            const activeStickerOpt = document.querySelector('.sticker-opt.active');
+            const stickers = [];
+            if (STATE.stickerImage && activeStickerOpt) {
+                const stickerId = activeStickerOpt.dataset.sticker;
+                const stickerSrc = activeStickerOpt.querySelector('img').getAttribute('src');
+                const cfg = MODEL_CONFIGS[STATE.modelStyle];
+                const uv = (STATE.stickerZone === 'front') ? cfg.uvCenter : cfg.uvBack;
+                stickers.push({
+                    id: stickerId,
+                    src: stickerSrc,
+                    x: uv.cx,
+                    y: uv.cy,
+                    scale: STATE.stickerScale,
+                    rotation: 0,
+                    side: STATE.stickerZone
+                });
+            }
+
+            const cartItem = {
+                id: 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                product: {
+                    name: 'Custom T-Shirt',
+                    basePrice: 29.00
+                },
+                fit: { id: fitId, name: fitName },
+                color: { id: colorId, name: colorName, value: colorValue },
+                size: sizeValue,
+                quantity: 1,
+                customization: {
+                    stickers: stickers,
+                    texts: [],
+                    uploadedImages: [],
+                    frontDesign: STATE.stickerZone === 'front' ? { stickers } : { stickers: [] },
+                    backDesign: STATE.stickerZone === 'back' ? { stickers } : { stickers: [] }
+                },
+                preview: {
+                    frontImage: capturePreview(),
+                    backImage: ''
+                },
+                price: calculateCartItemPrice(),
+                createdAt: Date.now()
+            };
+
+            // Save to localStorage
+            addToCart(cartItem);
+
+            // Button success visual feedback
+            addToCartBtn.textContent = 'ADDED ✓';
+            showToast(`Added to cart: Custom T-Shirt · ${fitName} · ${sizeValue}`);
+
+            setTimeout(() => {
+                addToCartBtn.textContent = originalText;
+                addToCartBtn.disabled = false;
+                // Open drawer after successful action
+                const drawer = document.getElementById('cart-drawer');
+                if (drawer) drawer.classList.add('active');
+            }, 1000);
+
+        } catch (err) {
+            console.error('Failed to create cart item object:', err);
+            showToast('Unable to add this design to cart. Please try again.', true);
+            addToCartBtn.textContent = originalText;
+            addToCartBtn.disabled = false;
+        }
+    });
+}
+
+// ─── CART DRAWER EVENT HANDLERS ──────────────────────────────────────────────
+const cartDrawer = document.getElementById('cart-drawer');
+const openCartBtn = document.getElementById('open-cart-btn');
+const closeCartBtn = document.getElementById('close-cart-btn');
+const cartOverlay = document.getElementById('cart-drawer-overlay');
+
+if (openCartBtn && cartDrawer) {
+    openCartBtn.addEventListener('click', () => {
+        cartDrawer.classList.add('active');
+    });
+}
+
+if (closeCartBtn && cartDrawer) {
+    closeCartBtn.addEventListener('click', () => {
+        cartDrawer.classList.remove('active');
+    });
+}
+
+if (cartOverlay && cartDrawer) {
+    cartOverlay.addEventListener('click', () => {
+        cartDrawer.classList.remove('active');
+    });
+}
+
+const checkoutBtn = document.querySelector('.checkout-btn');
+if (checkoutBtn) {
+    checkoutBtn.addEventListener('click', () => {
+        showToast('Checkout feature coming soon!');
+    });
+}
+
+// Initial storage synch execution
+updateCartCount();
+renderCartDrawer();
+
