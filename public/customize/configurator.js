@@ -18,15 +18,15 @@ const PRINT_AREAS = {
         width: 0.18,
         height: 0.24,
         x: 0.50,
-        y: 0.50
+        y: 0.42
     },
     leftChest: {
         name: "LEFT CHEST",
         side: "front",
         width: 0.08,
         height: 0.08,
-        x: 0.66,
-        y: 0.32
+        x: 0.68,
+        y: 0.30
     },
     fullBack: {
         name: "FULL BACK",
@@ -42,7 +42,7 @@ const PRINT_AREAS = {
         width: 0.18,
         height: 0.24,
         x: 0.50,
-        y: 0.50
+        y: 0.42
     }
 };
 
@@ -88,14 +88,14 @@ const COLORS = {
 const MODEL_CONFIGS = {
     regular:   { 
         url: '/models/Tshirt2.glb', 
-        uvCenter: { cx: 0.27, cy: 0.72 },
-        uvBack:   { cx: 0.73, cy: 0.72 }, 
+        uvCenter: { cx: 0.27, cy: 0.63 },
+        uvBack:   { cx: 0.73, cy: 0.63 }, 
         isFlipped: true 
     },
     oversized: { 
         url: '/models/oversized_tshirt.glb', 
-        uvCenter: { cx: 0.30, cy: 0.52 },
-        uvBack:   { cx: 0.74, cy: 0.52 }, 
+        uvCenter: { cx: 0.30, cy: 0.45 },
+        uvBack:   { cx: 0.74, cy: 0.45 }, 
         aspectY: 1.25,
         isFlipped: true
     },
@@ -258,7 +258,7 @@ function drawTextOnCanvas(ctx, text, uv, cfg) {
     const heightFactor = 0.22;
     
     const ux = uv.cx + (text.x - 0.5) * widthFactor;
-    const uy = uv.cy + (text.y - 0.5) * heightFactor;
+    const uy = uv.cy - (text.y - 0.5) * heightFactor;
     
     const sx = Math.round(ux * UV_SIZE);
     const sy = Math.round(uy * UV_SIZE);
@@ -311,8 +311,8 @@ function repaintStickerCanvas() {
 
         const posX = front.x !== undefined ? front.x : 0.5;
         const posY = front.y !== undefined ? front.y : 0.5;
-        const ux = uv.cx + (printSizeConfig.x - 0.5) * 0.18 + (posX - 0.5) * 0.18 * printSizeConfig.width;
-        const uy = uv.cy + (printSizeConfig.y - 0.5) * 0.22 + (posY - 0.5) * 0.22 * printSizeConfig.height;
+        const ux = uv.cx + (posX - 0.5) * 0.18 * printSizeConfig.width + (printSizeConfig.x - 0.5) * 0.18;
+        const uy = uv.cy - (posY - 0.5) * 0.22 * printSizeConfig.height - (printSizeConfig.y - 0.5) * 0.22;
 
         const sx = Math.round(ux * UV_SIZE);
         const sy = Math.round(uy * UV_SIZE);
@@ -363,8 +363,8 @@ function repaintStickerCanvas() {
 
         const posX = back.x !== undefined ? back.x : 0.5;
         const posY = back.y !== undefined ? back.y : 0.5;
-        const ux = uv.cx + (printSizeConfig.x - 0.5) * 0.18 + (posX - 0.5) * 0.18 * printSizeConfig.width;
-        const uy = uv.cy + (printSizeConfig.y - 0.5) * 0.22 + (posY - 0.5) * 0.22 * printSizeConfig.height;
+        const ux = uv.cx + (posX - 0.5) * 0.18 * printSizeConfig.width + (printSizeConfig.x - 0.5) * 0.18;
+        const uy = uv.cy - (posY - 0.5) * 0.22 * printSizeConfig.height - (printSizeConfig.y - 0.5) * 0.22;
 
         const sx = Math.round(ux * UV_SIZE);
         const sy = Math.round(uy * UV_SIZE);
