@@ -1153,7 +1153,13 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
       {activeTab === null && (
         <div className={styles.bottomExploreButtonContainer}>
           <div className={styles.bottomExploreButtonGridWrapper}>
-            <button ref={exploreButtonRef} className={styles.bottomExploreButton}>
+            <button 
+              ref={exploreButtonRef} 
+              className={styles.bottomExploreButton}
+              onClick={() => {
+                window.location.href = '/customize/configurator.html';
+              }}
+            >
               Explore Collections
             </button>
           </div>
