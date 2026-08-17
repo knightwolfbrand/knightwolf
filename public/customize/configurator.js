@@ -792,7 +792,39 @@ function calculateCartItemPrice(item) {
 function getCart() {
     try {
         const stored = localStorage.getItem('knightWolfCart');
-        return stored ? JSON.parse(stored) : [];
+        const parsed = stored ? JSON.parse(stored) : [];
+        let modified = false;
+        
+        const upgraded = parsed.map(item => {
+            // Upgrade old structures safely to prevent crashes
+            if (!item.pricing) {
+                item.pricing = {
+                    tshirtPrice: 500,
+                    stickerCount: 0,
+                    stickerCost: 0,
+                    enlargedStickerCount: 0,
+                    stickerSizeCost: 0,
+                    total: item.price ? item.price.totalPrice : 500
+                };
+                modified = true;
+            }
+            // Strip old bloated high-res screenshots to instantly recover localStorage space
+            if (item.preview && item.preview.frontImage && item.preview.frontImage.length > 50000) {
+                item.preview.frontImage = '';
+                modified = true;
+            }
+            return item;
+        });
+
+        if (modified) {
+            // Write clean shrunken items back to free up storage space immediately
+            try {
+                localStorage.setItem('knightWolfCart', JSON.stringify(upgraded));
+            } catch(ex) {
+                console.error('Failed to write recovered storage:', ex);
+            }
+        }
+        return upgraded;
     } catch (e) {
         console.error('Failed to parse cart storage:', e);
         return [];
@@ -981,7 +1013,28 @@ function renderCartDrawer() {
 function capturePreview() {
     try {
         renderer.render(scene, camera);
-        return renderer.domElement.toDataURL('image/jpeg', 0.5);
+        
+        // Downscale base64 to a tiny canvas (e.g. 100x100 pixels) to avoid localStorage size limits
+        const size = 100;
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = size;
+        tempCanvas.height = size;
+        const tempCtx = tempCanvas.getContext('2d');
+        
+        const srcW = renderer.domElement.width;
+        const srcH = renderer.domElement.height;
+        const minSide = Math.min(srcW, srcH);
+        
+        const sx = (srcW - minSide) / 2;
+        const sy = (srcH - minSide) / 2;
+        
+        tempCtx.drawImage(
+            renderer.domElement,
+            sx, sy, minSide, minSide, // center crop
+            0, 0, size, size          // scale down to 100x100
+        );
+        
+        return tempCanvas.toDataURL('image/jpeg', 0.4); // extremely small base64 (~2KB)
     } catch(e) {
         console.error('Failed to capture canvas screenshot:', e);
         return '';
