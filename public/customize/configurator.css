@@ -22,22 +22,24 @@
     -moz-osx-font-smoothing: grayscale;
 }
 
-body {
+html, body {
     background-color: var(--bg-dark);
     color: var(--text-primary);
     font-family: var(--font-main);
     overflow: hidden;
-    height: 100vh;
-    width: 100vw;
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
 }
 
 /* --- App Container: 3-Column Grid --- */
 .app-container {
     display: grid;
     grid-template-columns: var(--sidebar-width) 1fr var(--sidebar-width);
-    height: 100vh;
+    height: 100%;
     padding-bottom: var(--bottom-bar-height);
-    width: 100vw;
+    width: 100%;
     background-color: var(--bg-dark);
 }
 
