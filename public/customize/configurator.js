@@ -1,28 +1,27 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 
 // --- CONFIGURATION & STATE ---
 const STATE = {
-    color: '#949494',
+    color: '#f5f5f5', // Default color white as per user instructions
     loaded: false,
     modelStyle: 'regular',
     fabricStyle: 'structured',
     stickerImage: null,      // raw HTMLImageElement of chosen sticker
-    stickerZone: 'front',    // 'front' | 'back' | 'left' | 'right'
-    stickerScale: 0.15,      // Ultra-minimalist logo size
-    _cachedCleanSticker: null, // Caching the processed canvas to avoid "jerks" during resize
+    stickerZone: 'front',    // 'front' | 'back'
+    stickerScale: 0.15,      
+    _cachedCleanSticker: null, 
 };
-
 
 // ─── COLORS ──────────────────────────────────────────────────────────────────
 const COLORS = {
-    '#949494': { roughness: 0.95, metalness: 0.0 },
-    '#050505': { roughness: 0.95, metalness: 0.0 },
-    '#1a1a1a': { roughness: 0.95, metalness: 0.0 },
+    '#ffffff': { roughness: 0.92, metalness: 0.0 }, // White swatch maps here
     '#f5f5f5': { roughness: 0.92, metalness: 0.0 },
+    '#050505': { roughness: 0.95, metalness: 0.0 },
+    '#949494': { roughness: 0.95, metalness: 0.0 },
     '#00d2ff': { roughness: 0.90, metalness: 0.0 },
+    '#f5f0cc': { roughness: 0.95, metalness: 0.0 }, // Cream
 };
 
 // ─── MODEL CONFIGS ────────────────────────────────────────────────────────────
@@ -30,13 +29,13 @@ const MODEL_CONFIGS = {
     regular:   { 
         url: '/models/Tshirt2.glb', 
         uvCenter: { cx: 0.25, cy: 0.68 },
-        uvBack:   { cx: 0.75, cy: 0.68 }, // Calibrated Back Center
+        uvBack:   { cx: 0.75, cy: 0.68 }, 
         isFlipped: true 
     },
     oversized: { 
         url: '/models/oversized_tshirt.glb', 
         uvCenter: { cx: 0.30, cy: 0.45 },
-        uvBack:   { cx: 0.74, cy: 0.45 }, // Calibrated Back Center
+        uvBack:   { cx: 0.74, cy: 0.45 }, 
         aspectY: 1.25,
         isFlipped: true
     },
@@ -53,8 +52,7 @@ camera.position.set(0, 4, 16);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(container.clientWidth, container.clientHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.enabled = false; // Disabled real shadow maps for premium optimization
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.0;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -72,50 +70,46 @@ controls.minPolarAngle = Math.PI * 0.25;
 controls.maxPolarAngle = Math.PI * 0.75;
 controls.update();
 
+// Update elliptical indicator angle based on camera orbit
+controls.addEventListener('change', () => {
+    // Calculate orbital angle around Y axis
+    const angle = Math.atan2(camera.position.x, camera.position.z);
+    
+    // map angle to dot position on ellipse
+    // SVG is 200px wide. Center is 100px. Radius is 90px.
+    const dot = document.getElementById('position-dot');
+    if (dot) {
+        const cx = 100 + Math.sin(angle) * 90;
+        const cy = 20 + Math.cos(angle) * 15;
+        dot.setAttribute('cx', cx);
+        dot.setAttribute('cy', cy);
+    }
+});
 
 // ─── ENVIRONMENT ─────────────────────────────────────────────────────────────
 const texLoader = new THREE.TextureLoader();
 
-// Floor
-const woodTexture = texLoader.load('https://threejs.org/examples/textures/hardwood2_diffuse.jpg');
-woodTexture.wrapS = woodTexture.wrapT = THREE.RepeatWrapping;
-woodTexture.repeat.set(4, 4);
-const floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(30, 30),
-    new THREE.MeshStandardMaterial({ map: woodTexture, roughness: 0.85, metalness: 0.0 })
+// Soft volumetric shadows under T-shirt hem
+const shadowTexture = texLoader.load('https://threejs.org/examples/textures/shadow.png');
+const shadowPlane = new THREE.Mesh(
+    new THREE.PlaneGeometry(12, 12),
+    new THREE.MeshBasicMaterial({ map: shadowTexture, transparent: true, opacity: 0.45, depthWrite: false })
 );
-floor.rotation.x = -Math.PI / 2;
-floor.position.y = -1.25;
-floor.receiveShadow = true;
-scene.add(floor);
-
-// Walls
-function createWallTexture() {
-    const c = document.createElement('canvas'); c.width = c.height = 512;
-    const ctx = c.getContext('2d');
-    const g = ctx.createLinearGradient(0, 512, 0, 0);
-    g.addColorStop(0, '#050505'); g.addColorStop(1, '#1c1c1c');
-    ctx.fillStyle = g; ctx.fillRect(0, 0, 512, 512);
-    return new THREE.CanvasTexture(c);
-}
-const wallMat = new THREE.MeshStandardMaterial({ map: createWallTexture(), roughness: 0.98, metalness: 0.0 });
-const wallGeo = new THREE.PlaneGeometry(30, 20);
-[{pos:[0,8.75,-15],ry:0},{pos:[0,8.75,15],ry:Math.PI},{pos:[-15,8.75,0],ry:Math.PI/2},{pos:[15,8.75,0],ry:-Math.PI/2}]
-.forEach(({pos,ry}) => {
-    const w = new THREE.Mesh(wallGeo, wallMat);
-    w.position.set(...pos); w.rotation.y = ry; w.receiveShadow = true; scene.add(w);
-});
+shadowPlane.rotation.x = -Math.PI / 2;
+shadowPlane.position.y = -1.2;
+scene.add(shadowPlane);
 
 // ─── LIGHTING ─────────────────────────────────────────────────────────────────
 scene.add(new THREE.AmbientLight(0xffffff, 1.4));
 const keyLight = new THREE.DirectionalLight(0xffffff, 1.6);
-keyLight.position.set(4, 8, 10); keyLight.castShadow = true;
-keyLight.shadow.mapSize.set(1024, 1024); keyLight.shadow.bias = -0.001; keyLight.shadow.radius = 6;
+keyLight.position.set(4, 8, 10);
 scene.add(keyLight);
 const fillLight = new THREE.DirectionalLight(0xffffff, 0.7);
-fillLight.position.set(-8, 3, 6); scene.add(fillLight);
+fillLight.position.set(-8, 3, 6);
+scene.add(fillLight);
 const rimLight = new THREE.DirectionalLight(0xffffff, 0.6);
-rimLight.position.set(0, 6, -12); scene.add(rimLight);
+rimLight.position.set(0, 6, -12);
+scene.add(rimLight);
 
 // ─── FABRIC TEXTURE GENERATORS ───────────────────────────────────────────────
 function createFabricTex(size, drawFn) {
@@ -151,21 +145,17 @@ function ensureFabricMaps(style) {
 }
 
 // ─── UV CANVAS STICKER SYSTEM ────────────────────────────────────────────────
-// The shirt material uses a 1024×1024 canvas as its .map texture.
-// We paint the base fabric colour + sticker directly onto this canvas.
-// No 3D projection needed — works on every model.
-
-const UV_SIZE = 2048; // Doubled resolution for crisp stickers
+const UV_SIZE = 2048; 
 const uvCanvas = document.createElement('canvas');
 uvCanvas.width = uvCanvas.height = UV_SIZE;
 const uvCtx = uvCanvas.getContext('2d');
 const uvTexture = new THREE.CanvasTexture(uvCanvas);
 uvTexture.colorSpace = THREE.SRGBColorSpace;
 uvTexture.flipY = false;
-uvTexture.anisotropy = 16; // Max sharpness for fabric details
+uvTexture.anisotropy = 16; 
 uvTexture.minFilter = THREE.LinearMipmapLinearFilter;
 uvTexture.magFilter = THREE.LinearFilter;
-uvTexture.wrapS = uvTexture.wrapT = THREE.ClampToEdgeWrapping; // Ensure no tiling/repetition
+uvTexture.wrapS = uvTexture.wrapT = THREE.ClampToEdgeWrapping;
 
 function hexToRgb(hex) {
     const r = parseInt(hex.slice(1,3),16);
@@ -175,8 +165,6 @@ function hexToRgb(hex) {
 }
 
 // ─── BACKGROUND REMOVAL ──────────────────────────────────────────────────────
-// Flood-fills from all 4 corners, removes any solid background colour,
-// returns a new canvas with the background made transparent.
 function removeBackground(img) {
     const c = document.createElement('canvas');
     c.width = img.naturalWidth || img.width;
@@ -190,9 +178,8 @@ function removeBackground(img) {
     const visited = new Uint8Array(W * H);
     const queue = [];
 
-    // Sample background colour from all 4 corners
     const bgR = data[0], bgG = data[1], bgB = data[2];
-    const TOL = 55; // Increased tolerance for cleaner background removal
+    const TOL = 55;
 
     [[0,0],[W-1,0],[0,H-1],[W-1,H-1]].forEach(([x,y]) => {
         const idx = y*W+x;
@@ -205,7 +192,7 @@ function removeBackground(img) {
         const pos = (y*W+x)*4;
         const diff = Math.abs(data[pos]-bgR)+Math.abs(data[pos+1]-bgG)+Math.abs(data[pos+2]-bgB);
         if (diff < TOL) {
-            data[pos+3] = 0; // make transparent
+            data[pos+3] = 0; 
             for (const [nx,ny] of [[x+1,y],[x-1,y],[x,y+1],[x,y-1]]) {
                 if (nx>=0&&nx<W&&ny>=0&&ny<H) {
                     const nIdx = ny*W+nx;
@@ -215,15 +202,13 @@ function removeBackground(img) {
         }
     }
     ctx.putImageData(imgData, 0, 0);
-    return c; // return processed canvas (can be drawn like an image)
+    return c;
 }
 
 function repaintStickerCanvas() {
-    // 1. Fill base colour
     uvCtx.fillStyle = hexToRgb(STATE.color);
     uvCtx.fillRect(0, 0, UV_SIZE, UV_SIZE);
 
-    // 2. Draw sticker if one is selected
     if (STATE.stickerImage) {
         const cfg = MODEL_CONFIGS[STATE.modelStyle];
         const uv = (STATE.stickerZone === 'front') ? cfg.uvCenter : cfg.uvBack;
@@ -231,7 +216,6 @@ function repaintStickerCanvas() {
         const stickerSize = Math.round(UV_SIZE * STATE.stickerScale);
         const aspectY = cfg.aspectY || 1.0;
 
-        // --- PERFORMANCE FIX: Use cached clean sticker if available ---
         if (!STATE._cachedCleanSticker) {
             STATE._cachedCleanSticker = removeBackground(STATE.stickerImage);
         }
@@ -256,29 +240,29 @@ function repaintStickerCanvas() {
         );
         uvCtx.restore();
     }
-
-    // 3. Tell Three.js the texture changed
     uvTexture.needsUpdate = true;
 }
 
 // ─── MATERIAL FACTORY ────────────────────────────────────────────────────────
+let tshirtMaterial = null;
 function makeFabricMaterial() {
+    if (tshirtMaterial) return tshirtMaterial;
+    
     const cfg = ensureFabricMaps(STATE.fabricStyle);
-    // Start with a fresh canvas paint
     repaintStickerCanvas();
-    const mat = new THREE.MeshPhysicalMaterial({
-        map:          uvTexture,      // UV-painted canvas drives colour + sticker
+    tshirtMaterial = new THREE.MeshPhysicalMaterial({
+        map:          uvTexture,      
         roughness:    0.98,
         metalness:    0.0,
-        side:         THREE.FrontSide,
+        side:         THREE.DoubleSide, // Ensure double sided rendering
         normalMap:    cfg.normal,
         roughnessMap: cfg.roughness,
         sheen:        1.0,
         sheenRoughness: 0.8,
         sheenColor:   new THREE.Color(0xffffff),
     });
-    mat.normalScale.set(cfg.normalScale, cfg.normalScale);
-    return mat;
+    tshirtMaterial.normalScale.set(cfg.normalScale, cfg.normalScale);
+    return tshirtMaterial;
 }
 
 // ─── MODEL LOADING ────────────────────────────────────────────────────────────
@@ -298,12 +282,10 @@ function fitModel(model, targetHeight) {
 
 function applyMaterialToModel() {
     if (!tshirtModel) return;
-    console.log("--- Applying Material to Meshes ---");
     const mat = makeFabricMaterial();
     tshirtModel.traverse(child => {
         if (child.isMesh) {
-            console.log("Found Mesh:", child.name);
-            child.castShadow    = true;
+            child.castShadow    = false;
             child.receiveShadow = false;
             child.material = mat;
         }
@@ -352,11 +334,10 @@ function loadModel(style) {
 // ─── UPDATE COLOUR ────────────────────────────────────────────────────────────
 function updateColor(hex) {
     STATE.color = hex;
-    repaintStickerCanvas(); // Re-paint canvas with new base colour
+    repaintStickerCanvas(); 
 }
 
 // ─── PRELOAD STICKER IMAGES ───────────────────────────────────────────────────
-// We load them as HTMLImageElements (not THREE textures) so we can drawImage()
 const stickerImages = {};
 const STICKER_SRCS = {
     logo:       '/images/logo.png',
@@ -380,38 +361,100 @@ const STICKER_SRCS = {
 };
 Object.entries(STICKER_SRCS).forEach(([key, src]) => {
     const img = new Image();
-    // No crossOrigin needed — images are same-origin local files
     img.onload = () => {
         stickerImages[key] = img;
         console.log(`✅ Sticker loaded: ${key}`);
+        if (key === 'logo') {
+            applySticker('logo');
+        }
     };
-    img.onerror = () => console.error(`❌ Sticker failed to load: ${src}`);
     img.src = src;
 });
 
 function applySticker(key) {
-    if (!stickerImages[key]) { console.warn('Sticker image not loaded yet:', key); return; }
+    if (!stickerImages[key]) { return; }
     STATE.stickerImage = stickerImages[key];
-    STATE._cachedCleanSticker = null; // Reset cache for new image
+    STATE._cachedCleanSticker = null; 
     repaintStickerCanvas();
 }
 
 function applyCustomSticker(imgEl) {
     STATE.stickerImage = imgEl;
-    STATE._cachedCleanSticker = null; // Reset cache for new image
+    STATE._cachedCleanSticker = null; 
     repaintStickerCanvas();
 }
 
 // ─── UI EVENT LISTENERS ──────────────────────────────────────────────────────
 
-// Toggle sticker panel
-document.getElementById('toggle-stickers').addEventListener('click', () => {
-    const grid = document.getElementById('sticker-grid');
-    const isHidden = grid.classList.toggle('hidden');
-    document.getElementById('toggle-stickers').querySelector('.btn-icon').innerText = isHidden ? '+' : '-';
+// Choose Your Fit card triggers
+document.querySelectorAll('.fit-card').forEach(card => {
+    card.addEventListener('click', () => {
+        document.querySelectorAll('.fit-card').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        const style = card.dataset.style;
+        STATE.modelStyle = style;
+        loadModel(style);
+        controls.target.set(0, 4.0, 0);
+        controls.update();
+    });
 });
 
-// Sticker buttons
+// Color swatches (Left Sidebar)
+document.querySelectorAll('.color-swatch-ring').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelector('.color-swatch-ring.active')?.classList.remove('active');
+        btn.classList.add('active');
+        updateColor(btn.dataset.color);
+    });
+});
+
+// Size selection (Left Sidebar)
+document.querySelectorAll('.size-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    });
+});
+
+// Navigation Tabs (Right Sidebar)
+document.querySelectorAll('.tab-nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-nav-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        
+        btn.classList.add('active');
+        const targetPanel = document.getElementById(`panel-${btn.dataset.tab}`);
+        if (targetPanel) {
+            targetPanel.classList.add('active');
+        }
+    });
+});
+
+// Category Filter (Right Sidebar)
+document.querySelectorAll('.category-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        const category = btn.dataset.category;
+        document.querySelectorAll('.sticker-opt').forEach(opt => {
+            const matchesCategory = category === 'all' || opt.dataset.category === category;
+            opt.style.display = matchesCategory ? 'flex' : 'none';
+        });
+    });
+});
+
+// Search Filter (Right Sidebar)
+document.getElementById('sticker-search').addEventListener('input', (e) => {
+    const query = e.target.value.toLowerCase();
+    document.querySelectorAll('.sticker-opt').forEach(opt => {
+        const title = opt.getAttribute('title').toLowerCase();
+        const matchesSearch = title.includes(query);
+        opt.style.display = matchesSearch ? 'flex' : 'none';
+    });
+});
+
+// Sticker grid buttons
 document.querySelectorAll('.sticker-opt').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('.sticker-opt').forEach(b => b.classList.remove('active'));
@@ -426,19 +469,16 @@ document.querySelectorAll('.zone-btn').forEach(btn => {
         const zone = btn.dataset.zone;
         STATE.stickerZone = zone;
 
-        // Update UI
         document.querySelectorAll('.zone-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
 
-        // Natural Orbital Swivel (arcs around the shirt instead of zooming through it)
-        const targetAngle = (zone === 'front') ? 0 : Math.PI; // 0 for front, 180 degrees for back
-        const distance = 18;
-        
-        // We animate a dummy object to handle the arc calculation
+        // Natural Orbital Swivel
+        const targetAngle = (zone === 'front') ? 0 : Math.PI; 
+        const distance = 16;
         const proxy = { angle: (zone === 'front') ? Math.PI : 0 }; 
         gsap.to(proxy, {
             angle: targetAngle,
-            duration: 1.5,
+            duration: 1.2,
             ease: "power2.inOut",
             onUpdate: () => {
                 camera.position.x = Math.sin(proxy.angle) * distance;
@@ -453,32 +493,10 @@ document.querySelectorAll('.zone-btn').forEach(btn => {
 });
 
 // Sticker size slider
-// View buttons removed — user rotates freely with mouse
-
-// Sticker size slider
-document.getElementById('sticker-resize').addEventListener('input', (e) => {
-    STATE.stickerScale = parseFloat(e.target.value);
-    repaintStickerCanvas();
-});
-
-// Color swatches
-document.querySelectorAll('.color-swatch').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelector('.color-swatch.active')?.classList.remove('active');
-        btn.classList.add('active');
-        updateColor(btn.dataset.color);
-    });
-});
-
-// Model style (Regular / Oversized)
-document.querySelectorAll('[data-style]').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('[data-style]').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        STATE.modelStyle = btn.dataset.style;
-        loadModel(btn.dataset.style);
-        controls.target.set(0, 4.0, 0);
-        controls.update();
+document.querySelectorAll('#sticker-resize').forEach(slider => {
+    slider.addEventListener('input', (e) => {
+        STATE.stickerScale = parseFloat(e.target.value);
+        repaintStickerCanvas();
     });
 });
 
@@ -499,6 +517,42 @@ uploadInput.addEventListener('change', (e) => {
     reader.readAsDataURL(file);
 });
 
+// Center Controls triggers
+document.getElementById('ctrl-rotate').addEventListener('click', () => {
+    // slow auto-rotate loop or small nudge
+    controls.autoRotate = !controls.autoRotate;
+    controls.autoRotateSpeed = 2.0;
+    document.getElementById('ctrl-rotate').classList.toggle('active', controls.autoRotate);
+});
+
+document.getElementById('ctrl-zoom').addEventListener('click', () => {
+    // toggle between zoom configurations
+    const isZoomed = camera.position.z < 13;
+    gsap.to(camera.position, {
+        z: isZoomed ? 17 : 11,
+        y: isZoomed ? 4 : 3,
+        duration: 0.8,
+        ease: "power2.out",
+        onUpdate: () => controls.update()
+    });
+});
+
+document.getElementById('ctrl-reset').addEventListener('click', () => {
+    controls.autoRotate = false;
+    document.getElementById('ctrl-rotate').classList.remove('active');
+    gsap.to(camera.position, {
+        x: 0,
+        y: 4,
+        z: 16,
+        duration: 1.0,
+        ease: "power2.out",
+        onComplete: () => {
+            controls.target.set(0, 4, 0);
+            controls.update();
+        }
+    });
+});
+
 // ─── ANIMATION LOOP ───────────────────────────────────────────────────────────
 function animate() {
     requestAnimationFrame(animate);
@@ -513,4 +567,4 @@ window.addEventListener('resize', () => {
 });
 
 animate();
-console.log('Knight Wolf Configurator v4.0 — UV Canvas Mode');
+console.log('Knight Wolf Configurator v5.0 — 3-Column Premium Mode');

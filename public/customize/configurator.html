@@ -7,156 +7,270 @@
     <meta name="description" content="Configure your custom Knight Wolf premium streetwear in high-fidelity 3D.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="configurator.css">
     <!-- GSAP for smooth animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 </head>
 <body>
     <div class="app-container">
-        <!-- Left Side: 3D Canvas -->
-        <main class="viewer-section">
-            <div id="canvas-container">
-                <!-- Three.js will inject canvas here -->
-                <div class="viewer-overlay">
-                    <div class="brand-badge">
-                        <span class="badge-text">KNIGHT WOLF</span>
-                    </div>
-                    <div class="viewer-controls-hint">
-                        <span>DRAG TO ROTATE • SCROLL TO ZOOM</span>
-                    </div>
-                </div>
-                <div id="loader">
-                    <div class="loader-container">
-                        <div class="loader-circle"></div>
-                        <img src="/images/logo.svg" class="loader-logo" alt="Knight Wolf Logo">
-                    </div>
-                    <span class="loader-text">INITIALIZING QUANTUM RENDER...</span>
-                </div>
-            </div>
-        </main>
-
-        <!-- Right Side: Controls Panel -->
-        <aside class="controls-section">
-            <header class="panel-header">
+        <!-- LEFT COLUMN: Configurations -->
+        <aside class="sidebar-left">
+            <header class="sidebar-header">
                 <a href="/" class="back-link">← BACK TO SHOP</a>
                 <div class="logo-area">
                     <h1 class="logo-text">KNIGHT<br><span class="accent">WOLF</span></h1>
                 </div>
-                <div class="status-indicator">
-                    <span class="pulse"></span> LIVE CONFIGURATOR
-                </div>
             </header>
 
-            <div class="panel-content">
-                <!-- Section: Base Color -->
+            <div class="sidebar-scroll-content">
+                <!-- Section 01: Choose Your Fit -->
                 <section class="control-group">
-                    <h2 class="group-title">BASE FINISH</h2>
-                    <div class="color-grid" id="color-options">
-                        <button class="color-swatch active" style="--swatch-color: #050505;" data-color="#050505" title="Stealth Black"></button>
-                        <button class="color-swatch" style="--swatch-color: #1a1a1a;" data-color="#1a1a1a" title="Midnight Charcoal"></button>
-                        <button class="color-swatch" style="--swatch-color: #f5f5f5;" data-color="#f5f5f5" title="Arctic White"></button>
-                        <button class="color-swatch" style="--swatch-color: #00d2ff;" data-color="#00d2ff" title="Neon Pulse"></button>
+                    <div class="section-num-header">
+                        <span class="section-num">01</span>
+                        <h2 class="group-title">CHOOSE YOUR FIT</h2>
                     </div>
-
-                <!-- Section: Stickers -->
-                <section class="control-group">
-                    <h2 class="group-title">ARTWORK</h2>
-                    <button id="toggle-stickers" class="cyber-action-btn">
-                        <span>ADD STICKER</span>
-                        <span class="btn-icon">+</span>
-                    </button>
-                    <div id="sticker-grid" class="sticker-grid-container hidden">
-                        <div class="zone-switcher">
-                            <button class="zone-btn active" data-zone="front">FRONT</button>
-                            <button class="zone-btn" data-zone="back">BACK</button>
-                        </div>
-                        <div class="sticker-controls">
-                            <label>STICKER SIZE</label>
-                            <input type="range" id="sticker-resize" min="0.05" max="0.5" step="0.01" value="0.15">
-                        </div>
-                        <div class="sticker-grid">
-                            <button class="sticker-opt" data-sticker="logo" title="Classic Logo">
-                                <img src="/images/logo.png" alt="Logo">
-                            </button>
-                            <button class="sticker-opt" data-sticker="wolf" title="Wolf Pride">
-                                <img src="/images/sticker_wolf.png" alt="Wolf">
-                            </button>
-                            <button class="sticker-opt" data-sticker="bolt" title="Cyber Bolt">
-                                <img src="/images/sticker_bolt.png" alt="Bolt">
-                            </button>
-                            <button class="sticker-opt" data-sticker="sacrifice" title="Sacrifice">
-                                <img src="/images/sticker_sacrifice.png" alt="Sacrifice">
-                            </button>
-                            <button class="sticker-opt" data-sticker="justdoit" title="Just Do It">
-                                <img src="/images/sticker_justdoit.png" alt="Just Do It">
-                            </button>
-                            <button class="sticker-opt" data-sticker="realistic" title="Realistic">
-                                <img src="/images/sticker_realistic.png" alt="Realistic">
-                            </button>
-                            <button class="sticker-opt" data-sticker="risktakers" title="Risk Takers">
-                                <img src="/images/sticker_risktakers.png" alt="Risk Takers">
-                            </button>
-                            <!-- New Collection -->
-                            <button class="sticker-opt" data-sticker="art1" title="Cyber Art 1">
-                                <img src="/images/PHOTO-2026-05-05-23-58-49.png" alt="Art 1">
-                            </button>
-                            <button class="sticker-opt" data-sticker="art2" title="Cyber Art 2">
-                                <img src="/images/PHOTO-2026-05-05-23-59-10.png" alt="Art 2">
-                            </button>
-                            <button class="sticker-opt" data-sticker="art3" title="Cyber Art 3">
-                                <img src="/images/PHOTO-2026-05-06-00-00-01.png" alt="Art 3">
-                            </button>
-                            <button class="sticker-opt" data-sticker="art4" title="Cyber Art 4">
-                                <img src="/images/PHOTO-2026-05-06-00-00-28.png" alt="Art 4">
-                            </button>
-                            <button class="sticker-opt" data-sticker="art5" title="Cyber Art 5">
-                                <img src="/images/PHOTO-2026-05-06-00-02-47.png" alt="Art 5">
-                            </button>
-                            <button class="sticker-opt" data-sticker="art6" title="Cyber Art 6">
-                                <img src="/images/PHOTO-2026-05-06-00-03-52.png" alt="Art 6">
-                            </button>
-                            <button class="sticker-opt" data-sticker="art7" title="Cyber Art 7">
-                                <img src="/images/PHOTO-2026-05-06-00-05-23.png" alt="Art 7">
-                            </button>
-                            <button class="sticker-opt" data-sticker="art8" title="Cyber Art 8">
-                                <img src="/images/PHOTO-2026-05-07-11-16-19.png" alt="Art 8">
-                            </button>
-                            <button class="sticker-opt" data-sticker="art9" title="Cyber Art 9">
-                                <img src="/images/PHOTO-2026-05-07-11-16-41.png" alt="Art 9">
-                            </button>
-                            <button class="sticker-opt" data-sticker="art10" title="Cyber Art 10">
-                                <img src="/images/PHOTO-2026-05-07-11-19-49.png" alt="Art 10">
-                            </button>
-                            <button class="sticker-opt" data-sticker="art11" title="Cyber Art 11">
-                                <img src="/images/PHOTO-2026-05-07-11-22-00.png" alt="Art 11">
-                            </button>
+                    
+                    <div class="fit-cards-container">
+                        <div class="fit-card active" data-style="regular">
+                            <div class="fit-card-header">
+                                <span class="fit-name">CLASSIC</span>
+                                <span class="check-icon"></span>
+                            </div>
+                            <span class="fit-desc">Regular Fit</span>
                         </div>
                         
-                        <div class="custom-upload-area">
-                            <input type="file" id="custom-sticker-upload" accept="image/*" hidden>
-                            <button id="trigger-upload" class="cyber-outline-btn">
-                                <span>UPLOAD CUSTOM ART</span>
-                            </button>
+                        <div class="fit-card" data-style="oversized">
+                            <div class="fit-card-header">
+                                <span class="fit-name">OVERSIZED</span>
+                                <span class="check-icon"></span>
+                            </div>
+                            <span class="fit-desc">Street Fit</span>
+                        </div>
+                        
+                        <div class="fit-card" data-style="regular"> <!-- Mapping Premium to regular/custom logic -->
+                            <div class="fit-card-header">
+                                <span class="fit-name">PREMIUM</span>
+                                <span class="check-icon"></span>
+                            </div>
+                            <span class="fit-desc">Heavyweight Fit</span>
                         </div>
                     </div>
                 </section>
 
-                <!-- Section: Fit Style -->
+                <!-- Section 02: Choose Color -->
                 <section class="control-group">
-                    <h2 class="group-title">FIT STYLE</h2>
-                    <div class="style-toggle">
-                        <button class="style-btn active" data-style="regular">REGULAR</button>
-                        <button class="style-btn" data-style="oversized">OVERSIZED</button>
+                    <div class="section-num-header">
+                        <span class="section-num">02</span>
+                        <h2 class="group-title">CHOOSE COLOR</h2>
+                    </div>
+                    
+                    <div class="color-swatches-row" id="color-options">
+                        <button class="color-swatch-ring active" data-color="#f5f5f5" style="--swatch-color: #ffffff;" title="White"></button>
+                        <button class="color-swatch-ring" data-color="#050505" style="--swatch-color: #050505;" title="Black"></button>
+                        <button class="color-swatch-ring" data-color="#949494" style="--swatch-color: #949494;" title="Gray"></button>
+                        <button class="color-swatch-ring" data-color="#00d2ff" style="--swatch-color: #00d2ff;" title="Blue"></button>
+                        <button class="color-swatch-ring" data-color="#f5f0cc" style="--swatch-color: #f5f0cc;" title="Cream"></button>
                     </div>
                 </section>
 
-                <!-- Fabric locked to Structured as per user choice -->
+                <!-- Section 03: Choose Size -->
+                <section class="control-group">
+                    <div class="section-num-header">
+                        <span class="section-num">03</span>
+                        <h2 class="group-title">CHOOSE SIZE</h2>
+                    </div>
+                    
+                    <div class="size-buttons-row">
+                        <button class="size-btn">S</button>
+                        <button class="size-btn active">M</button>
+                        <button class="size-btn">L</button>
+                        <button class="size-btn">XL</button>
+                        <button class="size-btn">XXL</button>
+                    </div>
+                </section>
+            </div>
+        </aside>
+
+        <!-- CENTER COLUMN: Canvas & 3D Viewer -->
+        <main class="viewer-section">
+            <div id="canvas-container">
+                <!-- Watermark Overlay: Your Design Here -->
+                <div class="watermark-overlay">
+                    <svg class="handwritten-arrow-svg" viewBox="0 0 100 100" width="80" height="80">
+                        <path d="M10,80 Q25,35 65,45" fill="none" stroke="#00d2ff" stroke-width="1.5" stroke-dasharray="3 3"/>
+                        <polygon points="65,45 56,41 62,52" fill="#00d2ff"/>
+                    </svg>
+                    <span class="watermark-text">Your Design Here</span>
+                </div>
+
+                <!-- Three.js will inject canvas here -->
+                <div id="loader">
+                    <div class="loader-container">
+                        <div class="loader-circle"></div>
+                        <span class="loader-logo">KW</span>
+                    </div>
+                    <span class="loader-text">INITIALIZING QUANTUM RENDER...</span>
+                </div>
             </div>
 
+            <!-- Position Guide & Indicator -->
+            <div class="position-guide-wrapper">
+                <svg class="elliptical-guide" viewBox="0 0 200 40">
+                    <ellipse cx="100" cy="20" rx="90" ry="15" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+                    <circle id="position-dot" cx="100" cy="5" r="4" fill="#00d2ff"/>
+                </svg>
+            </div>
 
+            <!-- Center Controls Panel -->
+            <div class="center-controls-bar">
+                <div class="zone-switcher">
+                    <button class="zone-btn active" data-zone="front">FRONT</button>
+                    <button class="zone-btn" data-zone="back">BACK</button>
+                </div>
+                
+                <div class="control-actions">
+                    <button class="action-control-btn" id="ctrl-rotate" title="Rotate Model">ROTATE</button>
+                    <button class="action-control-btn" id="ctrl-zoom" title="Zoom In/Out">ZOOM</button>
+                    <button class="action-control-btn" id="ctrl-reset" title="Reset Camera">RESET</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- RIGHT COLUMN: Customization Tabs -->
+        <aside class="sidebar-right">
+            <header class="sidebar-header-right">
+                <span class="section-num">04</span>
+                <h2 class="group-title">CUSTOMIZE YOUR TEE</h2>
+            </header>
+
+            <!-- Navigation Tabs -->
+            <div class="right-tabs-navigation">
+                <button class="tab-nav-btn active" data-tab="sticker">STICKER</button>
+                <button class="tab-nav-btn" data-tab="text">TEXT</button>
+                <button class="tab-nav-btn" data-tab="upload">UPLOAD</button>
+                <button class="tab-nav-btn" data-tab="color">COLOR</button>
+            </div>
+
+            <div class="sidebar-scroll-content">
+                <!-- Tab Panel: Sticker Library -->
+                <div class="tab-panel active" id="panel-sticker">
+                    <!-- Search Input -->
+                    <div class="search-container">
+                        <input type="text" id="sticker-search" placeholder="Search stickers..." class="search-input">
+                    </div>
+
+                    <!-- Categories Filter -->
+                    <div class="categories-row">
+                        <button class="category-btn active" data-category="all">All</button>
+                        <button class="category-btn" data-category="wolf">Wolf</button>
+                        <button class="category-btn" data-category="minimal">Minimal</button>
+                        <button class="category-btn" data-category="street">Street</button>
+                        <button class="category-btn" data-category="symbol">Symbol</button>
+                    </div>
+
+                    <!-- Sticker Options Grid (4 columns) -->
+                    <div class="sticker-grid" id="sticker-options-grid">
+                        <button class="sticker-opt active" data-sticker="logo" data-category="minimal" title="Classic Logo">
+                            <img src="/images/logo.png" alt="Logo">
+                        </button>
+                        <button class="sticker-opt" data-sticker="wolf" data-category="wolf" title="Wolf Pride">
+                            <img src="/images/sticker_wolf.png" alt="Wolf">
+                        </button>
+                        <button class="sticker-opt" data-sticker="bolt" data-category="symbol" title="Cyber Bolt">
+                            <img src="/images/sticker_bolt.png" alt="Bolt">
+                        </button>
+                        <button class="sticker-opt" data-sticker="sacrifice" data-category="street" title="Sacrifice">
+                            <img src="/images/sticker_sacrifice.png" alt="Sacrifice">
+                        </button>
+                        <button class="sticker-opt" data-sticker="justdoit" data-category="street" title="Just Do It">
+                            <img src="/images/sticker_justdoit.png" alt="Just Do It">
+                        </button>
+                        <button class="sticker-opt" data-sticker="realistic" data-category="street" title="Realistic">
+                            <img src="/images/sticker_realistic.png" alt="Realistic">
+                        </button>
+                        <button class="sticker-opt" data-sticker="risktakers" data-category="street" title="Risk Takers">
+                            <img src="/images/sticker_risktakers.png" alt="Risk Takers">
+                        </button>
+                        <!-- Original Collections -->
+                        <button class="sticker-opt" data-sticker="art1" data-category="minimal" title="Cyber Art 1">
+                            <img src="/images/PHOTO-2026-05-05-23-58-49.png" alt="Art 1">
+                        </button>
+                        <button class="sticker-opt" data-sticker="art2" data-category="minimal" title="Cyber Art 2">
+                            <img src="/images/PHOTO-2026-05-05-23-59-10.png" alt="Art 2">
+                        </button>
+                        <button class="sticker-opt" data-sticker="art3" data-category="minimal" title="Cyber Art 3">
+                            <img src="/images/PHOTO-2026-05-06-00-00-01.png" alt="Art 3">
+                        </button>
+                        <button class="sticker-opt" data-sticker="art4" data-category="minimal" title="Cyber Art 4">
+                            <img src="/images/PHOTO-2026-05-06-00-00-28.png" alt="Art 4">
+                        </button>
+                        <button class="sticker-opt" data-sticker="art5" data-category="symbol" title="Cyber Art 5">
+                            <img src="/images/PHOTO-2026-05-06-00-02-47.png" alt="Art 5">
+                        </button>
+                        <button class="sticker-opt" data-sticker="art6" data-category="symbol" title="Cyber Art 6">
+                            <img src="/images/PHOTO-2026-05-06-00-03-52.png" alt="Art 6">
+                        </button>
+                        <button class="sticker-opt" data-sticker="art7" data-category="symbol" title="Cyber Art 7">
+                            <img src="/images/PHOTO-2026-05-06-00-05-23.png" alt="Art 7">
+                        </button>
+                        <button class="sticker-opt" data-sticker="art8" data-category="wolf" title="Cyber Art 8">
+                            <img src="/images/PHOTO-2026-05-07-11-16-19.png" alt="Art 8">
+                        </button>
+                        <button class="sticker-opt" data-sticker="art9" data-category="wolf" title="Cyber Art 9">
+                            <img src="/images/PHOTO-2026-05-07-11-16-41.png" alt="Art 9">
+                        </button>
+                        <button class="sticker-opt" data-sticker="art10" data-category="wolf" title="Cyber Art 10">
+                            <img src="/images/PHOTO-2026-05-07-11-19-49.png" alt="Art 10">
+                        </button>
+                        <button class="sticker-opt" data-sticker="art11" data-category="wolf" title="Cyber Art 11">
+                            <img src="/images/PHOTO-2026-05-07-11-22-00.png" alt="Art 11">
+                        </button>
+                    </div>
+
+                    <!-- Size Controls -->
+                    <div class="scale-controls-container">
+                        <label class="scale-label">ARTWORK SCALE</label>
+                        <input type="range" id="sticker-resize" min="0.05" max="0.5" step="0.01" value="0.15" class="cyber-slider">
+                    </div>
+                </div>
+
+                <!-- Tab Panel: Text Customization -->
+                <div class="tab-panel" id="panel-text">
+                    <p class="tab-placeholder-text">Text customization features coming soon.</p>
+                </div>
+
+                <!-- Tab Panel: Upload Area -->
+                <div class="tab-panel" id="panel-upload">
+                    <div class="custom-upload-box">
+                        <input type="file" id="custom-sticker-upload" accept="image/*" hidden>
+                        <button id="trigger-upload" class="upload-trigger-btn">
+                            <span class="upload-icon">↑</span>
+                            <span>UPLOAD CUSTOM FILE</span>
+                        </button>
+                        <span class="upload-help">Supports PNG, JPG, WebP</span>
+                    </div>
+                </div>
+
+                <!-- Tab Panel: Color Customization -->
+                <div class="tab-panel" id="panel-color">
+                    <p class="tab-placeholder-text">Additional color options and filters coming soon.</p>
+                </div>
+            </div>
         </aside>
     </div>
+
+    <!-- FIXED BOTTOM BAR -->
+    <footer class="app-bottom-bar">
+        <div class="bottom-bar-left">
+            <span class="brand-title">KNIGHT WOLF</span>
+            <span class="brand-tagline">WEAR YOUR STORY</span>
+        </div>
+        <div class="bottom-bar-right">
+            <span class="item-price">$29.00</span>
+            <button class="add-to-cart-btn">ADD TO CART</button>
+        </div>
+    </footer>
 
     <!-- Scripts -->
     <script type="importmap">
