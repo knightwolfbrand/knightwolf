@@ -64,8 +64,8 @@ controls.target.set(0, 4, 0);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
 controls.enablePan = false;
-controls.minDistance = 9;
-controls.maxDistance = 22;
+controls.minDistance = 11.2;
+controls.maxDistance = 20;
 controls.minPolarAngle = Math.PI * 0.5;
 controls.maxPolarAngle = Math.PI * 0.5;
 controls.update();
@@ -535,10 +535,10 @@ document.getElementById('ctrl-rotate').addEventListener('click', () => {
 
 document.getElementById('ctrl-zoom').addEventListener('click', () => {
     // toggle between zoom configurations
-    const isZoomed = camera.position.z < 13;
+    const isZoomed = camera.position.z < 13.5;
     gsap.to(camera.position, {
-        z: isZoomed ? 17 : 11,
-        y: isZoomed ? 4 : 3,
+        z: isZoomed ? 17 : 11.8,
+        y: isZoomed ? 4 : 3.6,
         duration: 0.8,
         ease: "power2.out",
         onUpdate: () => controls.update()
