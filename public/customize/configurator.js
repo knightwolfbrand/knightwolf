@@ -456,6 +456,15 @@ function applySticker(key) {
     activeZone.stickerImage = stickerImages[key];
     activeZone.stickerKey = key;
     activeZone._cachedClean = null; 
+    
+    // Assign default placement based on active side
+    activeZone.stickerPlacement = STATE.stickerZone === 'front' ? 'FULL_FRONT' : 'FULL_BACK';
+    
+    // Highlight the active placement button in the list
+    document.querySelectorAll('.placement-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.placement === activeZone.stickerPlacement);
+    });
+
     repaintStickerCanvas();
 }
 
@@ -464,6 +473,15 @@ function applyCustomSticker(imgEl) {
     activeZone.stickerImage = imgEl;
     activeZone.stickerKey = 'custom_' + Date.now();
     activeZone._cachedClean = null; 
+    
+    // Assign default placement based on active side
+    activeZone.stickerPlacement = STATE.stickerZone === 'front' ? 'FULL_FRONT' : 'FULL_BACK';
+    
+    // Highlight the active placement button in the list
+    document.querySelectorAll('.placement-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.placement === activeZone.stickerPlacement);
+    });
+
     repaintStickerCanvas();
 }
 
@@ -566,28 +584,19 @@ document.querySelectorAll('.zone-btn').forEach(btn => {
         document.querySelectorAll('.zone-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
 
-        // Sync slider scale to current zone's scale
         const activeZone = STATE.designs[zone];
-        const slider = document.getElementById('sticker-resize');
-        if (slider) {
-            slider.value = activeZone.stickerScale;
-        }
+        
+        // Sync active placement preset highlights
+        const currentPlacement = activeZone.stickerPlacement;
+        document.querySelectorAll('.placement-btn').forEach(pb => {
+            pb.classList.toggle('active', pb.dataset.placement === currentPlacement);
+        });
 
         // Sync active sticker option card highlights
         document.querySelectorAll('.sticker-opt').forEach(opt => {
             const isCurrentSticker = opt.dataset.sticker === activeZone.stickerKey;
             opt.classList.toggle('active', isCurrentSticker);
-            
-            // Sync its visual scale preview
-            const img = opt.querySelector('img');
-            if (img) {
-                if (isCurrentSticker) {
-                    const visualScale = 0.8 + ((activeZone.stickerScale - 0.05) / 0.45) * 0.7;
-                    img.style.transform = `scale(${visualScale})`;
-                } else {
-                    img.style.transform = '';
-                }
-            }
+
         });
 
         // Natural Orbital Swivel
@@ -1003,11 +1012,25 @@ function renderCartDrawer() {
     }
 
     container.innerHTML = cart.map(item => {
+        const PLACEMENT_LABELS = {
+            FULL_FRONT: 'Full Front',
+            MEDIUM_FRONT: 'Medium Front',
+            LEFT_CHEST: 'Left Chest',
+            FULL_BACK: 'Full Back',
+            MEDIUM_BACK: 'Medium Back'
+        };
+        
+        let placementDetails = '';
+        if (item.customization && item.customization.stickers && item.customization.stickers.length > 0) {
+            placementDetails = item.customization.stickers.map(s => {
+                const label = PLACEMENT_LABELS[s.placement] || s.placement || 'Full Front';
+                const name = s.id ? s.id.replace('sticker_', '').toUpperCase() : 'Sticker';
+                return `<p class="cart-item-details">Sticker: ${name} (${label})</p>`;
+            }).join('');
+        }
+
         const stickersBreakdown = item.pricing.stickerCount > 0 
             ? `<p class="cart-item-details">Stickers × ${item.pricing.stickerCount}: ₹${item.pricing.stickerCost}</p>` 
-            : '';
-        const sizeBreakdown = item.pricing.enlargedStickerCount > 0 
-            ? `<p class="cart-item-details">Size Increase × ${item.pricing.enlargedStickerCount}: ₹${item.pricing.stickerSizeCost}</p>` 
             : '';
         return `
             <div class="cart-item" data-id="${item.id}">
@@ -1017,9 +1040,9 @@ function renderCartDrawer() {
                 <div class="cart-item-info">
                     <h4>${item.product.name}</h4>
                     <p class="cart-item-details">${item.fit.name} • ${item.color.name} • ${item.size}</p>
+                    ${placementDetails}
                     <p class="cart-item-details">Base T-Shirt: ₹${item.pricing.tshirtPrice}</p>
                     ${stickersBreakdown}
-                    ${sizeBreakdown}
                     <div class="cart-item-controls">
                         <div class="cart-qty-selector">
                             <button class="cart-qty-btn minus-qty" data-id="${item.id}">-</button>
@@ -1136,7 +1159,7 @@ if (addToCartBtn) {
                 stickers.push({
                     id: front.stickerKey,
                     src: front.stickerImage.src || '',
-                    scale: front.stickerScale,
+                    placement: front.stickerPlacement || 'FULL_FRONT',
                     side: 'front'
                 });
             }
@@ -1145,7 +1168,7 @@ if (addToCartBtn) {
                 stickers.push({
                     id: back.stickerKey,
                     src: back.stickerImage.src || '',
-                    scale: back.stickerScale,
+                    placement: back.stickerPlacement || 'FULL_BACK',
                     side: 'back'
                 });
             }
