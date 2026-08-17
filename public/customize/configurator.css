@@ -1722,48 +1722,98 @@ html, body {
     box-shadow: 0 0 10px rgba(0, 210, 255, 0.15);
 }
 
-/* --- Sticker Placement List --- */
-.sticker-placement-container {
+/* --- Print Size Selection Cards --- */
+.print-size-container {
     margin-top: 20px;
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-.sticker-placement-list {
+.print-size-grid {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
 }
 
-.placement-btn {
+.print-size-card {
     width: 100%;
-    height: 38px;
+    height: 52px;
     background: #0d0d0d;
     border: 1px solid var(--border-dark);
-    border-radius: 6px;
-    color: var(--text-secondary);
-    font-family: var(--font-title);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    cursor: pointer;
-    text-align: left;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
     padding: 0 16px;
+    cursor: pointer;
     outline: none;
     transition: all 0.2s ease;
+    text-align: left;
+    position: relative;
 }
 
-.placement-btn:hover {
-    color: var(--text-primary);
+.print-size-card:hover {
     border-color: var(--text-secondary);
 }
 
-.placement-btn.active {
-    background: rgba(0, 210, 255, 0.05);
+.print-size-card .card-number {
+    font-family: var(--font-title);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    margin-right: 16px;
+    width: 16px;
+    text-align: center;
+}
+
+.print-size-card .card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.print-size-card .card-title {
+    font-family: var(--font-title);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: 0.5px;
+}
+
+.print-size-card .card-desc {
+    font-size: 8.5px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.print-size-card .card-check-icon {
+    position: absolute;
+    right: 16px;
     color: var(--accent-blue);
+    font-size: 14px;
+    font-weight: bold;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.2s ease;
+}
+
+.print-size-card.active {
+    background: rgba(0, 210, 255, 0.05);
     border-color: var(--accent-blue);
-    box-shadow: 0 0 12px rgba(0, 210, 255, 0.2);
+    box-shadow: 0 0 14px rgba(0, 210, 255, 0.22);
+}
+
+.print-size-card.active .card-number {
+    color: var(--accent-blue);
+}
+
+.print-size-card.active .card-title {
+    color: var(--accent-blue);
+}
+
+.print-size-card.active .card-check-icon {
+    opacity: 1;
+    transform: scale(1);
 }
 
 

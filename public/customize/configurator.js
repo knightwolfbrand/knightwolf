@@ -3,35 +3,45 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 // --- CONFIGURATION & STATE ---
-const STICKER_PLACEMENTS = {
-    FULL_FRONT: {
+const PRINT_SIZES = {
+    fullFront: {
+        name: "FULL FRONT",
         side: "front",
-        scale: 0.24,
-        x: 0.5,
-        y: 0.5
+        width: 0.28,
+        height: 0.40,
+        x: 0.50,
+        y: 0.50
     },
-    MEDIUM_FRONT: {
+    mediumFront: {
+        name: "MEDIUM FRONT",
         side: "front",
-        scale: 0.16,
-        x: 0.5,
-        y: 0.44
+        width: 0.18,
+        height: 0.24,
+        x: 0.50,
+        y: 0.42
     },
-    LEFT_CHEST: {
+    leftChest: {
+        name: "LEFT CHEST",
         side: "front",
-        scale: 0.08,
-        x: 0.64,
+        width: 0.08,
+        height: 0.08,
+        x: 0.65,
         y: 0.32
     },
-    FULL_BACK: {
+    fullBack: {
+        name: "FULL BACK",
         side: "back",
-        scale: 0.25,
-        x: 0.5,
+        width: 0.28,
+        height: 0.40,
+        x: 0.50,
         y: 0.48
     },
-    MEDIUM_BACK: {
+    mediumBack: {
+        name: "MEDIUM BACK",
         side: "back",
-        scale: 0.17,
-        x: 0.5,
+        width: 0.18,
+        height: 0.24,
+        x: 0.50,
         y: 0.44
     }
 };
@@ -45,16 +55,20 @@ const STATE = {
     designs: {
         front: {
             stickerImage: null,
-            stickerPlacement: 'FULL_FRONT',
+            printSize: 'mediumFront',
             stickerKey: null,
             _cachedClean: null,
+            x: 0.5, // relative to the selected print area bounds
+            y: 0.5,
             texts: []
         },
         back: {
             stickerImage: null,
-            stickerPlacement: 'FULL_BACK',
+            printSize: 'mediumBack',
             stickerKey: null,
             _cachedClean: null,
+            x: 0.5,
+            y: 0.5,
             texts: []
         }
     }
@@ -276,20 +290,29 @@ function repaintStickerCanvas() {
     // Paint Front Design
     const front = STATE.designs.front;
     if (front.stickerImage) {
-        const placementKey = front.stickerPlacement || 'FULL_FRONT';
-        const placement = STICKER_PLACEMENTS[placementKey];
+        const sizeId = front.printSize || 'mediumFront';
+        const printSizeConfig = PRINT_SIZES[sizeId];
         const uv = cfg.uvCenter;
-        const stickerSize = Math.round(UV_SIZE * placement.scale);
         const aspectY = cfg.aspectY || 1.0;
 
         if (!front._cachedClean) {
             front._cachedClean = removeBackground(front.stickerImage);
         }
 
+        // Calculate visual dimensions fitted inside the bounding box
+        const boxWidth = Math.round(UV_SIZE * printSizeConfig.width);
+        const boxHeight = Math.round(UV_SIZE * printSizeConfig.height);
+        let stickerWidth = boxWidth;
+        let stickerHeight = boxWidth * aspectY;
+        if (stickerHeight > boxHeight) {
+            stickerHeight = boxHeight;
+            stickerWidth = boxHeight / aspectY;
+        }
+
         const widthFactor = 0.18;
         const heightFactor = 0.22;
-        const ux = uv.cx + (placement.x - 0.5) * widthFactor;
-        const uy = uv.cy + (placement.y - 0.5) * heightFactor;
+        const ux = uv.cx + (printSizeConfig.x - 0.5) * widthFactor;
+        const uy = uv.cy + (printSizeConfig.y - 0.5) * heightFactor;
 
         const sx = Math.round(ux * UV_SIZE);
         const sy = Math.round(uy * UV_SIZE);
@@ -301,10 +324,10 @@ function repaintStickerCanvas() {
         }
         uvCtx.drawImage(
             front._cachedClean, 
-            -stickerSize / 2, 
-            -(stickerSize * aspectY) / 2, 
-            stickerSize, 
-            stickerSize * aspectY
+            -stickerWidth / 2, 
+            -stickerHeight / 2, 
+            stickerWidth, 
+            stickerHeight
         );
         uvCtx.restore();
     }
@@ -319,22 +342,33 @@ function repaintStickerCanvas() {
     // Paint Back Design
     const back = STATE.designs.back;
     if (back.stickerImage) {
-        const placementKey = back.stickerPlacement || 'FULL_BACK';
-        const placement = STICKER_PLACEMENTS[placementKey];
+        const sizeId = back.printSize || 'mediumBack';
+        const printSizeConfig = PRINT_SIZES[sizeId];
         const uv = cfg.uvBack;
-        const stickerSize = Math.round(UV_SIZE * placement.scale);
         const aspectY = cfg.aspectY || 1.0;
 
         if (!back._cachedClean) {
             back._cachedClean = removeBackground(back.stickerImage);
         }
+
+        // Calculate visual dimensions fitted inside the bounding box
+        const boxWidth = Math.round(UV_SIZE * printSizeConfig.width);
+        const boxHeight = Math.round(UV_SIZE * printSizeConfig.height);
+        let stickerWidth = boxWidth;
+        let stickerHeight = boxWidth * aspectY;
+        if (stickerHeight > boxHeight) {
+            stickerHeight = boxHeight;
+            stickerWidth = boxHeight / aspectY;
+        }
+
         const widthFactor = 0.18;
         const heightFactor = 0.22;
-        const ux = uv.cx + (placement.x - 0.5) * widthFactor;
-        const uy = uv.cy + (placement.y - 0.5) * heightFactor;
+        const ux = uv.cx + (printSizeConfig.x - 0.5) * widthFactor;
+        const uy = uv.cy + (printSizeConfig.y - 0.5) * heightFactor;
 
         const sx = Math.round(ux * UV_SIZE);
         const sy = Math.round(uy * UV_SIZE);
+
         uvCtx.save();
         uvCtx.translate(sx, sy);
         if (cfg.isFlipped) {
@@ -342,10 +376,10 @@ function repaintStickerCanvas() {
         }
         uvCtx.drawImage(
             back._cachedClean, 
-            -stickerSize / 2, 
-            -(stickerSize * aspectY) / 2, 
-            stickerSize, 
-            stickerSize * aspectY
+            -stickerWidth / 2, 
+            -stickerHeight / 2, 
+            stickerWidth, 
+            stickerHeight
         );
         uvCtx.restore();
     }
@@ -502,14 +536,14 @@ function applySticker(key) {
     activeZone.stickerKey = key;
     activeZone._cachedClean = null; 
     
-    // Assign default placement based on active side ONLY if not already set
-    if (!activeZone.stickerPlacement) {
-        activeZone.stickerPlacement = STATE.stickerZone === 'front' ? 'FULL_FRONT' : 'FULL_BACK';
+    // Assign default printSize based on active side ONLY if not already set
+    if (!activeZone.printSize) {
+        activeZone.printSize = STATE.stickerZone === 'front' ? 'mediumFront' : 'mediumBack';
     }
     
-    // Highlight the active placement button in the list
-    document.querySelectorAll('.placement-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.placement === activeZone.stickerPlacement);
+    // Highlight the active print size button in the list
+    document.querySelectorAll('.print-size-card').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.sizeId === activeZone.printSize);
     });
 
     repaintStickerCanvas();
@@ -521,14 +555,14 @@ function applyCustomSticker(imgEl) {
     activeZone.stickerKey = 'custom_' + Date.now();
     activeZone._cachedClean = null; 
     
-    // Assign default placement based on active side ONLY if not already set
-    if (!activeZone.stickerPlacement) {
-        activeZone.stickerPlacement = STATE.stickerZone === 'front' ? 'FULL_FRONT' : 'FULL_BACK';
+    // Assign default printSize based on active side ONLY if not already set
+    if (!activeZone.printSize) {
+        activeZone.printSize = STATE.stickerZone === 'front' ? 'mediumFront' : 'mediumBack';
     }
     
-    // Highlight the active placement button in the list
-    document.querySelectorAll('.placement-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.placement === activeZone.stickerPlacement);
+    // Highlight the active print size button in the list
+    document.querySelectorAll('.print-size-card').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.sizeId === activeZone.printSize);
     });
 
     repaintStickerCanvas();
@@ -635,17 +669,16 @@ document.querySelectorAll('.zone-btn').forEach(btn => {
 
         const activeZone = STATE.designs[zone];
         
-        // Sync active placement preset highlights
-        const currentPlacement = activeZone.stickerPlacement;
-        document.querySelectorAll('.placement-btn').forEach(pb => {
-            pb.classList.toggle('active', pb.dataset.placement === currentPlacement);
+        // Sync active print size preset highlights
+        const currentSize = activeZone.printSize;
+        document.querySelectorAll('.print-size-card').forEach(pc => {
+            pc.classList.toggle('active', pc.dataset.sizeId === currentSize);
         });
 
         // Sync active sticker option card highlights
         document.querySelectorAll('.sticker-opt').forEach(opt => {
             const isCurrentSticker = opt.dataset.sticker === activeZone.stickerKey;
             opt.classList.toggle('active', isCurrentSticker);
-
         });
 
         // Natural Orbital Swivel
@@ -671,19 +704,43 @@ document.querySelectorAll('.zone-btn').forEach(btn => {
     });
 });
 
-// Sticker size slider
-document.querySelectorAll('#sticker-resize').forEach(slider => {
-    slider.addEventListener('input', (e) => {
-        const val = parseFloat(e.target.value);
-        const activeZone = STATE.designs[STATE.stickerZone];
-        activeZone.stickerScale = val;
-        repaintStickerCanvas();
-
-        // Dynamically scale the active sticker preview image on the side grid
-        const activeImg = document.querySelector('.sticker-opt.active img');
-        if (activeImg) {
-            const visualScale = 0.8 + ((val - 0.05) / 0.45) * 0.7; // Maps 0.05-0.5 to 0.8-1.5
-            activeImg.style.transform = `scale(${visualScale})`;
+// Predefined print size button clicks
+document.querySelectorAll('.print-size-card').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const sizeId = btn.dataset.sizeId;
+        const config = PRINT_SIZES[sizeId];
+        
+        // Update the design state on the placement's side
+        const targetZone = STATE.designs[config.side];
+        targetZone.printSize = sizeId;
+        
+        // Auto-populate sticker if switching sides and the other side has one
+        const otherSide = config.side === 'front' ? 'back' : 'front';
+        const otherZone = STATE.designs[otherSide];
+        if (!targetZone.stickerImage && otherZone.stickerImage) {
+            targetZone.stickerImage = otherZone.stickerImage;
+            targetZone.stickerKey = otherZone.stickerKey;
+            targetZone._cachedClean = null;
+            
+            // Sync sticker selection card highlights
+            document.querySelectorAll('.sticker-opt').forEach(opt => {
+                const isCurrentSticker = opt.dataset.sticker === targetZone.stickerKey;
+                opt.classList.toggle('active', isCurrentSticker);
+            });
+        }
+        
+        // Sync the UI active highlights
+        document.querySelectorAll('.print-size-card').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        // Trigger zone switch if changing sides
+        if (STATE.stickerZone !== config.side) {
+            const zoneBtn = document.querySelector(`.zone-btn[data-zone="${config.side}"]`);
+            if (zoneBtn) {
+                zoneBtn.click();
+            }
+        } else {
+            repaintStickerCanvas();
         }
     });
 });
@@ -837,7 +894,7 @@ function calculatePrice() {
     const front = STATE.designs.front;
     if (front.stickerImage) {
         stickerCount++;
-        if (front.stickerScale > PRICING.standardStickerScale) {
+        if (front.printSize === 'fullFront') {
             enlargedStickerCount++;
         }
     }
@@ -845,7 +902,7 @@ function calculatePrice() {
     const back = STATE.designs.back;
     if (back.stickerImage) {
         stickerCount++;
-        if (back.stickerScale > PRICING.standardStickerScale) {
+        if (back.printSize === 'fullBack') {
             enlargedStickerCount++;
         }
     }
@@ -1062,23 +1119,24 @@ function renderCartDrawer() {
 
     container.innerHTML = cart.map(item => {
         const PLACEMENT_LABELS = {
-            FULL_FRONT: 'Full Front',
-            MEDIUM_FRONT: 'Medium Front',
-            LEFT_CHEST: 'Left Chest',
-            FULL_BACK: 'Full Back',
-            MEDIUM_BACK: 'Medium Back'
+            fullFront: 'Full Front',
+            mediumFront: 'Medium Front',
+            leftChest: 'Left Chest',
+            fullBack: 'Full Back',
+            mediumBack: 'Medium Back'
         };
         
         let placementDetails = '';
         if (item.customization && item.customization.stickers && item.customization.stickers.length > 0) {
             placementDetails = item.customization.stickers.map(s => {
-                const label = PLACEMENT_LABELS[s.placement] || s.placement || 'Full Front';
+                const label = PLACEMENT_LABELS[s.printSize] || s.printSize || 'Medium Front';
                 const name = s.id ? s.id.replace('sticker_', '').toUpperCase() : 'Sticker';
                 return `<p class="cart-item-details">Sticker: ${name} (${label})</p>`;
             }).join('');
         }
 
         const stickersBreakdown = item.pricing.stickerCount > 0 
+
             ? `<p class="cart-item-details">Stickers × ${item.pricing.stickerCount}: ₹${item.pricing.stickerCost}</p>` 
             : '';
         return `
@@ -1205,20 +1263,26 @@ if (addToCartBtn) {
             const stickers = [];
             const front = STATE.designs.front;
             if (front.stickerImage) {
+                const cfg = PRINT_SIZES[front.printSize || 'mediumFront'];
                 stickers.push({
                     id: front.stickerKey,
                     src: front.stickerImage.src || '',
-                    placement: front.stickerPlacement || 'FULL_FRONT',
-                    side: 'front'
+                    printSize: front.printSize || 'mediumFront',
+                    side: 'front',
+                    x: cfg.x,
+                    y: cfg.y
                 });
             }
             const back = STATE.designs.back;
             if (back.stickerImage) {
+                const cfg = PRINT_SIZES[back.printSize || 'mediumBack'];
                 stickers.push({
                     id: back.stickerKey,
                     src: back.stickerImage.src || '',
-                    placement: back.stickerPlacement || 'FULL_BACK',
-                    side: 'back'
+                    printSize: back.printSize || 'mediumBack',
+                    side: 'back',
+                    x: cfg.x,
+                    y: cfg.y
                 });
             }
 
