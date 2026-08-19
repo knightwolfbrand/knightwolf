@@ -211,42 +211,60 @@ function hexToRgb(hex) {
 
 // ─── BACKGROUND REMOVAL ──────────────────────────────────────────────────────
 function removeBackground(img) {
+    const maxDim = 512;
+    let w = img.naturalWidth || img.width || 200;
+    let h = img.naturalHeight || img.height || 200;
+    
+    if (w > maxDim || h > maxDim) {
+        if (w > h) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+        } else {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+        }
+    }
+
     const c = document.createElement('canvas');
-    c.width = img.naturalWidth || img.width;
-    c.height = img.naturalHeight || img.height;
+    c.width = w;
+    c.height = h;
     const ctx = c.getContext('2d');
-    ctx.drawImage(img, 0, 0);
+    ctx.drawImage(img, 0, 0, w, h);
 
-    const W = c.width, H = c.height;
-    const imgData = ctx.getImageData(0, 0, W, H);
-    const data = imgData.data;
-    const visited = new Uint8Array(W * H);
-    const queue = [];
+    try {
+        const W = c.width, H = c.height;
+        const imgData = ctx.getImageData(0, 0, W, H);
+        const data = imgData.data;
+        const visited = new Uint8Array(W * H);
+        const queue = [];
 
-    const bgR = data[0], bgG = data[1], bgB = data[2];
-    const TOL = 55;
+        const bgR = data[0], bgG = data[1], bgB = data[2];
+        const TOL = 55;
 
-    [[0,0],[W-1,0],[0,H-1],[W-1,H-1]].forEach(([x,y]) => {
-        const idx = y*W+x;
-        if (!visited[idx]) { visited[idx]=1; queue.push(x,y); }
-    });
+        [[0,0],[W-1,0],[0,H-1],[W-1,H-1]].forEach(([x,y]) => {
+            const idx = y*W+x;
+            if (!visited[idx]) { visited[idx]=1; queue.push(x,y); }
+        });
 
-    let head = 0;
-    while (head < queue.length) {
-        const x = queue[head++], y = queue[head++];
-        const pos = (y*W+x)*4;
-        const diff = Math.abs(data[pos]-bgR)+Math.abs(data[pos+1]-bgG)+Math.abs(data[pos+2]-bgB);
-        if (diff < TOL) {
-            data[pos+3] = 0; 
-            for (const [nx,ny] of [[x+1,y],[x-1,y],[x,y+1],[x,y-1]]) {
-                if (nx>=0&&nx<W&&ny>=0&&ny<H) {
-                    const nIdx = ny*W+nx;
-                    if (!visited[nIdx]) { visited[nIdx]=1; queue.push(nx,ny); }
+        let head = 0;
+        while (head < queue.length) {
+            const x = queue[head++], y = queue[head++];
+            const pos = (y*W+x)*4;
+            const diff = Math.abs(data[pos]-bgR)+Math.abs(data[pos+1]-bgG)+Math.abs(data[pos+2]-bgB);
+            if (diff < TOL) {
+                data[pos+3] = 0; 
+                for (const [nx,ny] of [[x+1,y],[x-1,y],[x,y+1],[x,y-1]]) {
+                    if (nx>=0&&nx<W&&ny>=0&&ny<H) {
+                        const nIdx = ny*W+nx;
+                        if (!visited[nIdx]) { visited[nIdx]=1; queue.push(nx,ny); }
+                    }
                 }
             }
         }
+        ctx.putImageData(imgData, 0, 0);
+    } catch (err) {
+        console.error("Flood fill background removal failed:", err);
     }
-    ctx.putImageData(imgData, 0, 0);
     return c;
 }
 
