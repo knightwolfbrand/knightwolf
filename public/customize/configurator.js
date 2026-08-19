@@ -496,34 +496,68 @@ function updateColor(hex) {
 // ─── PRELOAD STICKER IMAGES ───────────────────────────────────────────────────
 const stickerImages = {};
 const STICKER_SRCS = {
-    logo:       '/images/logo.png',
-    wolf:       '/images/sticker_wolf.png',
-    bolt:       '/images/sticker_bolt.png',
-    sacrifice:  '/images/sticker_sacrifice.png',
-    justdoit:   '/images/sticker_justdoit.png',
-    realistic:  '/images/sticker_realistic.png',
-    risktakers: '/images/sticker_risktakers.png',
-    art1:       '/images/PHOTO-2026-05-05-23-58-49.png',
-    art2:       '/images/PHOTO-2026-05-05-23-59-10.png',
-    art3:       '/images/PHOTO-2026-05-06-00-00-01.png',
-    art4:       '/images/PHOTO-2026-05-06-00-00-28.png',
-    art5:       '/images/PHOTO-2026-05-06-00-02-47.png',
-    art6:       '/images/PHOTO-2026-05-06-00-03-52.png',
-    art7:       '/images/PHOTO-2026-05-06-00-05-23.png',
-    art8:       '/images/PHOTO-2026-05-07-11-16-19.png',
-    art9:       '/images/PHOTO-2026-05-07-11-16-41.png',
-    art10:      '/images/PHOTO-2026-05-07-11-19-49.png',
-    art11:      '/images/PHOTO-2026-05-07-11-22-00.png',
+    s_anime_back_afb1: 'https://knightwolfshop.netlify.app/stickers/anime_back_afb1.webp',
+    s_anime_back_afb2: 'https://knightwolfshop.netlify.app/stickers/anime_back_afb2.webp',
+    s_anime_back_afb3: 'https://knightwolfshop.netlify.app/stickers/anime_back_afb3.webp',
+    s_anime_back_afb4: 'https://knightwolfshop.netlify.app/stickers/anime_back_afb4.webp',
+    s_anime_back_afb5: 'https://knightwolfshop.netlify.app/stickers/anime_back_afb5.webp',
+    s_anime_back_afb6: 'https://knightwolfshop.netlify.app/stickers/anime_back_afb6.webp',
+    s_anime_back_afb7: 'https://knightwolfshop.netlify.app/stickers/anime_back_afb7.webp',
+    s_anime_back_afb8: 'https://knightwolfshop.netlify.app/stickers/anime_back_afb8.webp',
+    s_anime_back_afb9: 'https://knightwolfshop.netlify.app/stickers/anime_back_afb9.webp',
+    s_anime_back_afb10: 'https://knightwolfshop.netlify.app/stickers/anime_back_afb10.webp',
+    s_anime_front_af1: 'https://knightwolfshop.netlify.app/stickers/anime_front_af1.webp',
+    s_anime_front_af2: 'https://knightwolfshop.netlify.app/stickers/anime_front_af2.webp',
+    s_anime_front_af3: 'https://knightwolfshop.netlify.app/stickers/anime_front_af3.webp',
+    s_anime_front_af4: 'https://knightwolfshop.netlify.app/stickers/anime_front_af4.webp',
+    s_anime_front_af5: 'https://knightwolfshop.netlify.app/stickers/anime_front_af5.webp',
+    s_anime_front_af6: 'https://knightwolfshop.netlify.app/stickers/anime_front_af6.webp',
+    s_anime_front_chest_ac1: 'https://knightwolfshop.netlify.app/stickers/anime_front_chest_ac1.webp',
+    s_comics_back_b1: 'https://knightwolfshop.netlify.app/stickers/comics_back_b1.webp',
+    s_comics_back_j1: 'https://knightwolfshop.netlify.app/stickers/comics_back_j1.webp',
+    s_comics_back_s1: 'https://knightwolfshop.netlify.app/stickers/comics_back_s1.webp',
+    s_comics_back_s2: 'https://knightwolfshop.netlify.app/stickers/comics_back_s2.webp',
+    s_comics_back_s3: 'https://knightwolfshop.netlify.app/stickers/comics_back_s3.webp',
+    s_comics_front_sf1: 'https://knightwolfshop.netlify.app/stickers/comics_front_sf1.webp',
+    s_comics_front_chest_sfc1: 'https://knightwolfshop.netlify.app/stickers/comics_front_chest_sfc1.webp',
+    s_f1_back_fob1: 'https://knightwolfshop.netlify.app/stickers/f1_back_fob1.webp',
+    s_f1_front_fof1: 'https://knightwolfshop.netlify.app/stickers/f1_front_fof1.webp',
+    s_f1_front_fof2: 'https://knightwolfshop.netlify.app/stickers/f1_front_fof2.webp',
+    s_fifa_back_f1: 'https://knightwolfshop.netlify.app/stickers/fifa_back_f1.webp',
+    s_fifa_back_f2: 'https://knightwolfshop.netlify.app/stickers/fifa_back_f2.webp',
+    s_fifa_back_f3: 'https://knightwolfshop.netlify.app/stickers/fifa_back_f3.webp',
+    s_fifa_back_f4: 'https://knightwolfshop.netlify.app/stickers/fifa_back_f4.webp',
+    s_fifa_back_f5: 'https://knightwolfshop.netlify.app/stickers/fifa_back_f5.webp',
+    s_fifa_back_f6: 'https://knightwolfshop.netlify.app/stickers/fifa_back_f6.webp',
+    s_fifa_front_tf1: 'https://knightwolfshop.netlify.app/stickers/fifa_front_tf1.webp',
+    s_fifa_front_tf2: 'https://knightwolfshop.netlify.app/stickers/fifa_front_tf2.webp',
+    s_fifa_front_tf3: 'https://knightwolfshop.netlify.app/stickers/fifa_front_tf3.webp',
+    s_fifa_front_chest_fc1: 'https://knightwolfshop.netlify.app/stickers/fifa_front_chest_fc1.webp',
+    s_thalapathy_back_t1: 'https://knightwolfshop.netlify.app/stickers/thalapathy_back_t1.webp',
+    s_thalapathy_back_t2: 'https://knightwolfshop.netlify.app/stickers/thalapathy_back_t2.webp',
+    s_thalapathy_back_t3: 'https://knightwolfshop.netlify.app/stickers/thalapathy_back_t3.webp',
+    s_thalapathy_back_t4: 'https://knightwolfshop.netlify.app/stickers/thalapathy_back_t4.webp',
+    s_thalapathy_back_t5: 'https://knightwolfshop.netlify.app/stickers/thalapathy_back_t5.webp',
+    s_thalapathy_back_t6: 'https://knightwolfshop.netlify.app/stickers/thalapathy_back_t6.webp',
+    s_thalapathy_back_t7: 'https://knightwolfshop.netlify.app/stickers/thalapathy_back_t7.webp',
+    s_thalapathy_front_tf1: 'https://knightwolfshop.netlify.app/stickers/thalapathy_front_tf1.webp',
+    s_thalapathy_front_tf2: 'https://knightwolfshop.netlify.app/stickers/thalapathy_front_tf2.webp',
+    s_thalapathy_front_tf3: 'https://knightwolfshop.netlify.app/stickers/thalapathy_front_tf3.webp',
+    s_thalapathy_front_chest_tfc1: 'https://knightwolfshop.netlify.app/stickers/thalapathy_front_chest_tfc1.webp',
+    s_quotes_back_q1: 'https://knightwolfshop.netlify.app/stickers/quotes_back_q1.png',
+    s_quotes_back_q2: 'https://knightwolfshop.netlify.app/stickers/quotes_back_q2.png',
+    s_quotes_back_q3: 'https://knightwolfshop.netlify.app/stickers/quotes_back_q3.png',
 };
 Object.entries(STICKER_SRCS).forEach(([key, src]) => {
     const img = new Image();
+    img.crossOrigin = "anonymous"; // Enable cross-origin image sharing to prevent canvas security exceptions
     img.onload = () => {
         stickerImages[key] = img;
         console.log(`✅ Sticker loaded: ${key}`);
-        if (key === 'logo') {
+        if (key === 's_anime_back_afb1') {
             const activeZone = STATE.designs.front;
             if (!activeZone.stickerKey) {
-                applySticker('logo');
+                applySticker('s_anime_back_afb1');
             }
         }
     };
