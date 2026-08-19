@@ -299,9 +299,10 @@ function repaintStickerCanvas() {
             front._cachedClean = removeBackground(front.stickerImage);
         }
 
-        // Calculate visual dimensions fitted inside the bounding box
-        const boxWidth = Math.round(UV_SIZE * printSizeConfig.width);
-        const boxHeight = Math.round(UV_SIZE * printSizeConfig.height);
+        // Calculate visual dimensions fitted inside the bounding box with safe margin
+        const scaleFactor = 0.80;
+        const boxWidth = Math.round(UV_SIZE * printSizeConfig.width * scaleFactor);
+        const boxHeight = Math.round(UV_SIZE * printSizeConfig.height * scaleFactor);
         let stickerWidth = boxWidth;
         let stickerHeight = boxWidth * aspectY;
         if (stickerHeight > boxHeight) {
@@ -351,9 +352,9 @@ function repaintStickerCanvas() {
             back._cachedClean = removeBackground(back.stickerImage);
         }
 
-        // Calculate visual dimensions fitted inside the bounding box
-        const boxWidth = Math.round(UV_SIZE * printSizeConfig.width);
-        const boxHeight = Math.round(UV_SIZE * printSizeConfig.height);
+        // Calculate visual dimensions fitted inside the bounding box with safe margin
+        const boxWidth = Math.round(UV_SIZE * printSizeConfig.width * scaleFactor);
+        const boxHeight = Math.round(UV_SIZE * printSizeConfig.height * scaleFactor);
         let stickerWidth = boxWidth;
         let stickerHeight = boxWidth * aspectY;
         if (stickerHeight > boxHeight) {
@@ -1465,15 +1466,16 @@ function syncDesignOverlay() {
         const handle = document.createElement('div');
         handle.className = 'sticker-drag-handle';
         
-        // Calculate aspect ratio and dimensions
+        // Calculate aspect ratio and dimensions with 20% safe margin
         const cfg = MODEL_CONFIGS[STATE.modelStyle];
         const aspectY = cfg.aspectY || 1.0;
+        const scaleFactor = 0.80;
         
-        let handleWidth = area.width;
-        let handleHeight = area.width * aspectY;
-        if (handleHeight > area.height) {
-            handleHeight = area.height;
-            handleWidth = area.height / aspectY;
+        let handleWidth = area.width * scaleFactor;
+        let handleHeight = area.width * scaleFactor * aspectY;
+        if (handleHeight > area.height * scaleFactor) {
+            handleHeight = area.height * scaleFactor;
+            handleWidth = (area.height * scaleFactor) / aspectY;
         }
         
         handle.style.width = `${handleWidth}px`;
