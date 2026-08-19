@@ -1446,20 +1446,12 @@ function syncDesignOverlay() {
     const activeZone = STATE.designs[STATE.stickerZone];
     const sizeId = activeZone.printSize || (STATE.stickerZone === 'front' ? 'mediumFront' : 'mediumBack');
     
-    // 1. Update guide box size & position
-    const VIEWPORT_PRINT_AREAS = {
-        fullFront:   { width: 130, height: 180, top: 41, left: 50 },
-        mediumFront: { width: 85,  height: 110, top: 38, left: 50 },
-        leftChest:   { width: 40,  height: 40,  top: 33, left: 56.5 },
-        fullBack:    { width: 130, height: 180, top: 41, left: 50 },
-        mediumBack:  { width: 85,  height: 110, top: 38, left: 50 }
-    };
-    
-    const area = VIEWPORT_PRINT_AREAS[sizeId];
-    overlay.style.width = `${area.width}px`;
-    overlay.style.height = `${area.height}px`;
-    overlay.style.top = `${area.top}%`;
-    overlay.style.left = `${area.left}%`;
+    // 1. Keep guide box dimensions fixed at original values (200px x 200px, top: 36%, left: 50%)
+    const area = { width: 200, height: 200, top: 36, left: 50 };
+    overlay.style.width = '200px';
+    overlay.style.height = '200px';
+    overlay.style.top = '36%';
+    overlay.style.left = '50%';
 
     // 2. If a sticker is applied, add a draggable handle
     if (activeZone.stickerImage) {
