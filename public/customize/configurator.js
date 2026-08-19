@@ -339,6 +339,17 @@ function repaintStickerCanvas() {
         console.log(`[STICKER RENDER] front sticker: ${front.stickerKey}, position: (${sx}, ${sy}), size: ${stickerWidth}x${stickerHeight}`);
 
         uvCtx.save();
+
+        // Clip front design to the print-area bounding box boundaries
+        const cx = Math.round((uv.cx + (printSizeConfig.x - 0.5) * 0.18) * UV_SIZE);
+        const cy = Math.round((uv.cy - (printSizeConfig.y - 0.5) * 0.22 + 0.095) * UV_SIZE);
+        const wLimit = Math.round(printSizeConfig.width * UV_SIZE);
+        const hLimit = Math.round(printSizeConfig.height * UV_SIZE);
+
+        uvCtx.beginPath();
+        uvCtx.rect(cx - wLimit / 2, cy - hLimit / 2, wLimit, hLimit);
+        uvCtx.clip();
+
         uvCtx.translate(sx, sy);
         if (cfg.isFlipped) {
             uvCtx.scale(1, -1);
@@ -393,6 +404,17 @@ function repaintStickerCanvas() {
         console.log(`[STICKER RENDER] back sticker: ${back.stickerKey}, position: (${sx}, ${sy}), size: ${stickerWidth}x${stickerHeight}`);
 
         uvCtx.save();
+
+        // Clip back design to the print-area bounding box boundaries
+        const cx = Math.round((uv.cx + (printSizeConfig.x - 0.5) * 0.18) * UV_SIZE);
+        const cy = Math.round((uv.cy - (printSizeConfig.y - 0.5) * 0.22 + 0.095) * UV_SIZE);
+        const wLimit = Math.round(printSizeConfig.width * UV_SIZE);
+        const hLimit = Math.round(printSizeConfig.height * UV_SIZE);
+
+        uvCtx.beginPath();
+        uvCtx.rect(cx - wLimit / 2, cy - hLimit / 2, wLimit, hLimit);
+        uvCtx.clip();
+
         uvCtx.translate(sx, sy);
         if (cfg.isFlipped) {
             uvCtx.scale(1, -1);
