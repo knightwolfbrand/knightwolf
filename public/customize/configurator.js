@@ -336,6 +336,8 @@ function repaintStickerCanvas() {
         const sx = Math.round(ux * UV_SIZE);
         const sy = Math.round(uy * UV_SIZE);
 
+        console.log(`[STICKER RENDER] front sticker: ${front.stickerKey}, position: (${sx}, ${sy}), size: ${stickerWidth}x${stickerHeight}`);
+
         uvCtx.save();
         uvCtx.translate(sx, sy);
         if (cfg.isFlipped) {
@@ -387,6 +389,8 @@ function repaintStickerCanvas() {
 
         const sx = Math.round(ux * UV_SIZE);
         const sy = Math.round(uy * UV_SIZE);
+
+        console.log(`[STICKER RENDER] back sticker: ${back.stickerKey}, position: (${sx}, ${sy}), size: ${stickerWidth}x${stickerHeight}`);
 
         uvCtx.save();
         uvCtx.translate(sx, sy);
@@ -568,10 +572,9 @@ const STICKER_SRCS = {
 };
 Object.entries(STICKER_SRCS).forEach(([key, src]) => {
     const img = new Image();
-    img.crossOrigin = "anonymous"; // Enable cross-origin image sharing to prevent canvas security exceptions
     img.onload = () => {
         stickerImages[key] = img;
-        console.log(`✅ Sticker loaded: ${key}`);
+        console.log(`[STICKER LOAD] success: ${key} loaded from ${src}`);
         if (key === 's_anime_back_afb1') {
             const activeZone = STATE.designs.front;
             if (!activeZone.stickerKey) {
@@ -579,10 +582,14 @@ Object.entries(STICKER_SRCS).forEach(([key, src]) => {
             }
         }
     };
+    img.onerror = (err) => {
+        console.error(`[STICKER LOAD] error: ${key} failed to load from ${src}`, err);
+    };
     img.src = src;
 });
 
 function applySticker(key) {
+    console.log(`[STICKER CLICK] sticker id: ${key}, asset: ${STICKER_SRCS[key] || 'custom_upload'}, active side: ${STATE.stickerZone}`);
     const activeZone = STATE.designs[STATE.stickerZone];
     
     const applyLoadedImage = (img) => {
@@ -610,10 +617,13 @@ function applySticker(key) {
         applyLoadedImage(stickerImages[key]);
     } else if (STICKER_SRCS[key]) {
         const img = new Image();
-        img.crossOrigin = "anonymous";
         img.onload = () => {
+            console.log(`[STICKER LOAD] success: dynamic ${key} loaded`);
             stickerImages[key] = img;
             applyLoadedImage(img);
+        };
+        img.onerror = (err) => {
+            console.error(`[STICKER LOAD] error: dynamic ${key} load failed`, err);
         };
         img.src = STICKER_SRCS[key];
     }
