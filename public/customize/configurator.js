@@ -331,7 +331,7 @@ function repaintStickerCanvas() {
         const posX = front.x !== undefined ? front.x : 0.5;
         const posY = front.y !== undefined ? front.y : 0.5;
         const ux = uv.cx + (posX - 0.5) * 0.18 * printSizeConfig.width + (printSizeConfig.x - 0.5) * 0.18;
-        const uy = uv.cy - (posY - 0.5) * 0.22 * printSizeConfig.height - (printSizeConfig.y - 0.5) * 0.22 + 0.055;
+        const uy = uv.cy - (posY - 0.5) * 0.22 * printSizeConfig.height - (printSizeConfig.y - 0.5) * 0.22 + 0.095;
 
         const sx = Math.round(ux * UV_SIZE);
         const sy = Math.round(uy * UV_SIZE);
@@ -385,7 +385,7 @@ function repaintStickerCanvas() {
         const posX = back.x !== undefined ? back.x : 0.5;
         const posY = back.y !== undefined ? back.y : 0.5;
         const ux = uv.cx + (posX - 0.5) * 0.18 * printSizeConfig.width + (printSizeConfig.x - 0.5) * 0.18;
-        const uy = uv.cy - (posY - 0.5) * 0.22 * printSizeConfig.height - (printSizeConfig.y - 0.5) * 0.22 + 0.055;
+        const uy = uv.cy - (posY - 0.5) * 0.22 * printSizeConfig.height - (printSizeConfig.y - 0.5) * 0.22 + 0.095;
 
         const sx = Math.round(ux * UV_SIZE);
         const sy = Math.round(uy * UV_SIZE);
