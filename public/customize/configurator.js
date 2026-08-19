@@ -583,27 +583,39 @@ Object.entries(STICKER_SRCS).forEach(([key, src]) => {
 });
 
 function applySticker(key) {
-    if (!stickerImages[key]) { return; }
     const activeZone = STATE.designs[STATE.stickerZone];
-    activeZone.stickerImage = stickerImages[key];
-    activeZone.stickerKey = key;
-    activeZone._cachedClean = null; 
-    activeZone.x = 0.5;
-    activeZone.y = 0.5;
     
-    // Assign default printSize based on active side ONLY if not already set
-    if (!activeZone.printSize) {
-        activeZone.printSize = STATE.stickerZone === 'front' ? 'mediumFront' : 'mediumBack';
-    }
-    
-    // Highlight the active print size button in the list
-    document.querySelectorAll('.print-size-card').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.sizeId === activeZone.printSize);
-    });
+    const applyLoadedImage = (img) => {
+        activeZone.stickerImage = img;
+        activeZone.stickerKey = key;
+        activeZone._cachedClean = null;
+        activeZone.x = 0.5;
+        activeZone.y = 0.5;
+        
+        if (!activeZone.printSize) {
+            activeZone.printSize = STATE.stickerZone === 'front' ? 'mediumFront' : 'mediumBack';
+        }
+        
+        document.querySelectorAll('.print-size-card').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.sizeId === activeZone.printSize);
+        });
 
-    repaintStickerCanvas();
-    if (typeof syncTextOverlay === 'function') {
-        syncTextOverlay();
+        repaintStickerCanvas();
+        if (typeof syncTextOverlay === 'function') {
+            syncTextOverlay();
+        }
+    };
+
+    if (stickerImages[key]) {
+        applyLoadedImage(stickerImages[key]);
+    } else if (STICKER_SRCS[key]) {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+            stickerImages[key] = img;
+            applyLoadedImage(img);
+        };
+        img.src = STICKER_SRCS[key];
     }
 }
 
