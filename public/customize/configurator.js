@@ -1472,6 +1472,8 @@ function syncDesignOverlay() {
         
         handle.style.width = `${handleWidth}px`;
         handle.style.height = `${handleHeight}px`;
+        handle.style.border = 'none';
+        handle.style.background = 'transparent';
         
         // Position handle centered on activeZone.x, activeZone.y (which default to 0.5)
         const posX = activeZone.x !== undefined ? activeZone.x : 0.5;
