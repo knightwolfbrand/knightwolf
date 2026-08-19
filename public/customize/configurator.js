@@ -315,7 +315,11 @@ function repaintStickerCanvas() {
         const aspectY = cfg.aspectY || 1.0;
 
         if (!front._cachedClean) {
-            front._cachedClean = removeBackground(front.stickerImage);
+            if (front.stickerKey && front.stickerKey.startsWith('custom_')) {
+                front._cachedClean = removeBackground(front.stickerImage);
+            } else {
+                front._cachedClean = front.stickerImage;
+            }
         }
 
         // Calculate visual dimensions fitted inside the bounding box with safe margin
@@ -380,7 +384,11 @@ function repaintStickerCanvas() {
         const aspectY = cfg.aspectY || 1.0;
 
         if (!back._cachedClean) {
-            back._cachedClean = removeBackground(back.stickerImage);
+            if (back.stickerKey && back.stickerKey.startsWith('custom_')) {
+                back._cachedClean = removeBackground(back.stickerImage);
+            } else {
+                back._cachedClean = back.stickerImage;
+            }
         }
 
         // Calculate visual dimensions fitted inside the bounding box with safe margin
