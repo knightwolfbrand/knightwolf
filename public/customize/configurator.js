@@ -902,6 +902,33 @@ document.querySelectorAll('.sticker-opt').forEach(btn => {
 function animate() {
     requestAnimationFrame(animate);
     controls.update();
+    
+    // Dynamically control overlay visibility based on camera angle & active zone
+    const overlay = document.getElementById('design-canvas-overlay');
+    if (overlay) {
+        let isVisible = false;
+        const x = camera.position.x;
+        const z = camera.position.z;
+        
+        if (STATE.stickerZone === 'front') {
+            // Front view: camera Z must be positive, and rotation angle not too far side
+            if (z > 2.0 && Math.abs(x) < z * 1.3) {
+                isVisible = true;
+            }
+        } else if (STATE.stickerZone === 'back') {
+            // Back view: camera Z must be negative, and rotation angle not too far side
+            if (z < -2.0 && Math.abs(x) < Math.abs(z) * 1.3) {
+                isVisible = true;
+            }
+        }
+        
+        if (isVisible) {
+            overlay.classList.remove('hidden');
+        } else {
+            overlay.classList.add('hidden');
+        }
+    }
+
     renderer.render(scene, camera);
 }
 
