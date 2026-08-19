@@ -1554,7 +1554,7 @@ html, body {
     transform: translate(-50%, -50%);
     width: 200px;
     height: 200px;
-    border: none;
+    border: 1.5px dashed rgba(0, 210, 255, 0.45);
     z-index: 100;
     pointer-events: none; /* Mouse coordinates pass through so OrbitControls rotate T-shirt */
     display: flex;
