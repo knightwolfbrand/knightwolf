@@ -304,7 +304,7 @@ function repaintStickerCanvas() {
     uvCtx.fillRect(0, 0, UV_SIZE, UV_SIZE);
 
     const cfg = MODEL_CONFIGS[STATE.modelStyle];
-    const scaleFactor = 0.80;
+    const scaleFactor = 0.95;
 
     // Paint Front Design
     const front = STATE.designs.front;
@@ -1632,7 +1632,7 @@ function syncDesignOverlay() {
         // Calculate aspect ratio and dimensions with 20% safe margin
         const cfg = MODEL_CONFIGS[STATE.modelStyle];
         const aspectY = cfg.aspectY || 1.0;
-        const scaleFactor = 0.80;
+        const scaleFactor = 0.95;
         
         let handleWidth = area.width * scaleFactor;
         let handleHeight = area.width * scaleFactor * aspectY;
