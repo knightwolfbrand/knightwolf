@@ -286,6 +286,7 @@ function repaintStickerCanvas() {
     uvCtx.fillRect(0, 0, UV_SIZE, UV_SIZE);
 
     const cfg = MODEL_CONFIGS[STATE.modelStyle];
+    const scaleFactor = 0.80;
 
     // Paint Front Design
     const front = STATE.designs.front;
@@ -300,7 +301,6 @@ function repaintStickerCanvas() {
         }
 
         // Calculate visual dimensions fitted inside the bounding box with safe margin
-        const scaleFactor = 0.80;
         const boxWidth = Math.round(UV_SIZE * printSizeConfig.width * scaleFactor);
         const boxHeight = Math.round(UV_SIZE * printSizeConfig.height * scaleFactor);
         let stickerWidth = boxWidth;
