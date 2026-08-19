@@ -60,6 +60,8 @@ const STATE = {
             _cachedClean: null,
             x: 0.5, // relative to the selected print area bounds
             y: 0.5,
+            scale: 1.0,
+            rotation: 0,
             texts: []
         },
         back: {
@@ -69,6 +71,8 @@ const STATE = {
             _cachedClean: null,
             x: 0.5,
             y: 0.5,
+            scale: 1.0,
+            rotation: 0,
             texts: []
         }
     }
@@ -328,6 +332,10 @@ function repaintStickerCanvas() {
             stickerWidth = boxHeight / aspectY;
         }
 
+        const baseScale = front.scale !== undefined ? front.scale : 1.0;
+        stickerWidth *= baseScale;
+        stickerHeight *= baseScale;
+
         const posX = front.x !== undefined ? front.x : 0.5;
         const posY = front.y !== undefined ? front.y : 0.5;
         const ux = uv.cx + (posX - 0.5) * 0.18 * printSizeConfig.width + (printSizeConfig.x - 0.5) * 0.18;
@@ -342,6 +350,9 @@ function repaintStickerCanvas() {
         uvCtx.translate(sx, sy);
         if (cfg.isFlipped) {
             uvCtx.scale(1, -1);
+        }
+        if (front.rotation) {
+            uvCtx.rotate(front.rotation * Math.PI / 180);
         }
         uvCtx.drawImage(
             front._cachedClean, 
@@ -382,6 +393,10 @@ function repaintStickerCanvas() {
             stickerWidth = boxHeight / aspectY;
         }
 
+        const baseScale = back.scale !== undefined ? back.scale : 1.0;
+        stickerWidth *= baseScale;
+        stickerHeight *= baseScale;
+
         const posX = back.x !== undefined ? back.x : 0.5;
         const posY = back.y !== undefined ? back.y : 0.5;
         const ux = uv.cx + (posX - 0.5) * 0.18 * printSizeConfig.width + (printSizeConfig.x - 0.5) * 0.18;
@@ -396,6 +411,9 @@ function repaintStickerCanvas() {
         uvCtx.translate(sx, sy);
         if (cfg.isFlipped) {
             uvCtx.scale(1, -1);
+        }
+        if (back.rotation) {
+            uvCtx.rotate(back.rotation * Math.PI / 180);
         }
         uvCtx.drawImage(
             back._cachedClean, 
@@ -660,6 +678,8 @@ function applySticker(key) {
         activeZone._cachedClean = null; // Reset cache so removeBackground() re-runs on clean img
         activeZone.x = 0.5;
         activeZone.y = 0.5;
+        activeZone.scale = 1.0;
+        activeZone.rotation = 0;
         
         if (!activeZone.printSize) {
             activeZone.printSize = STATE.stickerZone === 'front' ? 'mediumFront' : 'mediumBack';
@@ -698,6 +718,8 @@ function applyCustomSticker(imgEl) {
     activeZone._cachedClean = null; 
     activeZone.x = 0.5;
     activeZone.y = 0.5;
+    activeZone.scale = 1.0;
+    activeZone.rotation = 0;
     
     // Assign default printSize based on active side ONLY if not already set
     if (!activeZone.printSize) {
@@ -862,6 +884,8 @@ document.querySelectorAll('.print-size-card').forEach(btn => {
         targetZone.printSize = sizeId;
         targetZone.x = 0.5;
         targetZone.y = 0.5;
+        targetZone.scale = 1.0;
+        targetZone.rotation = 0;
         
         if (typeof syncTextOverlay === 'function') {
             syncTextOverlay();
@@ -1602,6 +1626,50 @@ function getSelectedText() {
     return activeZone.texts.find(t => t.id === selectedTextId);
 }
 
+function constrainSticker(cx, cy, scale, rotation, baseWidth, baseHeight, areaW, areaH) {
+    const theta = rotation * Math.PI / 180;
+    const cos = Math.abs(Math.cos(theta));
+    const sin = Math.abs(Math.sin(theta));
+
+    // Calculate rotated bounding box width and height
+    const w = baseWidth * scale;
+    const h = baseHeight * scale;
+    const bbW = w * cos + h * sin;
+    const bbH = w * sin + h * cos;
+
+    // Check if scale needs to be clamped
+    let clampedScale = scale;
+    let finalW = w;
+    let finalH = h;
+    let finalBbW = bbW;
+    let finalBbH = bbH;
+
+    if (bbW > areaW || bbH > areaH) {
+        const scaleRatioX = areaW / (cos * baseWidth + sin * baseHeight);
+        const scaleRatioY = areaH / (sin * baseWidth + cos * baseHeight);
+        clampedScale = Math.max(0.1, Math.min(scale, scaleRatioX, scaleRatioY));
+        finalW = baseWidth * clampedScale;
+        finalH = baseHeight * clampedScale;
+        finalBbW = finalW * cos + finalH * sin;
+        finalBbH = finalW * sin + finalH * cos;
+    }
+
+    // Clamp center cx, cy
+    const minCx = finalBbW / 2;
+    const maxCx = areaW - finalBbW / 2;
+    const minCy = finalBbH / 2;
+    const maxCy = areaH - finalBbH / 2;
+
+    const clampedCx = Math.max(minCx, Math.min(maxCx, cx));
+    const clampedCy = Math.max(minCy, Math.min(maxCy, cy));
+
+    return {
+        x: clampedCx / areaW,
+        y: clampedCy / areaH,
+        scale: clampedScale
+    };
+}
+
 function syncDesignOverlay() {
     const overlay = document.getElementById('design-canvas-overlay');
     if (!overlay) return;
@@ -1624,35 +1692,248 @@ function syncDesignOverlay() {
     overlay.style.top = `${area.top}%`;
     overlay.style.left = `${area.left}%`;
 
-    // 2. If a sticker is applied, add a draggable handle
+    // 2. If a sticker is applied, add the professional editor box and handles
     if (activeZone.stickerImage) {
-        const handle = document.createElement('div');
-        handle.className = 'sticker-drag-handle';
-        
-        // Calculate aspect ratio and dimensions with 20% safe margin
         const cfg = MODEL_CONFIGS[STATE.modelStyle];
         const aspectY = cfg.aspectY || 1.0;
         const scaleFactor = 0.80;
         
-        let handleWidth = area.width * scaleFactor;
-        let handleHeight = area.width * scaleFactor * aspectY;
-        if (handleHeight > area.height * scaleFactor) {
-            handleHeight = area.height * scaleFactor;
-            handleWidth = (area.height * scaleFactor) / aspectY;
+        let baseWidth = area.width * scaleFactor;
+        let baseHeight = area.width * scaleFactor * aspectY;
+        if (baseHeight > area.height * scaleFactor) {
+            baseHeight = area.height * scaleFactor;
+            baseWidth = (area.height * scaleFactor) / aspectY;
         }
-        
-        handle.style.width = `${handleWidth}px`;
-        handle.style.height = `${handleHeight}px`;
-        
-        // Position handle centered on activeZone.x, activeZone.y (which default to 0.5)
-        const posX = activeZone.x !== undefined ? activeZone.x : 0.5;
-        const posY = activeZone.y !== undefined ? activeZone.y : 0.5;
-        
-        handle.style.left = `${posX * 100}%`;
-        handle.style.top = `${posY * 100}%`;
-        handle.style.transform = 'translate(-50%, -50%)';
 
-        // Bind drag events
+        // Initially constrain transform to guarantee it is valid
+        const initialCx = (activeZone.x !== undefined ? activeZone.x : 0.5) * area.width;
+        const initialCy = (activeZone.y !== undefined ? activeZone.y : 0.5) * area.height;
+        const initialScale = activeZone.scale !== undefined ? activeZone.scale : 1.0;
+        const initialRotation = activeZone.rotation !== undefined ? activeZone.rotation : 0;
+
+        const constrained = constrainSticker(
+            initialCx,
+            initialCy,
+            initialScale,
+            initialRotation,
+            baseWidth,
+            baseHeight,
+            area.width,
+            area.height
+        );
+        activeZone.x = constrained.x;
+        activeZone.y = constrained.y;
+        activeZone.scale = constrained.scale;
+
+        const editorBox = document.createElement('div');
+        editorBox.className = 'sticker-editor-box';
+        
+        const updateEditorDOM = () => {
+            const w = baseWidth * activeZone.scale;
+            const h = baseHeight * activeZone.scale;
+            editorBox.style.width = `${w}px`;
+            editorBox.style.height = `${h}px`;
+            editorBox.style.left = `${activeZone.x * 100}%`;
+            editorBox.style.top = `${activeZone.y * 100}%`;
+            editorBox.style.transform = `translate(-50%, -50%) rotate(${activeZone.rotation}deg)`;
+        };
+        updateEditorDOM();
+
+        // Add action buttons
+        const deleteBtn = document.createElement('div');
+        deleteBtn.className = 'sticker-action-btn sticker-delete-btn';
+        deleteBtn.innerHTML = '&times;';
+        deleteBtn.title = 'Delete Sticker';
+        deleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            activeZone.stickerImage = null;
+            activeZone.stickerKey = null;
+            activeZone._cachedClean = null;
+            
+            // Sync active sticker option highlights
+            document.querySelectorAll('.sticker-opt').forEach(opt => opt.classList.remove('active'));
+            
+            repaintStickerCanvas();
+            syncTextOverlay();
+        });
+        editorBox.appendChild(deleteBtn);
+
+        const resetBtn = document.createElement('div');
+        resetBtn.className = 'sticker-action-btn sticker-reset-btn';
+        resetBtn.innerHTML = '&#8634;';
+        resetBtn.title = 'Reset Transform';
+        resetBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            activeZone.x = 0.5;
+            activeZone.y = 0.5;
+            activeZone.scale = 1.0;
+            activeZone.rotation = 0;
+            repaintStickerCanvas();
+            syncTextOverlay();
+        });
+        editorBox.appendChild(resetBtn);
+
+        // Add 8 resize handles
+        const handleClasses = ['handle-tl', 'handle-tm', 'handle-tr', 'handle-mr', 'handle-br', 'handle-bm', 'handle-bl', 'handle-ml'];
+        handleClasses.forEach(hc => {
+            const handle = document.createElement('div');
+            handle.className = `sticker-resize-handle ${hc}`;
+            
+            const startResize = (clientX, clientY) => {
+                const overlayRect = overlay.getBoundingClientRect();
+                const centerX = activeZone.x * overlayRect.width;
+                const centerY = activeZone.y * overlayRect.height;
+                const clickX = clientX - overlayRect.left;
+                const clickY = clientY - overlayRect.top;
+                
+                const startDist = Math.hypot(clickX - centerX, clickY - centerY);
+                const startScale = activeZone.scale;
+
+                const doResize = (moveEvent) => {
+                    const mx = moveEvent.clientX - overlayRect.left;
+                    const my = moveEvent.clientY - overlayRect.top;
+                    const currentDist = Math.hypot(mx - centerX, my - centerY);
+                    const targetScale = startScale * (currentDist / startDist);
+                    
+                    const res = constrainSticker(
+                        centerX,
+                        centerY,
+                        targetScale,
+                        activeZone.rotation,
+                        baseWidth,
+                        baseHeight,
+                        area.width,
+                        area.height
+                    );
+                    
+                    activeZone.scale = res.scale;
+                    // Clamp position as well during resize if bounds hit edges
+                    activeZone.x = res.x;
+                    activeZone.y = res.y;
+
+                    updateEditorDOM();
+                    repaintStickerCanvas();
+                };
+
+                const endResize = () => {
+                    window.removeEventListener('mousemove', doResize);
+                    window.removeEventListener('mouseup', endResize);
+                    window.removeEventListener('touchmove', touchMoveWrapper);
+                    window.removeEventListener('touchend', endResize);
+                };
+
+                const touchMoveWrapper = (e) => {
+                    if (e.touches.length > 0) {
+                        doResize(e.touches[0]);
+                    }
+                };
+
+                window.addEventListener('mousemove', doResize);
+                window.addEventListener('mouseup', endResize);
+                window.addEventListener('touchmove', touchMoveWrapper);
+                window.addEventListener('touchend', endResize);
+            };
+
+            handle.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                startResize(e.clientX, e.clientY);
+            });
+
+            handle.addEventListener('touchstart', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                const touch = e.touches[0];
+                startResize(touch.clientX, touch.clientY);
+            });
+
+            editorBox.appendChild(handle);
+        });
+
+        // Add rotate handle and line
+        const rotLine = document.createElement('div');
+        rotLine.className = 'sticker-rotate-line';
+        editorBox.appendChild(rotLine);
+
+        const rotHandle = document.createElement('div');
+        rotHandle.className = 'sticker-rotate-handle';
+        
+        const startRotate = (clientX, clientY) => {
+            const overlayRect = overlay.getBoundingClientRect();
+            const centerX = activeZone.x * overlayRect.width;
+            const centerY = activeZone.y * overlayRect.height;
+            const clickX = clientX - overlayRect.left;
+            const clickY = clientY - overlayRect.top;
+            
+            const startAngle = Math.atan2(clickY - centerY, clickX - centerX) * 180 / Math.PI;
+            const startRotation = activeZone.rotation;
+
+            const doRotate = (moveEvent) => {
+                const mx = moveEvent.clientX - overlayRect.left;
+                const my = moveEvent.clientY - overlayRect.top;
+                const currentAngle = Math.atan2(my - centerY, mx - centerX) * 180 / Math.PI;
+                let targetRotation = startRotation + (currentAngle - startAngle);
+                
+                // Keep angle between -180 and 180
+                targetRotation = ((targetRotation + 180) % 360 + 360) % 360 - 180;
+                
+                // Constrain the rotation
+                const res = constrainSticker(
+                    centerX,
+                    centerY,
+                    activeZone.scale,
+                    targetRotation,
+                    baseWidth,
+                    baseHeight,
+                    area.width,
+                    area.height
+                );
+                
+                // Only allow rotation if it fits, or clamp position to force it to fit
+                activeZone.rotation = targetRotation;
+                activeZone.x = res.x;
+                activeZone.y = res.y;
+                activeZone.scale = res.scale;
+
+                updateEditorDOM();
+                repaintStickerCanvas();
+            };
+
+            const endRotate = () => {
+                window.removeEventListener('mousemove', doRotate);
+                window.removeEventListener('mouseup', endRotate);
+                window.removeEventListener('touchmove', touchMoveWrapper);
+                window.removeEventListener('touchend', endRotate);
+            };
+
+            const touchMoveWrapper = (e) => {
+                if (e.touches.length > 0) {
+                    doRotate(e.touches[0]);
+                }
+            };
+
+            window.addEventListener('mousemove', doRotate);
+            window.addEventListener('mouseup', endRotate);
+            window.addEventListener('touchmove', touchMoveWrapper);
+            window.addEventListener('touchend', endRotate);
+        };
+
+        rotHandle.addEventListener('mousedown', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            startRotate(e.clientX, e.clientY);
+        });
+
+        rotHandle.addEventListener('touchstart', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            const touch = e.touches[0];
+            startRotate(touch.clientX, touch.clientY);
+        });
+
+        editorBox.appendChild(rotHandle);
+
+        // Bind drag/move event to the editorBox itself
         let isDragging = false;
         let startX = 0, startY = 0;
         let origX = 0, origY = 0;
@@ -1661,17 +1942,17 @@ function syncDesignOverlay() {
             isDragging = true;
             startX = clientX;
             startY = clientY;
-            origX = activeZone.x !== undefined ? activeZone.x : 0.5;
-            origY = activeZone.y !== undefined ? activeZone.y : 0.5;
-            handle.classList.add('dragging');
+            origX = activeZone.x;
+            origY = activeZone.y;
+            editorBox.classList.add('dragging');
         };
 
-        handle.addEventListener('mousedown', (e) => {
+        editorBox.addEventListener('mousedown', (e) => {
             e.stopPropagation();
             startDrag(e.clientX, e.clientY);
         });
 
-        handle.addEventListener('touchstart', (e) => {
+        editorBox.addEventListener('touchstart', (e) => {
             e.stopPropagation();
             const touch = e.touches[0];
             startDrag(touch.clientX, touch.clientY);
@@ -1686,27 +1967,24 @@ function syncDesignOverlay() {
             const normDeltaX = deltaX / area.width;
             const normDeltaY = deltaY / area.height;
 
-            let targetX = origX + normDeltaX;
-            let targetY = origY + normDeltaY;
+            const targetX = (origX + normDeltaX) * area.width;
+            const targetY = (origY + normDeltaY) * area.height;
 
-            // Bounding box clamping: entire sticker bounding box must stay inside the print area
-            const w = handleWidth / area.width;
-            const h = handleHeight / area.height;
-            
-            const minX = w / 2;
-            const maxX = 1.0 - w / 2;
-            const minY = h / 2;
-            const maxY = 1.0 - h / 2;
+            const res = constrainSticker(
+                targetX,
+                targetY,
+                activeZone.scale,
+                activeZone.rotation,
+                baseWidth,
+                baseHeight,
+                area.width,
+                area.height
+            );
 
-            targetX = Math.max(minX, Math.min(maxX, targetX));
-            targetY = Math.max(minY, Math.min(maxY, targetY));
+            activeZone.x = res.x;
+            activeZone.y = res.y;
 
-            activeZone.x = targetX;
-            activeZone.y = targetY;
-
-            handle.style.left = `${targetX * 100}%`;
-            handle.style.top = `${targetY * 100}%`;
-
+            updateEditorDOM();
             repaintStickerCanvas();
         };
 
@@ -1724,14 +2002,14 @@ function syncDesignOverlay() {
         const endDrag = () => {
             if (isDragging) {
                 isDragging = false;
-                handle.classList.remove('dragging');
+                editorBox.classList.remove('dragging');
             }
         };
 
         window.addEventListener('mouseup', endDrag);
         window.addEventListener('touchend', endDrag);
 
-        overlay.appendChild(handle);
+        overlay.appendChild(editorBox);
     }
 }
 
