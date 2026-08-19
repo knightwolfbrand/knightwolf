@@ -515,8 +515,18 @@ function updateColor(hex) {
     repaintStickerCanvas(); 
 }
 
-// ─── PRELOAD STICKER IMAGES ───────────────────────────────────────────────────
-const stickerImages = {};
+// ─── STICKER IMAGE LOADING ────────────────────────────────────────────────────
+// ROOT CAUSE FIX: Netlify CDN returns no Access-Control-Allow-Origin headers.
+// Drawing a cross-origin <img> onto a canvas taints it, making getImageData()
+// throw SecurityError. Even the catch block cannot save it — Three.js also
+// fails to read a tainted CanvasTexture, producing an empty (invisible) GPU
+// texture. The fix: route every sticker through the local /api/sticker-proxy
+// which re-serves the image with CORS headers. The blob: URL produced by
+// createObjectURL() is always same-origin, so the canvas is never tainted.
+
+const stickerImages = {}; // key → HTMLImageElement (loaded via blob URL)
+const _blobUrls = {};     // key → blob: URL (for cleanup if needed)
+
 const STICKER_SRCS = {
     s_anime_back_afb1: 'https://knightwolfshop.netlify.app/stickers/anime_back_afb1.webp',
     s_anime_back_afb2: 'https://knightwolfshop.netlify.app/stickers/anime_back_afb2.webp',
@@ -570,22 +580,74 @@ const STICKER_SRCS = {
     s_quotes_back_q2: 'https://knightwolfshop.netlify.app/stickers/quotes_back_q2.png',
     s_quotes_back_q3: 'https://knightwolfshop.netlify.app/stickers/quotes_back_q3.png',
 };
-Object.entries(STICKER_SRCS).forEach(([key, src]) => {
-    const img = new Image();
-    img.onload = () => {
-        stickerImages[key] = img;
-        console.log(`[STICKER LOAD] success: ${key} loaded from ${src}`);
-        if (key === 's_anime_back_afb1') {
-            const activeZone = STATE.designs.front;
-            if (!activeZone.stickerKey) {
-                applySticker('s_anime_back_afb1');
-            }
-        }
-    };
-    img.onerror = (err) => {
-        console.error(`[STICKER LOAD] error: ${key} failed to load from ${src}`, err);
-    };
-    img.src = src;
+
+/**
+ * loadStickerViaBlobURL
+ * Fetches a sticker through the local /api/sticker-proxy so the browser
+ * receives it with CORS headers. The resulting blob: URL is same-origin,
+ * meaning the UV canvas will NEVER be tainted when drawing this image.
+ *
+ * @param {string} key - Sticker key in STICKER_SRCS
+ * @param {string} externalUrl - Original Netlify URL (used to derive filename)
+ * @returns {Promise<HTMLImageElement>}
+ */
+function loadStickerViaBlobURL(key, externalUrl) {
+    return new Promise((resolve, reject) => {
+        // Extract just the filename from the full URL
+        const filename = externalUrl.split('/').pop(); // e.g. "anime_back_afb1.webp"
+        const proxyUrl = `/api/sticker-proxy?file=${encodeURIComponent(filename)}`;
+
+        fetch(proxyUrl)
+            .then(res => {
+                if (!res.ok) throw new Error(`Proxy returned ${res.status} for ${filename}`);
+                return res.blob();
+            })
+            .then(blob => {
+                const blobUrl = URL.createObjectURL(blob);
+                _blobUrls[key] = blobUrl;
+                const img = new Image();
+                img.onload = () => {
+                    console.log(`[STICKER LOAD] success: ${key} via blob URL (canvas-safe)`);
+                    resolve(img);
+                };
+                img.onerror = (err) => {
+                    URL.revokeObjectURL(blobUrl);
+                    reject(new Error(`Image load failed for blob of ${key}: ${err}`));
+                };
+                img.src = blobUrl; // blob: URL → same-origin → canvas never tainted
+            })
+            .catch(err => {
+                console.error(`[STICKER LOAD] proxy error for ${key}:`, err);
+                // Fallback: try loading directly (canvas will be tainted but at
+                // least the sticker may render if bg-removal is skipped).
+                const img = new Image();
+                img.onload = () => {
+                    console.warn(`[STICKER LOAD] fallback direct load for ${key} — canvas may taint`);
+                    resolve(img);
+                };
+                img.onerror = () => reject(new Error(`All load paths failed for ${key}`));
+                img.src = externalUrl;
+            });
+    });
+}
+
+// Pre-load all stickers in background so clicks are instant.
+// Only the first few are kicked off immediately; the rest load lazily
+// to avoid hammering the proxy on page load.
+const PRELOAD_BATCH = 6; // Load first N stickers eagerly
+Object.entries(STICKER_SRCS).forEach(([key, src], index) => {
+    if (index < PRELOAD_BATCH) {
+        loadStickerViaBlobURL(key, src)
+            .then(img => {
+                stickerImages[key] = img;
+                // Apply the very first sticker as default artwork if nothing is set yet
+                if (key === 's_anime_back_afb1' && !STATE.designs.front.stickerKey) {
+                    applySticker('s_anime_back_afb1');
+                }
+            })
+            .catch(err => console.error(`[STICKER PRELOAD] failed for ${key}:`, err));
+    }
+    // The rest are loaded on-demand by applySticker()
 });
 
 function applySticker(key) {
@@ -595,7 +657,7 @@ function applySticker(key) {
     const applyLoadedImage = (img) => {
         activeZone.stickerImage = img;
         activeZone.stickerKey = key;
-        activeZone._cachedClean = null;
+        activeZone._cachedClean = null; // Reset cache so removeBackground() re-runs on clean img
         activeZone.x = 0.5;
         activeZone.y = 0.5;
         
@@ -614,18 +676,18 @@ function applySticker(key) {
     };
 
     if (stickerImages[key]) {
+        // Already in cache — apply immediately
         applyLoadedImage(stickerImages[key]);
     } else if (STICKER_SRCS[key]) {
-        const img = new Image();
-        img.onload = () => {
-            console.log(`[STICKER LOAD] success: dynamic ${key} loaded`);
-            stickerImages[key] = img;
-            applyLoadedImage(img);
-        };
-        img.onerror = (err) => {
-            console.error(`[STICKER LOAD] error: dynamic ${key} load failed`, err);
-        };
-        img.src = STICKER_SRCS[key];
+        // Not cached yet — load via blob proxy to keep canvas untainted
+        loadStickerViaBlobURL(key, STICKER_SRCS[key])
+            .then(img => {
+                stickerImages[key] = img;
+                applyLoadedImage(img);
+            })
+            .catch(err => {
+                console.error(`[STICKER LOAD] error: dynamic ${key} load failed`, err);
+            });
     }
 }
 
