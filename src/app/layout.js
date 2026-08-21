@@ -19,7 +19,7 @@ export default function RootLayout({ children }) {
   const [splashDone, setSplashDone] = useState(false)
 
   return (
-    <html lang="en" style={{ backgroundColor: '#0a0a0f' }}>
+    <html lang="en" style={{ backgroundColor: '#0a0a0f' }} suppressHydrationWarning>
       <head>
         <title>Knight Wolf — Wear The Hunt</title>
         <meta name="description" content="Premium custom T-shirts. Design your own with our interactive 3D configurator. Knight Wolf — Wear The Hunt." />
@@ -30,7 +30,7 @@ export default function RootLayout({ children }) {
           }
         `}</style>
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} ${!splashDone ? 'splash-active' : ''}`} style={{ backgroundColor: '#0a0a0f' }}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${!splashDone ? 'splash-active' : ''}`} style={{ backgroundColor: '#0a0a0f' }} suppressHydrationWarning>
         
         {/* Finalized Cinematic Splash Screen */}
         {!splashDone && (

@@ -1157,7 +1157,7 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
               ref={exploreButtonRef} 
               className={styles.bottomExploreButton}
               onClick={() => {
-                window.location.href = '/customize/configurator.html';
+                window.location.href = '/collections';
               }}
             >
               Explore Collections
@@ -1172,9 +1172,9 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
         {/* Left Side: Two Scrolling Columns */}
         <ScrollingColumn
           items={[
-            { bgColor: '#141414', img: '/box/PHOTO-2026-05-11-13-18-47.png' },
-            { bgColor: '#141414', img: '/box/new_launch_poster.png' },
-            { bgColor: '#141414', img: '/box/PHOTO-2026-05-11-13-20-50.png' }
+            { bgColor: '#141414', img: '/box/PHOTO-2026-08-19-16-16-49.png' },
+            { bgColor: '#141414', img: '/box/PHOTO-2026-08-20-13-10-29.png' },
+            { bgColor: '#141414', img: '/box/PHOTO-2026-08-20-11-46-52.png' }
           ]}
           direction="up"
           speed={30}
@@ -1184,9 +1184,9 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
         />
         <ScrollingColumn
           items={[
-            { bgColor: '#141414', img: '/box/PHOTO-2026-05-11-13-22-08.png' },
-            { bgColor: '#141414', img: '/box/knightwolf_hd_poster.png' },
-            { bgColor: '#141414', img: '/box/ad_poster.jpg' }
+            { bgColor: '#141414', img: '/box/PHOTO-2026-08-20-12-35-12.png' },
+            { bgColor: '#141414', img: '/box/PHOTO-2026-08-20-15-22-13.png' },
+            { bgColor: '#141414', img: '/box/PHOTO-2026-08-19-17-28-29.png' }
           ]}
           direction="down"
           speed={25}
@@ -1305,9 +1305,9 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
         {/* Right Side: Two Scrolling Columns */}
         <ScrollingColumn
           items={[
-            { bgColor: '#141414', img: '/box/knight_wolf_editorial_v2.png' },
-            { bgColor: '#141414', img: '/box/PHOTO-2026-05-11-13-34-40.png' },
-            { bgColor: '#141414', img: '/box/PHOTO-2026-05-11-13-22-22.png' }
+            { bgColor: '#141414', img: '/box/PHOTO-2026-08-20-11-53-36.png' },
+            { bgColor: '#141414', img: '/box/PHOTO-2026-08-20-12-10-01.png' },
+            { bgColor: '#141414', img: '/box/PHOTO-2026-08-20-13-10-10.png' }
           ]}
           direction="up"
           speed={28}
@@ -1318,9 +1318,9 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
         />
         <ScrollingColumn
           items={[
-            { bgColor: '#141414', img: '/box/ad_poster.jpg' },
-            { bgColor: '#141414', img: '/box/knightwolf_hd_poster.png' },
-            { bgColor: '#141414', img: '/box/PHOTO-2026-05-11-13-20-50.png' }
+            { bgColor: '#141414', img: '/box/PHOTO-2026-08-20-14-34-07.png' },
+            { bgColor: '#141414', img: '/box/PHOTO-2026-08-20-15-06-28.png' },
+            { bgColor: '#141414', img: '/box/PHOTO-2026-08-20-16-50-43.png' }
           ]}
           direction="down"
           speed={35}

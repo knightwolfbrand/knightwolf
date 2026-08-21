@@ -1,0 +1,864 @@
+/* collections.module.css */
+
+.container {
+  height: 100vh;
+  background-color: #000000;
+  color: #ffffff;
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Gritty noise overlay */
+.noiseOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.04;
+  pointer-events: none;
+  z-index: 999;
+}
+
+/* Header */
+.header {
+  height: 60px;
+  background: #000000;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 30px;
+  z-index: 100;
+  flex-shrink: 0;
+}
+
+.logoWrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.logoText {
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.nav {
+  display: flex;
+  gap: 28px;
+}
+
+.navLink {
+  color: rgba(255, 255, 255, 0.6);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: color 0.2s ease;
+  position: relative;
+  padding: 4px 0;
+}
+
+.navLink:hover {
+  color: #ffffff;
+}
+
+.navActive {
+  color: #ffffff;
+}
+
+.navActive::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #ff0000;
+}
+
+.headerIcons {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.iconBtn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  padding: 4px;
+  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+}
+
+.iconBtn:hover {
+  color: #ff0000;
+}
+
+/* 3-Column Panels Layout */
+.panelsGrid {
+  display: flex;
+  flex-grow: 1;
+  height: calc(100vh - 110px); /* 100vh - header(60px) - offerBar(50px) */
+  width: 100%;
+  overflow: hidden;
+  flex-direction: row;
+}
+
+.panel {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  transition: flex 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Active panel expansion */
+.panelActive {
+  flex: 1.4;
+}
+
+/* Backgrounds */
+.panel01 {
+  background-color: #ededed;
+  color: #000000;
+}
+
+.panel02 {
+  background-color: #ff0000;
+  color: #ffffff;
+  border-left: 1px solid rgba(0, 0, 0, 0.1);
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.panel03 {
+  background-color: #dfdfdf;
+  color: #000000;
+}
+
+/* Campaign Hero Section inside Panel */
+.heroWrapper {
+  height: 100%;
+  width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 40px;
+  box-sizing: border-box;
+  transition: height 0.4s cubic-bezier(0.16, 1, 0.3, 1), padding 0.4s ease;
+  overflow: hidden;
+  z-index: 5;
+}
+
+/* Shrunk height when active to fit controls */
+.heroWrapperShrunk {
+  height: 200px;
+  padding: 20px 30px;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.panelImageBg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.85;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Hover scales image slightly if not active */
+.panel:hover:not(.panelActive) .panelImageBg {
+  transform: scale(1.03);
+  opacity: 1;
+}
+
+.panelOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.6) 100%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.panel02 .panelOverlay {
+  background: linear-gradient(to bottom, rgba(255, 0, 0, 0.1) 0%, rgba(0,0,0,0.7) 100%);
+}
+
+.heroContent {
+  position: relative;
+  z-index: 3;
+  color: inherit;
+}
+
+.fitNum {
+  font-size: clamp(24px, 3vw, 48px);
+  font-weight: 900;
+  line-height: 1;
+  opacity: 0.7;
+}
+
+.fitTitle {
+  font-size: clamp(28px, 2.5vw, 40px);
+  font-weight: 900;
+  line-height: 0.9;
+  text-transform: uppercase;
+  margin: 5px 0 0 0;
+  letter-spacing: -0.01em;
+}
+
+.fitSub {
+  font-size: clamp(14px, 1.5vw, 20px);
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-top: 2px;
+  color: #ff0000;
+}
+
+.panel02 .fitSub {
+  color: #ffffff;
+}
+
+.heroBottom {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: auto;
+}
+
+.fitDesc {
+  font-size: clamp(11px, 1.1vw, 13px);
+  line-height: 1.4;
+  margin: 0;
+  opacity: 0.85;
+}
+
+.exploreBtn {
+  background-color: #000000;
+  color: #ffffff;
+  border: none;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 12px 24px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.panel02 .exploreBtn {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+.exploreBtn:hover {
+  background-color: #ff0000;
+  color: #ffffff;
+}
+
+/* Expanded Inline Shopping Area */
+.shopArea {
+  flex-grow: 1;
+  background-color: #070707;
+  border-top: 2px solid #ff0000;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 30px;
+  box-sizing: border-box;
+  overflow: hidden;
+  z-index: 6;
+  gap: 16px;
+  color: #ffffff;
+}
+
+.shopHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.shopTitle {
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.viewAllLink {
+  font-size: 10px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.4);
+  text-decoration: none;
+  letter-spacing: 0.08em;
+}
+
+.viewAllLink:hover {
+  color: #ff0000;
+}
+
+/* Inline Options Selectors */
+.selectorsRow {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.selectorBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.selectorLabel {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+}
+
+.swatchRow {
+  display: flex;
+  gap: 8px;
+}
+
+.swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px;
+}
+
+.swatchActive {
+  border-color: #ff0000;
+}
+
+.swatchDot {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sizeRow {
+  display: flex;
+  gap: 6px;
+}
+
+.sizeBtn {
+  width: 28px;
+  height: 24px;
+  background-color: #111111;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.sizeBtnActive {
+  border-color: #ff0000;
+  color: #ff0000;
+}
+
+/* Plain / Graphic Segmented Switch */
+.printControl {
+  display: flex;
+  background-color: transparent;
+  gap: 8px;
+}
+
+.printBtn {
+  background: #111111;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 6px 12px;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+}
+
+.printBtnActive {
+  border-color: #ff0000;
+  color: #ff0000;
+  background-color: rgba(255, 0, 0, 0.05);
+}
+
+.designYoursBtn {
+  background-color: #000000;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 9px;
+  font-weight: 900;
+  padding: 6px 12px;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+}
+
+.designYoursBtn:hover {
+  border-color: #ff0000;
+  color: #ff0000;
+}
+
+.designYoursBtn:hover {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+/* Mini Product Grid */
+.miniGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.miniCard {
+  background-color: #0c0c0c;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.miniCardActive {
+  border-color: #ff0000;
+}
+
+.miniImgWrapper {
+  width: 100%;
+  aspect-ratio: 3/4;
+  overflow: hidden;
+  background-color: #111111;
+  margin-bottom: 6px;
+}
+
+.miniImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.miniTitle {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin: 0 0 2px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.miniPrice {
+  font-size: 10px;
+  color: #ff0000;
+  font-weight: 900;
+  margin: 0;
+}
+
+.miniWishlist {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.6);
+  border: none;
+  color: #ffffff;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 5;
+}
+
+.miniWishlistActive {
+  color: #ff0000;
+}
+
+/* Bottom Add Section */
+.bottomActionRow {
+  display: flex;
+  gap: 10px;
+  margin-top: auto;
+  align-items: center;
+}
+
+.qtyBox {
+  display: flex;
+  align-items: center;
+  background-color: #111111;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  height: 40px;
+  width: 90px;
+}
+
+.qtyBtn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.qtyVal {
+  flex: 1;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.addBtn {
+  flex-grow: 1;
+  background-color: #ff0000;
+  color: #ffffff;
+  border: none;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  height: 40px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.addBtn:hover {
+  background-color: #d10000;
+}
+
+.wishlistActionBtn {
+  width: 40px;
+  height: 40px;
+  background-color: #111111;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wishlistActionBtnActive {
+  color: #ff0000;
+  border-color: #ff0000;
+}
+
+/* Bottom Offer progress strip */
+.offerBar {
+  height: 50px;
+  background-color: #000000;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: grid;
+  grid-template-columns: 1.2fr 1.2fr 1fr 1fr;
+  align-items: center;
+  padding: 0 30px;
+  font-size: 11px;
+  z-index: 90;
+  flex-shrink: 0;
+}
+
+.offerBlock {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0 20px;
+  height: 100%;
+}
+
+.offerBlock:last-child {
+  border-right: none;
+}
+
+.offerInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.offerTitle {
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #ffffff;
+}
+
+.offerTitleLocked {
+  color: #ff0000;
+  animation: glowText 1.5s ease-in-out infinite alternate;
+}
+
+.offerDesc {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 10px;
+}
+
+.progressBarWrapper {
+  width: 80px;
+  height: 4px;
+  background-color: #111111;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progressBarFill {
+  height: 100%;
+  background-color: #ff0000;
+  transition: width 0.3s ease;
+}
+
+/* Right Side Slide-out Cart Drawer */
+.cartDrawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 360px;
+  height: 100%;
+  background-color: #070707;
+  border-left: 2px solid #ff0000;
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.7);
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cartDrawerOpen {
+  transform: translateX(0);
+}
+
+.cartHeader {
+  padding: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cartTitle {
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.cartCloseBtn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+}
+
+.cartCloseBtn:hover {
+  color: #ffffff;
+}
+
+.cartItems {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cartItem {
+  display: flex;
+  gap: 15px;
+  background-color: #0d0d0d;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.cartItemImg {
+  width: 60px;
+  aspect-ratio: 3/4;
+  object-fit: cover;
+  background-color: #111111;
+}
+
+.cartItemDetails {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.cartItemName {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.cartItemMeta {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.cartItemPrice {
+  font-size: 11px;
+  font-weight: 900;
+  color: #ff0000;
+  margin: 0;
+}
+
+.cartItemRemove {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 9px;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.cartItemRemove:hover {
+  color: #ff0000;
+}
+
+.cartFooter {
+  padding: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: #0a0a0a;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cartSummaryRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.cartSummaryTotal {
+  color: #ff0000;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.checkoutBtn {
+  width: 100%;
+  background-color: #ff0000;
+  color: #ffffff;
+  border: none;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 900;
+  padding: 16px 0;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.checkoutBtn:hover {
+  background-color: #d10000;
+}
+
+/* Same-page Modal Overlay for View All */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(5px);
+  z-index: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modalContent {
+  background-color: #070707;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  width: 600px;
+  max-width: 90%;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: relative;
+}
+
+.modalClose {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+}
+
+.modalClose:hover {
+  color: #ffffff;
+}
+
+.closeColBtn {
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 6px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+}
+
+.closeColBtn:hover {
+  background-color: #ff0000;
+  border-color: #ff0000;
+}
+
+@keyframes glowText {
+  from { text-shadow: 0 0 2px rgba(255, 0, 0, 0.3); }
+  to { text-shadow: 0 0 10px rgba(255, 0, 0, 0.8); }
+}
