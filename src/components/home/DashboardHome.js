@@ -633,6 +633,7 @@ export default function DashboardHome({ customStyleConfig = null, forceTheme = n
   // Idle detection — hides UI after 3s of no cursor movement
   const idleTimeoutRef = useRef(null);
   const isIdleRef = useRef(false);
+  const [isIdleState, setIsIdleState] = useState(false);
   const introCompleteRef = useRef(false); // only activate idle after intro finishes
 
 
