@@ -145,6 +145,19 @@ export default function SingleScreenCollections() {
   const [cart, setCart] = useState([])
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [wishlist, setWishlist] = useState({})
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const col = params.get('col');
+      if (col) {
+        const parsed = parseInt(col, 10);
+        if (parsed >= 1 && parsed <= 3) {
+          setActiveCol(parsed);
+        }
+      }
+    }
+  }, []);
   
   // Carousel indices
   const [regSlideIndex, setRegSlideIndex] = useState(0)
