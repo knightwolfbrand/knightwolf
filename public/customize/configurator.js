@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { Reflector } from 'three/addons/objects/Reflector.js';
 
 // --- CONFIGURATION & STATE ---
 const PRINT_AREAS = {
@@ -47,9 +48,9 @@ const PRINT_AREAS = {
 };
 
 const STATE = {
-    color: '#f5f5f5', // Default color white as per user instructions
+    color: '#f5f0cc', // Default color cream
     loaded: false,
-    modelStyle: 'regular',
+    modelStyle: 'oversized',
     fabricStyle: 'structured',
     stickerZone: 'front',    // 'front' | 'back'
     designs: {
@@ -108,13 +109,14 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 0.1, 1000);
 camera.position.set(0, 4, 16);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
-renderer.setClearColor(0x000000, 0);
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: true });
+renderer.setClearColor(0xfffef4, 1.0); // Clean creamy white background fallback
 renderer.setSize(container.clientWidth, container.clientHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.shadowMap.enabled = false; // Disabled real shadow maps for premium optimization
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.0;
+renderer.toneMappingExposure = 1.1;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 container.appendChild(renderer.domElement);
 
@@ -122,39 +124,486 @@ container.appendChild(renderer.domElement);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(0, 4, 0);
 controls.enableDamping = true;
-controls.dampingFactor = 0.08;
+controls.dampingFactor = 0.05;
 controls.enablePan = false;
-controls.minDistance = 12.8;
-controls.maxDistance = 20;
-controls.minPolarAngle = Math.PI * 0.5;
-controls.maxPolarAngle = Math.PI * 0.5;
+controls.minDistance = 11.5;
+controls.maxDistance = 22.0;
+// Limit vertical viewing angles to prevent going too high or below floor level
+controls.minPolarAngle = Math.PI * 0.38;
+controls.maxPolarAngle = Math.PI * 0.55;
 controls.update();
 
+// Tshirt Model dedicated group (keeps environment stationary during rotation)
+const tshirtGroup = new THREE.Group();
+scene.add(tshirtGroup);
 
-// ─── ENVIRONMENT ─────────────────────────────────────────────────────────────
+// ─── ENVIRONMENT: LUXURY MINIMAL SHOWROOM ────────────────────────────────────
 const texLoader = new THREE.TextureLoader();
 
-// Soft volumetric shadows under T-shirt hem
+const matteBlackMat = new THREE.MeshStandardMaterial({
+    color: 0x111111,
+    roughness: 0.75,
+    metalness: 0.25,
+});
+
+// 1. Polished Light Gray Concrete Floor
+const floorGeo = new THREE.PlaneGeometry(80, 80);
+const floorMat = new THREE.MeshStandardMaterial({
+    color: 0xc9c7c3,
+    roughness: 0.40,
+    metalness: 0.05,
+});
+const floor = new THREE.Mesh(floorGeo, floorMat);
+floor.rotation.x = -Math.PI / 2;
+floor.position.y = -4.5;
+floor.receiveShadow = true;
+scene.add(floor);
+
+// Subtle circular 3D podium underneath the T-shirt
+const podiumGroup = new THREE.Group();
+podiumGroup.position.set(0, -4.5, 0);
+
+// Flatter warm stone circular base
+const podiumGeo = new THREE.CylinderGeometry(2.6, 2.7, 0.08, 64);
+const podiumMat = new THREE.MeshStandardMaterial({
+    color: 0xeae8e2,
+    roughness: 0.70,
+});
+const podium = new THREE.Mesh(podiumGeo, podiumMat);
+podium.position.y = 0.04;
+podium.receiveShadow = true;
+podium.castShadow = true;
+podiumGroup.add(podium);
+
+// Subtle warm-white LED ring under the podium
+const ledRingGeo = new THREE.CylinderGeometry(2.5, 2.5, 0.02, 32);
+const ledRingMat = new THREE.MeshBasicMaterial({
+    color: 0xfff3d6,
+});
+const ledRing = new THREE.Mesh(ledRingGeo, ledRingMat);
+ledRing.position.y = 0.01;
+podiumGroup.add(ledRing);
+scene.add(podiumGroup);
+
+// 2. Creamy White Gallery Walls (#FFFEF4)
+const backWallGeo = new THREE.PlaneGeometry(80, 30);
+const wallMat = new THREE.MeshBasicMaterial({
+    color: 0xfffef4,
+});
+const backWall = new THREE.Mesh(backWallGeo, wallMat);
+backWall.position.set(0, 10, -22);
+backWall.receiveShadow = true;
+scene.add(backWall);
+
+const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(80, 30), wallMat);
+leftWall.position.set(-35, 10, 0);
+leftWall.rotation.y = Math.PI / 2;
+leftWall.receiveShadow = true;
+scene.add(leftWall);
+
+const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(80, 30), wallMat);
+rightWall.position.set(35, 10, 0);
+rightWall.rotation.y = -Math.PI / 2;
+rightWall.receiveShadow = true;
+scene.add(rightWall);
+
+// 2. Full-Height Floor-to-Ceiling Reflective Glass Wall (spans the entire wall area)
+const frontWall = new Reflector(new THREE.PlaneGeometry(80, 30), {
+    clipBias: 0.003,
+    textureWidth: window.innerWidth * window.devicePixelRatio,
+    textureHeight: window.innerHeight * window.devicePixelRatio,
+    color: 0xccddee, // slight natural blue/grey glass tint
+    recursion: 1
+});
+frontWall.position.set(0, 10, 22);
+frontWall.rotation.y = Math.PI; // faced inwards
+
+// Mix dynamic reflection with transparent see-through void
+frontWall.material.transparent = true;
+frontWall.material.opacity = 0.28; // balanced transparency and T-shirt reflection
+scene.add(frontWall);
+
+// Frameless Glass Door Seams & Accents (integrated into the glass wall at z = 21.9)
+const doorGroup = new THREE.Group();
+doorGroup.position.set(0, -4.5, 21.9);
+
+// Thin black metal divider joints to define the double door panels
+const jointLeft = new THREE.Mesh(new THREE.BoxGeometry(0.015, 26.0, 0.06), matteBlackMat);
+jointLeft.position.set(-6.5, 13.0, 0);
+doorGroup.add(jointLeft);
+
+const jointRight = new THREE.Mesh(new THREE.BoxGeometry(0.015, 26.0, 0.06), matteBlackMat);
+jointRight.position.set(6.5, 13.0, 0);
+doorGroup.add(jointRight);
+
+// Clean vertical center seam split between the doors
+const seamCenter = new THREE.Mesh(new THREE.BoxGeometry(0.02, 26.0, 0.04), matteBlackMat);
+seamCenter.position.set(0, 13.0, 0);
+doorGroup.add(seamCenter);
+
+// Minimal top and bottom frame profile borders
+const bottomFrame = new THREE.Mesh(new THREE.BoxGeometry(13.0, 0.06, 0.1), matteBlackMat);
+bottomFrame.position.set(0, 0.03, 0);
+doorGroup.add(bottomFrame);
+
+const topFrame = new THREE.Mesh(new THREE.BoxGeometry(13.0, 0.06, 0.1), matteBlackMat);
+topFrame.position.set(0, 25.97, 0);
+doorGroup.add(topFrame);
+
+// Two long slim vertical black pull handles on the glass doors
+const handleGeo = new THREE.CylinderGeometry(0.03, 0.03, 5.0, 16);
+const leftHandle = new THREE.Mesh(handleGeo, matteBlackMat);
+leftHandle.position.set(-1.2, 12.0, 0.1); // centered at y=12.0 on the wall (7.5 units up from floor)
+doorGroup.add(leftHandle);
+
+const rightHandle = new THREE.Mesh(handleGeo, matteBlackMat);
+rightHandle.position.set(1.2, 12.0, 0.1);
+doorGroup.add(rightHandle);
+
+// Hanger brackets/pivots at floor and ceiling junctions
+for (let i = 0; i < 4; i++) {
+    const pivot = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.08, 0.12), matteBlackMat);
+    const px = (i < 2) ? -6.0 : 6.0;
+    const py = (i % 2 === 0) ? 0.04 : 25.96;
+    pivot.position.set(px, py, 0.0);
+    doorGroup.add(pivot);
+}
+
+scene.add(doorGroup);
+
+// Up-and-Down Wall Sconces moved to the right side wall with up/down light effect
+const sconceZPositions = [-9.0, 10.0];
+sconceZPositions.forEach((sz) => {
+    // Sconce physical fixture (matte black rectangle) mounted on the right wall (facing inwards)
+    const fixture = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.9, 0.3), matteBlackMat);
+    fixture.position.set(34.82, 10.0, sz);
+    scene.add(fixture);
+
+    // Warm white spot lights pointing straight up & down along the right wall (x = 34.78)
+    // Upward beam
+    const upLight = new THREE.SpotLight(0xffb575, 45.0, 14.0, Math.PI / 4, 0.5, 2.0);
+    upLight.position.set(34.78, 10.45, sz);
+    const upTarget = new THREE.Object3D();
+    upTarget.position.set(34.78, 22.0, sz);
+    scene.add(upTarget);
+    upLight.target = upTarget;
+    scene.add(upLight);
+
+    // Downward beam
+    const downLight = new THREE.SpotLight(0xffb575, 45.0, 14.0, Math.PI / 4, 0.5, 2.0);
+    downLight.position.set(34.78, 9.55, sz);
+    const downTarget = new THREE.Object3D();
+    downTarget.position.set(34.78, -4.5, sz);
+    scene.add(downTarget);
+    downLight.target = downTarget;
+    scene.add(downLight);
+});
+
+// 3. Warm Off-White Gallery Ceiling
+const ceilingGeo = new THREE.PlaneGeometry(80, 80);
+const ceilingMat = new THREE.MeshStandardMaterial({
+    color: 0xf5f5f0,
+    roughness: 0.98,
+});
+const ceiling = new THREE.Mesh(ceilingGeo, ceilingMat);
+ceiling.rotation.x = Math.PI / 2;
+ceiling.position.y = 22;
+scene.add(ceiling);
+
+// Soft volumetric shadows under T-shirt hem (resting flat on concrete floor at y = -4.5)
 const shadowTexture = texLoader.load('https://threejs.org/examples/textures/shadow.png');
 const shadowPlane = new THREE.Mesh(
     new THREE.PlaneGeometry(12, 12),
-    new THREE.MeshBasicMaterial({ map: shadowTexture, transparent: true, opacity: 0.45, depthWrite: false })
+    new THREE.MeshBasicMaterial({ map: shadowTexture, transparent: true, opacity: 0.38, depthWrite: false })
 );
 shadowPlane.rotation.x = -Math.PI / 2;
-shadowPlane.position.y = -1.2;
-scene.add(shadowPlane);
+shadowPlane.position.y = -4.41; // Sit just above the podium surface
+tshirtGroup.add(shadowPlane);
+
+// Spartan Wolf Logo mounted on the left side wall
+const logoTex = texLoader.load('/customize/logo_spartan.png');
+const logoMat = new THREE.MeshBasicMaterial({
+    color: 0x111111,
+    map: logoTex,
+    transparent: true,
+    depthWrite: false
+});
+const logoMesh = new THREE.Mesh(new THREE.PlaneGeometry(5.0, 5.0), logoMat);
+logoMesh.position.set(-34.82, 11.5, 4.0);
+logoMesh.rotation.y = Math.PI / 2;
+scene.add(logoMesh);
+
+// "KNIGHTWOLF" Dimensional text plaque
+const brandingCanvas = document.createElement('canvas');
+brandingCanvas.width = 2048;
+brandingCanvas.height = 512;
+const brandingCtx = brandingCanvas.getContext('2d');
+brandingCtx.fillStyle = '#111111';
+brandingCtx.font = "normal 160px 'Libre Baskerville', serif";
+brandingCtx.textAlign = 'center';
+brandingCtx.textBaseline = 'middle';
+brandingCtx.letterSpacing = '4px';
+brandingCtx.fillText('KNIGHTWOLF', 1024, 256);
+
+const brandingTex = new THREE.CanvasTexture(brandingCanvas);
+const plaqueGeo = new THREE.PlaneGeometry(15.0, 3.75);
+const plaqueMat = new THREE.MeshStandardMaterial({
+    map: brandingTex,
+    transparent: true,
+    roughness: 0.8,
+});
+const plaque = new THREE.Mesh(plaqueGeo, plaqueMat);
+plaque.position.set(0, 15.0, -21.8);
+scene.add(plaque);
+
+// 6. LEFT WALL: BRAND STORY
+// 3 Vertically Aligned Framed Campaign Posters
+function makeCampaignPoster(z, y, titleText) {
+    const posterGroup = new THREE.Group();
+    posterGroup.position.set(-34.8, y, z);
+    posterGroup.rotation.y = Math.PI / 2;
+
+    // Thin black frame
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(3.0, 3.8, 0.1), matteBlackMat);
+    posterGroup.add(frame);
+
+    // Canvas inside frame
+    const posterCanvas = document.createElement('canvas');
+    posterCanvas.width = 300;
+    posterCanvas.height = 380;
+    const pctx = posterCanvas.getContext('2d');
+    pctx.fillStyle = '#18181c';
+    pctx.fillRect(0, 0, 300, 380);
+
+    // Poster branding typography/graphics
+    pctx.fillStyle = '#d8d4cc';
+    pctx.font = "bold 24px 'Space Grotesk', sans-serif";
+    pctx.textAlign = 'center';
+    pctx.fillText('KNIGHTWOLF', 150, 60);
+
+    pctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+    pctx.fillRect(40, 100, 220, 200);
+
+    pctx.fillStyle = '#ff3333';
+    pctx.font = "bold 18px 'Space Grotesk', sans-serif";
+    pctx.fillText(titleText, 150, 330);
+
+    const posterTex = new THREE.CanvasTexture(posterCanvas);
+    const canvasMesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(2.8, 3.6),
+        new THREE.MeshStandardMaterial({ map: posterTex, roughness: 0.9 })
+    );
+    canvasMesh.position.z = 0.06;
+    posterGroup.add(canvasMesh);
+    scene.add(posterGroup);
+}
+makeCampaignPoster(-12, 14, 'CAMPAIGN 01');
+makeCampaignPoster(-12, 9.5, 'STREETWEAR');
+makeCampaignPoster(-12, 5.0, 'TOKYO SHOT');
+
+// Realistic Clothing Rack display billboard on Left Side Wall
+const rackTex = texLoader.load('/customize/rack_display.png');
+const rackGeo = new THREE.PlaneGeometry(12.3, 8.2);
+const rackMat = new THREE.MeshStandardMaterial({
+    map: rackTex,
+    transparent: true,
+    alphaTest: 0.35,
+    roughness: 0.6,
+    metalness: 0.1,
+    side: THREE.DoubleSide
+});
+const rackMesh = new THREE.Mesh(rackGeo, rackMat);
+// Positioned freestanding on the floor, moved forward away from the back wall (at z = -22)
+rackMesh.position.set(-10.0, -4.5 + 4.1, -17.0); 
+rackMesh.rotation.y = 0.0; // Parallel to back wall
+rackMesh.castShadow = true;
+rackMesh.receiveShadow = true;
+scene.add(rackMesh);
+
+// Large indoor plant near the corner
+const plantGroup = new THREE.Group();
+plantGroup.position.set(-30, -4.5, -18);
+const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.6, 1.6), new THREE.MeshStandardMaterial({ color: 0xc4c2bc, roughness: 0.6 }));
+pot.position.y = 0.8;
+plantGroup.add(pot);
+const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 2.6), new THREE.MeshStandardMaterial({ color: 0x4a5d4e }));
+stem.position.y = 2.4;
+plantGroup.add(stem);
+const leafMat = new THREE.MeshStandardMaterial({ color: 0x3d4e3f, roughness: 0.9 });
+for (let i = 0; i < 6; i++) {
+    const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.5 + i*0.06, 8, 8), leafMat);
+    leaf.position.set(Math.sin(i)*0.6, 3.0 + i*0.25, Math.cos(i)*0.6);
+    plantGroup.add(leaf);
+}
+scene.add(plantGroup);
+
+// 7. RIGHT WALL: PRODUCT & CUSTOMIZATION STORY
+// Wall Typography "WEAR TO HURT" (architectural embossed effect)
+// Wall typography removed
+
+// Fabric Display (3 mounted swatches with thickness)
+const swatchLabels = ['240 GSM', '280 GSM', 'PREMIUM'];
+swatchLabels.forEach((label, idx) => {
+    const swatchGroup = new THREE.Group();
+    swatchGroup.position.set(34.7, 10.5, -16.5 + idx * 2.2);
+    swatchGroup.rotation.y = -Math.PI / 2;
+
+    // Physical thickness backing
+    const swatchBacking = new THREE.Mesh(new THREE.BoxGeometry(1.4, 2.0, 0.15), new THREE.MeshStandardMaterial({ color: 0x18181c, roughness: 0.85 }));
+    swatchGroup.add(swatchBacking);
+
+    // Fabric text label
+    const canvas = document.createElement('canvas');
+    canvas.width = 128;
+    canvas.height = 64;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fafafa';
+    ctx.font = "bold 16px 'Space Grotesk', sans-serif";
+    ctx.textAlign = 'center';
+    ctx.fillText(label, 64, 32);
+
+    const labelMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 0.6), new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true }));
+    labelMesh.position.z = 0.08;
+    swatchGroup.add(labelMesh);
+    scene.add(swatchGroup);
+});
+
+// Floating Display Shelves with LED warm glow
+function makeFloatingShelf(y, z, itemType) {
+    const shelfGroup = new THREE.Group();
+    shelfGroup.position.set(33.5, y, z);
+    shelfGroup.rotation.y = -Math.PI / 2;
+
+    // Slim matte-black shelf plane
+    const shelf = new THREE.Mesh(new THREE.BoxGeometry(4.8, 0.12, 1.2), matteBlackMat);
+    shelfGroup.add(shelf);
+
+    // LED stripe warm glow helper
+    const glow = new THREE.Mesh(new THREE.BoxGeometry(4.4, 0.04, 0.1), new THREE.MeshBasicMaterial({ color: 0xffedd6 }));
+    glow.position.set(0, -0.07, -0.4);
+    shelfGroup.add(glow);
+
+    // Add object on top of shelf
+    if (itemType === 'folded') {
+        const foldedTee = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.25, 1.2), new THREE.MeshStandardMaterial({ color: 0x0a0a0c, roughness: 0.8 }));
+        foldedTee.position.y = 0.2;
+        shelfGroup.add(foldedTee);
+    } else if (itemType === 'cap') {
+        const capGroup = new THREE.Group();
+        capGroup.position.set(0, 0.25, 0);
+        const dome = new THREE.Mesh(new THREE.SphereGeometry(0.4, 16, 16), matteBlackMat);
+        capGroup.add(dome);
+        const brim = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.04, 0.6), matteBlackMat);
+        brim.position.set(0, -0.2, 0.35);
+        capGroup.add(brim);
+        shelfGroup.add(capGroup);
+    } else if (itemType === 'accessory') {
+        const box = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 0.8), new THREE.MeshStandardMaterial({ color: 0x18181c, roughness: 0.8 }));
+        box.position.y = 0.45;
+        shelfGroup.add(box);
+    }
+    scene.add(shelfGroup);
+}
+makeFloatingShelf(8.5, -4, 'folded');
+makeFloatingShelf(8.5, 1, 'cap');
+makeFloatingShelf(8.5, 6, 'accessory');
+
+// 2x3 Grid framed KNIGHTWOLF Graphic Artworks
+function makeGridArtwork(z, y, index) {
+    const artGroup = new THREE.Group();
+    artGroup.position.set(34.8, y, z);
+    artGroup.rotation.y = -Math.PI / 2;
+
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(2.0, 2.5, 0.1), matteBlackMat);
+    artGroup.add(frame);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 320;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fafafa';
+    ctx.fillRect(0,0,256,320);
+
+    // Streetwear geometric lines
+    ctx.fillStyle = '#ff1111';
+    ctx.fillRect(40, 60, 176, 20);
+    ctx.fillStyle = '#111111';
+    ctx.fillRect(40, 100, 176, 160);
+
+    const artMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.85, 2.35), new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(canvas), roughness: 0.9 }));
+    artMesh.position.z = 0.06;
+    artGroup.add(artMesh);
+    scene.add(artGroup);
+}
+for (let i = 0; i < 2; i++) {
+    for (let j = 0; j < 3; j++) {
+        makeGridArtwork(-4 + j * 2.8, 4.2 - i * 3.2, i * 3 + j);
+    }
+}
+
+// Far-Right Floor-to-Ceiling Mirror
+const mirrorGroup = new THREE.Group();
+mirrorGroup.position.set(34.8, 5.0, 14);
+mirrorGroup.rotation.y = -Math.PI / 2;
+// Frame
+const mirrorFrame = new THREE.Mesh(new THREE.BoxGeometry(5.2, 19.2, 0.18), matteBlackMat);
+mirrorGroup.add(mirrorFrame);
+// Reflection panel (High metalness, zero roughness)
+const mirrorGlass = new THREE.Mesh(
+    new THREE.PlaneGeometry(5.0, 19.0),
+    new THREE.MeshStandardMaterial({ color: 0xaaaaaa, roughness: 0.05, metalness: 0.95 })
+);
+mirrorGlass.position.z = 0.1;
+mirrorGroup.add(mirrorGlass);
+scene.add(mirrorGroup);
+
+// Minimal Furniture: low charcoal bench
+const bench = new THREE.Mesh(
+    new THREE.BoxGeometry(5.2, 0.9, 1.5),
+    new THREE.MeshStandardMaterial({ color: 0x222225, roughness: 0.85 })
+);
+bench.position.set(22, -4.05, -12);
+scene.add(bench);
 
 // ─── LIGHTING ─────────────────────────────────────────────────────────────────
-scene.add(new THREE.AmbientLight(0xffffff, 1.4));
-const keyLight = new THREE.DirectionalLight(0xffffff, 1.6);
-keyLight.position.set(4, 8, 10);
-scene.add(keyLight);
-const fillLight = new THREE.DirectionalLight(0xffffff, 0.7);
-fillLight.position.set(-8, 3, 6);
-scene.add(fillLight);
-const rimLight = new THREE.DirectionalLight(0xffffff, 0.6);
-rimLight.position.set(0, 6, -12);
-scene.add(rimLight);
+scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+
+// Key directional sunlight
+const sunLight = new THREE.DirectionalLight(0xffffff, 0.85);
+sunLight.position.set(8, 18, 10);
+sunLight.castShadow = true;
+sunLight.shadow.mapSize.width = 1024;
+sunLight.shadow.mapSize.height = 1024;
+sunLight.shadow.bias = -0.001;
+scene.add(sunLight);
+
+// Ceiling Spotlights directed at targets
+function addSpotlight(x, y, z, tx, ty, tz, intensity, angle) {
+    const spot = new THREE.SpotLight(0xfff5e6, intensity); // Warm 3500K-4000K neutral light color
+    spot.position.set(x, y, z);
+    spot.angle = angle || Math.PI / 6;
+    spot.penumbra = 0.8;
+    spot.decay = 1.2;
+    spot.distance = 55;
+    spot.castShadow = true;
+    spot.shadow.mapSize.width = 512;
+    spot.shadow.mapSize.height = 512;
+
+    const target = new THREE.Object3D();
+    target.position.set(tx, ty, tz);
+    scene.add(target);
+    spot.target = target;
+
+    scene.add(spot);
+}
+// Spotlights pointing directly at T-shirt
+addSpotlight(0, 18, 2, 0, 1.5, 0, 1.4, Math.PI / 5);
+// Accent spotlights for posters
+addSpotlight(-28, 18, -12, -34.8, 9.5, -12, 0.8);
+// Spotlight pointing at wolf emblem and raised physical lettering
+addSpotlight(0, 18, -12, 0, 10, -21.8, 1.0);
+// Accent spotlights for floating shelves and graphic wall
+addSpotlight(28, 18, 1, 34.8, 6.0, 1, 0.8);
 
 // ─── FABRIC TEXTURE GENERATORS ───────────────────────────────────────────────
 function createFabricTex(size, drawFn) {
@@ -500,7 +949,7 @@ function applyMaterialToModel() {
 }
 
 function loadModel(style) {
-    if (tshirtModel) { scene.remove(tshirtModel); tshirtModel = null; }
+    if (tshirtModel) { tshirtGroup.remove(tshirtModel); tshirtModel = null; }
     loader.load(
         MODEL_CONFIGS[style].url,
         (gltf) => {
@@ -508,7 +957,7 @@ function loadModel(style) {
             fitModel(tshirtModel, 7.8);
             applyMaterialToModel();
             repaintStickerCanvas();
-            scene.add(tshirtModel);
+            tshirtGroup.add(tshirtModel);
         },
         undefined,
         err => console.error('Model load error:', err)
@@ -518,12 +967,12 @@ function loadModel(style) {
 // ─── INITIAL LOAD ─────────────────────────────────────────────────────────────
 (function initialLoad() {
     loader.load(
-        MODEL_CONFIGS.regular.url,
+        MODEL_CONFIGS.oversized.url,
         (gltf) => {
             tshirtModel = gltf.scene;
             fitModel(tshirtModel, 7.8);
             applyMaterialToModel();
-            scene.add(tshirtModel);
+            tshirtGroup.add(tshirtModel);
             STATE.loaded = true;
 
             const el = document.getElementById('loader');
@@ -858,7 +1307,7 @@ document.querySelectorAll('.zone-btn').forEach(btn => {
             opt.classList.toggle('active', isCurrentSticker);
         });
 
-        // Natural Orbital Swivel
+        // Natural Camera Orbit Swivel
         const targetAngle = (zone === 'front') ? 0 : Math.PI; 
         const distance = 16;
         const proxy = { angle: (zone === 'front') ? Math.PI : 0 }; 
@@ -947,18 +1396,17 @@ uploadInput.addEventListener('change', (e) => {
 
 // Center Controls triggers
 document.getElementById('ctrl-rotate').addEventListener('click', () => {
-    // slow auto-rotate loop or small nudge
     controls.autoRotate = !controls.autoRotate;
-    controls.autoRotateSpeed = 2.0;
+    controls.autoRotateSpeed = 1.8;
     document.getElementById('ctrl-rotate').classList.toggle('active', controls.autoRotate);
 });
 
 document.getElementById('ctrl-zoom').addEventListener('click', () => {
-    // toggle between zoom configurations
+    // toggle between camera zoom configurations
     const isZoomed = camera.position.z < 14.5;
     gsap.to(camera.position, {
-        z: isZoomed ? 17 : 13.0,
-        y: isZoomed ? 4 : 3.8,
+        z: isZoomed ? 17.0 : 13.0,
+        y: isZoomed ? 4.0 : 3.8,
         duration: 0.8,
         ease: "power2.out",
         onUpdate: () => controls.update()
@@ -979,6 +1427,9 @@ document.getElementById('ctrl-reset').addEventListener('click', () => {
             controls.update();
         }
     });
+    // Reset group shifts if any
+    gsap.to(tshirtGroup.position, { x: 0, y: 0, z: 0, duration: 1.0 });
+    gsap.to(tshirtGroup.rotation, { x: 0, y: 0, z: 0, duration: 1.0 });
 });
 
 // ─── STICKER HOVER / DRAG PREVIEW ─────────────────────────────────────────────
@@ -1017,7 +1468,7 @@ function animate() {
     requestAnimationFrame(animate);
     controls.update();
     
-    // Dynamically control overlay visibility based on camera angle & active zone
+    // Dynamically control overlay visibility based on camera position & active zone
     const overlay = document.getElementById('design-canvas-overlay');
     if (overlay) {
         let isVisible = false;
@@ -1053,7 +1504,7 @@ window.addEventListener('resize', () => {
 });
 
 animate();
-console.log('Knight Wolf Configurator v5.0 — 3-Column Premium Mode');
+console.log('Knight Wolf Configurator v5.0 — Premium Gallery Showroom Mode');
 
 // ─── DYNAMIC STICKER CARD BUILDER ─────────────────────────────────────────────
 document.querySelectorAll('.sticker-opt').forEach(btn => {

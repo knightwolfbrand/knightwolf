@@ -7,14 +7,29 @@
     <meta name="description" content="Configure your custom Knight Wolf premium streetwear in high-fidelity 3D.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@300;400;500;700;900&family=Space+Grotesk:wght@400;700&family=Montserrat:wght@700&family=Poppins:wght@700&family=Roboto:wght@700&family=Orbitron:wght@700&family=Bebas+Neue&family=Anton&family=Archivo+Black&family=Rubik+Mono+One&family=Playfair+Display:wght@700&family=Cormorant+Garamond:ital,wght@1,700&family=Oswald:wght@700&family=Black+Ops+One&family=Permanent+Marker&family=Bungee&family=Teko:wght@700&family=Caveat:wght@700&family=Pacifico&family=Dancing+Script:wght@700&family=Great+Vibes&family=Shadows+Into+Light&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@300;400;500;700;900&family=Space+Grotesk:wght@400;700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@700&family=Poppins:wght@700&family=Roboto:wght@700&family=Orbitron:wght@700&family=Bebas+Neue&family=Anton&family=Archivo+Black&family=Rubik+Mono+One&family=Playfair+Display:wght@700&family=Cormorant+Garamond:ital,wght@1,700&family=Oswald:wght@700&family=Black+Ops+One&family=Permanent+Marker&family=Bungee&family=Teko:wght@700&family=Caveat:wght@700&family=Pacifico&family=Dancing+Script:wght@700&family=Great+Vibes&family=Shadows+Into+Light&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="configurator.css?v=5">
     <!-- GSAP for smooth animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 </head>
 <body>
     <div class="app-container">
-        <!-- LEFT COLUMN: Configurations -->
+        <!-- CENTER COLUMN: Canvas & 3D Viewer (rendered full screen) -->
+        <main class="viewer-section">
+            <div id="canvas-container">
+                <div id="design-canvas-overlay" class="design-canvas-overlay"></div>
+                <!-- Three.js will inject canvas here -->
+                <div id="loader">
+                    <div class="loader-container">
+                        <div class="loader-circle"></div>
+                        <span class="loader-logo">KW</span>
+                    </div>
+                    <span class="loader-text">INITIALIZING DESIGN STUDIO...</span>
+                </div>
+            </div>
+        </main>
+
+        <!-- LEFT COLUMN: Configurations (floating) -->
         <aside class="sidebar-left">
             <header class="sidebar-header-right">
                 <a href="/" class="back-link">← BACK TO SHOP</a>
@@ -40,7 +55,7 @@
                     </div>
                     
                     <div class="fit-cards-container">
-                        <div class="fit-card active" data-style="regular">
+                        <div class="fit-card" data-style="regular">
                             <div class="fit-card-header">
                                 <span class="fit-name">CLASSIC</span>
                                 <span class="check-icon"></span>
@@ -48,7 +63,7 @@
                             <span class="fit-desc">Regular Fit</span>
                         </div>
                         
-                        <div class="fit-card" data-style="oversized">
+                        <div class="fit-card active" data-style="oversized">
                             <div class="fit-card-header">
                                 <span class="fit-name">OVERSIZED</span>
                                 <span class="check-icon"></span>
@@ -74,11 +89,11 @@
                     </div>
                     
                     <div class="color-swatches-row" id="color-options">
-                        <button class="color-swatch-ring active" data-color="#f5f5f5" style="--swatch-color: #ffffff;" title="White"></button>
+                        <button class="color-swatch-ring" data-color="#f5f5f5" style="--swatch-color: #ffffff;" title="White"></button>
                         <button class="color-swatch-ring" data-color="#050505" style="--swatch-color: #050505;" title="Black"></button>
                         <button class="color-swatch-ring" data-color="#949494" style="--swatch-color: #949494;" title="Gray"></button>
                         <button class="color-swatch-ring" data-color="#00d2ff" style="--swatch-color: #00d2ff;" title="Blue"></button>
-                        <button class="color-swatch-ring" data-color="#f5f0cc" style="--swatch-color: #f5f0cc;" title="Cream"></button>
+                        <button class="color-swatch-ring active" data-color="#f5f0cc" style="--swatch-color: #f5f0cc;" title="Cream"></button>
                     </div>
                 </section>
 
@@ -96,23 +111,13 @@
                         <button class="size-btn">XL</button>
                         <button class="size-btn">XXL</button>
                     </div>
+                    
+                    <div class="size-guide-container">
+                        <button class="size-guide-trigger">SIZE GUIDE</button>
+                    </div>
                 </section>
             </div>
         </aside>
-
-        <!-- CENTER COLUMN: Canvas & 3D Viewer -->
-        <main class="viewer-section">
-            <div id="canvas-container">
-                <div id="design-canvas-overlay" class="design-canvas-overlay"></div>
-                <!-- Three.js will inject canvas here -->
-                <div id="loader">
-                    <div class="loader-container">
-                        <div class="loader-circle"></div>
-                        <span class="loader-logo">KW</span>
-                    </div>
-                    <span class="loader-text">INITIALIZING QUANTUM RENDER...</span>
-                </div>
-            </div>
 
 
             <!-- Center Controls Panel -->
